@@ -1,0 +1,11 @@
+Required packages: NLTK, numpy
+    NLTK: conda install -c anaconda nltk
+    numpy: conda install -c anaconda numpy
+
+NLTK parse stuff:
+    """
+    import nltk
+
+    for x in ["words", "tagsets"]:
+        nltk.download(x)
+    """
