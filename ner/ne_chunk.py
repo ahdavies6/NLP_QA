@@ -1,32 +1,23 @@
 import nltk
 
 
-def get_ne_chunks(text):
-    chunks = nltk.ne_chunk(
-        nltk.pos_tag(
-            nltk.word_tokenize(text)
-        )
-    )
-    continuous_chunk = []
-    current_chunk = []
+def get_ne_chunks(sentence):
+    tokens = nltk.word_tokenize(sentence)
+    tagged = nltk.pos_tag(tokens)
+    chunk_tokens = nltk.ne_chunk(tagged)
 
-    for i in chunks:
+    chunks = []
+    constituents = []
+    for i in chunk_tokens:
         if type(i) == nltk.Tree:
-            current_chunk.append(" ".join([token for token, pos in i.leaves()]))
-        elif current_chunk:
-            named_entity = " ".join(current_chunk)
-            if named_entity and named_entity not in continuous_chunk:
-                continuous_chunk.append(named_entity)
-                current_chunk = []
-        else:
-            continue
+            constituents.append(" ".join([token for token, pos in i.leaves()]))
+        elif constituents:
+            entity = " ".join(constituents)
+            if entity:
+                chunks.append(entity)
+                constituents = []
 
-    if continuous_chunk:
-        named_entity = " ".join(current_chunk)
-        if named_entity and named_entity not in continuous_chunk:
-            continuous_chunk.append(named_entity)
-
-    return continuous_chunk
+    return chunks
 
 
 def main():

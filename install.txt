@@ -9,3 +9,10 @@ NLTK parse stuff:
     for x in ["words", "tagsets"]:
         nltk.download(x)
     """
+
+Stanford-CoreNLP:
+    download: https://stanfordnlp.github.io/CoreNLP/download.html
+    extract, cd to folder, then
+    run: java -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer \
+            -preload tokenize,ssplit,pos,lemma,ner,parse,depparse \
+            -status_port 9000 -port 9000 -timeout 15000 &
