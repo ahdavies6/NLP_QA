@@ -10,12 +10,14 @@ text_pattern = r'TEXT:\s*([\s\w\d\S\W\D]*)'
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('qa requires 1 argument, you provided ' + str(len(sys.argv) - 1))
+        sys.exit()
 
     input_file = ''
     try:
         input_file = open(sys.argv[1], 'r+')
     except IOError:
         print('Failed to open ' + str(sys.argv[1]))
+        sys.exit()
 
     stories_filename = input_file.readline().strip()
     story_ids = []
