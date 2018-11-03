@@ -1,4 +1,4 @@
-from sys import argv
+lfrom sys import argv
 
 
 def parse_file(filename):
