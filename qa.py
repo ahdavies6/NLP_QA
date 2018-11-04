@@ -1,5 +1,7 @@
 import re
 import sys
+from ner.text_analyzer import *
+
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
 date_pattern = r'DATE:\s*(.*)\n'
@@ -33,7 +35,7 @@ if __name__ == '__main__':
         headline = re.search(headline_pattern, story).group(1)
         date = re.search(date_pattern, story).group(1)
         text = re.search(text_pattern, story).group(1)
-        story_files[id] = (headline, date, text)
+        story_files[id] = (headline, date, text.replace('\n', ' '))
 
     pass
 
