@@ -1,12 +1,13 @@
 Required packages: NLTK, numpy
     NLTK: conda install -c anaconda nltk
     numpy: conda install -c anaconda numpy
+    gensim conda install -c conda-forge gensim
 
 NLTK parse stuff:
     """
     import nltk
 
-    for x in ["words", "tagsets", "averaged_perceptron_tagger", "stopwords", "wordnet"]:
+    for x in ["words", "tagsets", "averaged_perceptron_tagger", "stopwords", "wordnet", "brown"]:
         nltk.download(x)
     """
 
@@ -16,3 +17,8 @@ Stanford-CoreNLP:
     run: java -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer \
             -preload tokenize,ssplit,pos,lemma,ner,parse,depparse \
             -status_port 9000 -port 9000 -timeout 15000 &
+
+Stanford-NER:
+    https://nlp.stanford.edu/software/CRF-NER.html#Download
+    extract
+    rename extracted dir to 'stanford-ner'

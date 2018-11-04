@@ -14,13 +14,27 @@ question_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Difficulty:\s*(.*)\
 
 def print_answer(story, inquiry, questionID):
     inquiry = nltk.word_tokenize(inquiry)
-    feedback = get_feedback3(story, inquiry)
+    if inquiry[0].lower() == 'where':
+
+        feedback = get_feedback_for_where(story, inquiry)
+    elif inquiry[0].lower() == 'who':
+        feedback = get_feedback_for_who(story, inquiry)
+    else:
+        feedback = get_feedback_with_stemmer(story, inquiry)
     heapq.heapify(feedback)
-    best_sentence = heapq.heappop(feedback)
-    best_sentence = ''.join(best_sentence[1])
 
     print('QuestionID: ' + questionID)
-    print('Answer: ' + best_sentence)
+    if len(feedback) > 0:
+        best_sentence = ''.join(heapq.heappop(feedback)[1])
+        print('Answer: ' + best_sentence)
+
+    if len(feedback) > 0:
+        best_sentence2 = ''.join(heapq.heappop(feedback)[1])
+        print('Answer2: ' + best_sentence2)
+
+    if len(feedback) > 0:
+        best_sentence3 = ''.join(heapq.heappop(feedback)[1])
+        print('Answer3: ' + best_sentence3)
     x=1
 
 
@@ -59,7 +73,7 @@ if __name__ == '__main__':
         question = re.findall(question_pattern, text)
         for match in question:
             print('Question: ' + match[1])
-            print_answer(story_files[id][2], match[1], match[0])
+            print_answer(story_files[id][2], match[1], match[0])        # match[1] is question itself, match[0] is questionID
             print()
 
     x = 100
