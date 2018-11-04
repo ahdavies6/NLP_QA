@@ -102,14 +102,16 @@ def get_feedback_with_word2vec(text, sigwords):
     in_list = []
     expand_list = []
 
-    w2v = Word2Vec(sentences)
+    w2v = Word2Vec([nltk.word_tokenize(sent) for sent in sentences])
     wnl = nltk.stem.WordNetLemmatizer()
 
     for sword in sigwords:
-        add_word = w2v.most_similar(wnl.lemmatize(sword, 'v'), topn=3)
-        for word in add_word:
-            expand_list.append((wnl.lemmatize(word[0], 'v'), word[1]))
-
+        try:
+            add_word = w2v.most_similar(wnl.lemmatize(sword, 'v'), topn=3)
+            for word in add_word:
+                expand_list.append((wnl.lemmatize(word[0], 'v'), word[1]))
+        except:
+            pass
     sigwords = [(wnl.lemmatize(word, 'v'), 1.0) for word in sigwords]
 
     sigwords.extend(expand_list)
