@@ -10,11 +10,6 @@ import nltk
 # from nltk.stem.wordnet import WordNetLemmatizer
 
 
-class QuestionClass(Enum):
-    POLAR = 0
-    WH = 1
-
-
 # class WhQuestions(Enum):
 #     WHO = 0     # also includes "whom", "whose"
 #     WHAT = 1
@@ -27,14 +22,22 @@ class QuestionClass(Enum):
 
 class Question(object):
 
-    # TODO: determine whether to store parse trees or just text
-    def __init__(self, q_class, q_word, verb, subj, iobj, dobj):
-        self.q_class = q_class
-        self.q_word = q_word
-        self.verb = verb
-        self.subj = subj
-        self.iobj = iobj
-        self.dobj = dobj
+    # def __init__(self, q_class, q_word, verb, subj, iobj, dobj):
+    # todo: set this constructor up to accept an initial dictionary
+    def __init__(self):
+        # self.q_class = q_class
+        # self.q_word = q_word
+        # self.verb = verb
+        # self.subj = subj
+        # self.iobj = iobj
+        # self.dobj = dobj
+        self._dependents = {}
+
+    def __getitem__(self, item):
+        return self._dependents[item]
+
+    def __setitem__(self, key, value):
+        self._dependents[key] = value
 
 
 def parse_for(tree, label):
@@ -84,13 +87,42 @@ def get_all_dependents(graph, node):
     return dependents
 
 
-def flatten(monstrosity):
-    order = {}
-    for monster in monstrosity:
-        if isinstance(monster, dict):
-            order[monster['address']] = monster['word']
-        elif isinstance(monster, list):
-            pass
+def put_in_order(dependents, sentence):
+    """
+    :param dependents: (unordered) set of dependents in the sentence
+    :param sentence: (ordered) list of tuples of word tokens [(word1, tag1), (word2, tag2), ...]
+    :return: the dependents, in the order they appear in the sentence
+    """
+
+    # # transform SVO chunks into contiguous strings of words from sentence
+    # subj_ordered = []
+    # iobj_ordered = []
+    # dobj_ordered = []
+    # for word, tag in sentence:
+    #     if word in subj and len([x[0] for x in subj_ordered if x[0] == word]) < len([x for x in subj if x == word]):
+    #         subj_ordered.append((word, tag))
+    #     elif word in iobj and len([x[0] for x in iobj_ordered if x[0] == word]) < len([x for x in iobj if x == word]):
+    #         iobj_ordered.append((word, tag))
+    #     elif word in dobj and len([x[0] for x in dobj_ordered if x[0] == word]) < len([x for x in dobj if x == word]):
+    #         dobj_ordered.append((word, tag))
+
+    potential_order = []
+    for word, tag in sentence:
+        if word in dependents:
+            potential_order.append((word, tag))
+            if len(potential_order) == len(dependents):
+                return potential_order
+        else:
+            potential_order = []
+
+
+# def flatten(monstrosity):
+#     order = {}
+#     for monster in monstrosity:
+#         if isinstance(monster, dict):
+#             order[monster['address']] = monster['word']
+#         elif isinstance(monster, list):
+#             pass
 
 
 def traverse_dep_tree(tree):
@@ -110,11 +142,11 @@ def formulate_question(question):
     q_word = None
     for subtree in q_parsed.subtrees():
         if subtree.label() == "SQ":
-            q_class = QuestionClass.POLAR
+            # q_class = QuestionClass.POLAR
             q_word = next(subtree.subtrees())[0].leaves()[0]
             break
         elif subtree.label() == "SBARQ":
-            q_class = QuestionClass.WH
+            # q_class = QuestionClass.WH
             for sub_subtree in subtree.subtrees():
                 if sub_subtree.label()[0:2] == "WH":
                     q_word = sub_subtree.leaves()[0]
@@ -152,9 +184,9 @@ def formulate_question(question):
             elif dependency.label() == dobj:
                 # dobj = dependency.leaves() + [dependency.label()]
                 dobj = traverse_dep_tree(dependency)
-            # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
-            else:
-                extra.append(dependency.flatten())
+            # # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
+            # else:
+            #     extra.append(dependency.flatten())
         else:
             if dependency == subj:
                 subj = [dependency]
@@ -189,17 +221,31 @@ def formulate_question(question):
     # for i in range(1, len(q_dependencies.nodes)):
     #     sentence.append(q_dependencies.nodes[i]['word'])
 
-    # transform SVO chunks into contiguous strings of words from sentence
-    subj_ordered = []
-    iobj_ordered = []
-    dobj_ordered = []
-    for word, tag in sentence:
-        if word in subj and len([x for x in subj_ordered if x == word]) < len([x for x in subj if x == word]):
-            subj_ordered.append(word)
-        elif word in iobj and len([x for x in iobj_ordered if x == word]) < len([x for x in iobj if x == word]):
-            iobj_ordered.append(word)
-        elif word in dobj and len([x for x in dobj_ordered if x == word]) < len([x for x in dobj if x == word]):
-            dobj_ordered.append(word)
+    subj_final = put_in_order(subj, sentence)
+    iobj_final = put_in_order(iobj, sentence)
+    dobj_final = put_in_order(dobj, sentence)
+
+    q_final = Question()
+    q_final['wh'] = q_word
+    q_final['verb'] = (q_dependencies.root['word'], q_dependencies.root['tag'])
+    q_final['subj'] = subj_final
+    q_final['iobj'] = iobj_final
+    q_final['dobj'] = dobj_final
+
+    return q_final
+
+    # todo: remove deprecated
+    # # transform SVO chunks into contiguous strings of words from sentence
+    # subj_ordered = []
+    # iobj_ordered = []
+    # dobj_ordered = []
+    # for word, tag in sentence:
+    #     if word in subj and len([x[0] for x in subj_ordered if x[0] == word]) < len([x for x in subj if x == word]):
+    #         subj_ordered.append((word, tag))
+    #     elif word in iobj and len([x[0] for x in iobj_ordered if x[0] == word]) < len([x for x in iobj if x == word]):
+    #         iobj_ordered.append((word, tag))
+    #     elif word in dobj and len([x[0] for x in dobj_ordered if x[0] == word]) < len([x for x in dobj if x == word]):
+    #         dobj_ordered.append((word, tag))
 
     # # todo: transform sentence into pieces of parse tree
     # subj_phrases = []
@@ -214,25 +260,18 @@ def formulate_question(question):
     #     for i in range(min(len(subtree.leaves()), len(subj_ordered))):
     #         subj_ordered.pop(0)
 
-        # # shorter subtree
-        # for i, word in enumerate(subtree.leaves()):
-        #     if word != subj_ordered[i]:
-        #         break
-        # # shorter subj_ordered
-        # for i, (word, tag) in enumerate(subj_ordered):
-        #     if word != subtree.leaves()[i]:
-        #         break
-
-    return Question(
-        q_class,
-        q_word,
-        verb,
-        subj_ordered,
-        iobj_ordered,
-        dobj_ordered
-    )
+    # return Question(
+    #     q_class,
+    #     q_word,
+    #     verb,
+    #     subj_ordered,
+    #     iobj_ordered,
+    #     dobj_ordered
+    # )
 
 
 if __name__ == "__main__":
-    formulate_question("Did the man in blue overalls give Lisa the memo?")
-    formulate_question("Why did the man in blue overalls give Lisa the memo?")
+    # a = formulate_question("Did the man in blue overalls give Lisa the memo?")
+    # b = formulate_question("Why did the man in blue overalls give Lisa the memo?")
+    c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
+    x = None
