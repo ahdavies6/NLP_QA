@@ -1,5 +1,40 @@
+from enum import Enum
 from nltk import Tree
-from nltk.parse.corenlp import CoreNLPParser
+from nltk.parse.corenlp import CoreNLPParser, CoreNLPDependencyParser
+from nltk.parse.dependencygraph import DependencyGraph
+# from nltk.parse.bllip import BllipParser
+import nltk
+
+
+# todo: try this out
+# from nltk.stem.wordnet import WordNetLemmatizer
+
+
+class QuestionClass(Enum):
+    POLAR = 0
+    WH = 1
+
+
+# class WhQuestions(Enum):
+#     WHO = 0     # also includes "whom", "whose"
+#     WHAT = 1
+#     WHERE = 2
+#     WHEN = 3
+#     WHY = 4
+#     HOW = 5
+#     WHICH = 6
+
+
+class Question(object):
+
+    # TODO: determine whether to store parse trees or just text
+    def __init__(self, q_class, q_word, verb, subj, iobj, dobj):
+        self.q_class = q_class
+        self.q_word = q_word
+        self.verb = verb
+        self.subj = subj
+        self.iobj = iobj
+        self.dobj = dobj
 
 
 def parse_for(tree, label):
@@ -9,77 +44,195 @@ def parse_for(tree, label):
     :return: Returns a list of Tree representations of all non-terminals in the tree with the specified label.
         If none can be found, returns None
     """
-    trees = []
-    if tree.label() == label:
-        trees.append(tree)
-    else:
-        for child in tree:
-            if isinstance(child, Tree):
-                grandchildren = parse_for(child, label)
-                if grandchildren is not None:
-                    for grandchild in grandchildren:
-                        trees.append(grandchild)
-    return trees if trees else None
+    # trees = []
+    # if tree.label() == label:
+    #     trees.append(tree)
+    # else:
+    #     for child in tree:
+    #         if isinstance(child, Tree):
+    #             grandchildren = parse_for(child, label)
+    #             if grandchildren is not None:
+    #                 for grandchild in grandchildren:
+    #                     trees.append(grandchild)
+    # return trees if trees else None
+
+    # trees = []
+    # assert isinstance(tree, Tree)
+    # for tree in tree.subtrees():
+    #     if tree.label() == label:
+    #         trees.append(tree)
+    # return trees if trees else None
+
+    subtrees = [x for x in tree.subtrees(filter=lambda f: f.label() == label)]
+    return subtrees if subtrees else None
 
 
-# unittest portion
-import unittest
+def get_all_dependents(graph, node):
+    dependents = []
+    for key in node['deps']:
+        second_order_dependents = []
+        for i in node['deps'][key]:
+            third_order_dependents = get_all_dependents(graph, graph.nodes[i])
+            if third_order_dependents:
+                second_order_dependents.append((graph.nodes[i], third_order_dependents))
+            else:
+                second_order_dependents.append(graph.nodes[i])
+        if second_order_dependents:
+            dependents.append((node, second_order_dependents))
+        else:
+            dependents.append(node)
+    return dependents
 
 
-class MyTestCase(unittest.TestCase):
-    def test_multiple(self):
-        sentence = "George and Mary ate dinner."
-        parsed = next(CoreNLPParser().raw_parse(sentence))
-        self.assertEqual(
-            (parse_for(parsed, "NNP")[0].leaves()[0], parse_for(parsed, "NNP")[1].leaves()[0]),
-            ("George", "Mary")
-        )
-        self.assertIsNone(parse_for(parsed, "NOPE"))
-
-    # todo: migrate some of the logic from this method into the answer identification code
-    def test_q_to_a(self):
-        # parse question
-        question = "Where did Fred find the cookies?"
-        q_parsed = next(CoreNLPParser().raw_parse(question))
-        q_named = parse_for(q_parsed, "NNP")
-        q_vp = parse_for(q_parsed, "VP")
-        q_vb = parse_for(q_vp[0], "VB")
-        q_obj = parse_for(q_vp[0], "NP")
-        self.assertEqual(1, len(q_named))
-        self.assertEqual("Fred", " ".join(q_named[0].leaves()))
-        self.assertEqual(1, len(q_vp))
-        self.assertEqual("find the cookies", " ".join(q_vp[0].leaves()))
-        self.assertEqual(1, len(q_vb))
-        self.assertEqual("find", " ".join(q_vb[0].leaves()))
-        self.assertEqual(1, len(q_obj))
-        self.assertEqual("the cookies", " ".join(q_obj[0].leaves()))
-
-        # parse answer
-        answer = "Fred found the cookies in the cupboard."
-        a_parsed = next(CoreNLPParser().raw_parse(answer))
-        a_named = parse_for(a_parsed, "NNP")
-        a_vp = parse_for(a_parsed, "VP")
-        a_vbd = parse_for(a_vp[0], "VBD")
-        a_nps = parse_for(a_vp[0], "NP")
-        a_pp = parse_for(a_vp[0], "PP")
-        self.assertEqual(1, len(a_named))
-        self.assertEqual("Fred", " ".join(a_named[0].leaves()))
-        self.assertEqual(1, len(a_vp))
-        self.assertEqual("found the cookies in the cupboard", " ".join(a_vp[0].leaves()))
-        self.assertEqual(1, len(a_vbd))
-        self.assertEqual("found", " ".join(a_vbd[0].leaves()))
-        self.assertEqual(2, len(a_nps))
-        self.assertEqual("the cookies", " ".join(a_nps[0].leaves()))
-        self.assertEqual("the cupboard", " ".join(a_nps[1].leaves()))
-        self.assertEqual(1, len(a_pp))
-        self.assertEqual("in the cupboard", " ".join(a_pp[0].leaves()))
-
-        # "find" (verify) answer of question
-        self.assertEqual(q_named, a_named)
-        # self.assertEqual(q_vbd, a_vbd)     # but past tense, though!
-        self.assertEqual(q_obj[0], a_nps[0])
-        # and PP is the answer, since we're dealing with "where"!
+def flatten(monstrosity):
+    order = {}
+    for monster in monstrosity:
+        if isinstance(monster, dict):
+            order[monster['address']] = monster['word']
+        elif isinstance(monster, list):
+            pass
 
 
-if __name__ == '__main__':
-    unittest.main()
+def traverse_dep_tree(tree):
+    nodes = [tree.label()]
+    for subtree in tree:
+        if isinstance(subtree, Tree):
+            nodes.extend(traverse_dep_tree(subtree))
+        elif isinstance(subtree, str):
+            nodes.append(subtree)
+    return nodes
+
+
+def formulate_question(question):
+    # gather syntactic data from parse
+    q_parsed = next(CoreNLPParser().raw_parse(question))
+    q_class = None
+    q_word = None
+    for subtree in q_parsed.subtrees():
+        if subtree.label() == "SQ":
+            q_class = QuestionClass.POLAR
+            q_word = next(subtree.subtrees())[0].leaves()[0]
+            break
+        elif subtree.label() == "SBARQ":
+            q_class = QuestionClass.WH
+            for sub_subtree in subtree.subtrees():
+                if sub_subtree.label()[0:2] == "WH":
+                    q_word = sub_subtree.leaves()[0]
+                    break
+            break
+
+    # gather SVO data from dependency parse
+    q_dependencies = next(CoreNLPDependencyParser().raw_parse(question))
+    assert isinstance(q_dependencies, DependencyGraph)
+    t_dependencies = list(q_dependencies.triples())
+    verb = q_dependencies.root['word']
+    subj = None
+    iobj = None
+    dobj = None
+    extra = []
+    # TODO: get dependents of subj, dobj, iobj, etc.
+    for (head, head_pos), relationship, (dependent, dependent_pos) in t_dependencies:
+        # item 1: (head, POS); item 2: relationship; item 3: (dependent, POS)
+        if relationship == "nsubj" and head == verb:
+            subj = dependent
+        elif relationship == "iobj" and head == verb:
+            iobj = dependent
+        elif relationship == "dobj" and head == verb:
+            dobj = dependent
+
+    # dobjs = get_all_dependents(q_dependency, q_dependency.nodes[q_dependency.root['deps']['dobj'][0]])
+    for dependency in q_dependencies.tree():
+        if isinstance(dependency, Tree):
+            if dependency.label() == subj:
+                # subj = dependency.leaves() + [dependency.label()]
+                subj = traverse_dep_tree(dependency)
+            elif dependency.label() == iobj:
+                # iobj = dependency.leaves() + [dependency.label()]
+                iobj = traverse_dep_tree(dependency)
+            elif dependency.label() == dobj:
+                # dobj = dependency.leaves() + [dependency.label()]
+                dobj = traverse_dep_tree(dependency)
+            # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
+            else:
+                extra.append(dependency.flatten())
+        else:
+            if dependency == subj:
+                subj = [dependency]
+            elif dependency == iobj:
+                iobj = [dependency]
+            elif dependency == dobj:
+                dobj = [dependency]
+
+    # get full sentence as S = [(word1, tag1), ...]
+    sentence = []
+    for i in range(1, len(q_dependencies.nodes)):
+        sentence.append((q_dependencies.nodes[i]['word'], q_dependencies.nodes[i]['tag']))
+
+    # # get phrase from "argument" (e.g. subj, iobj, etc.)
+    # for subtree in q_parsed.subtrees():
+    #     assert isinstance(subtree, Tree)
+    #     if {*subtree.leaves()} == {*subj}:
+    #         subj = subtree
+    #     elif {*subtree.leaves()} == {*iobj}:
+    #         iobj = subtree
+    #     elif {*subtree.leaves()} == {*dobj}:
+    #         dobj = subtree
+    #     # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
+    #     else:
+    #         pass
+
+    # TODO: try this!
+    # temp = CoreNLPParser().make_tree(q_thing)
+
+    # # get full sentence as S = [(word1, tag1), ...]
+    # sentence = []
+    # for i in range(1, len(q_dependencies.nodes)):
+    #     sentence.append(q_dependencies.nodes[i]['word'])
+
+    # transform SVO chunks into contiguous strings of words from sentence
+    subj_ordered = []
+    iobj_ordered = []
+    dobj_ordered = []
+    for word, tag in sentence:
+        if word in subj and len([x for x in subj_ordered if x == word]) < len([x for x in subj if x == word]):
+            subj_ordered.append(word)
+        elif word in iobj and len([x for x in iobj_ordered if x == word]) < len([x for x in iobj if x == word]):
+            iobj_ordered.append(word)
+        elif word in dobj and len([x for x in dobj_ordered if x == word]) < len([x for x in dobj if x == word]):
+            dobj_ordered.append(word)
+
+    # # todo: transform sentence into pieces of parse tree
+    # subj_phrases = []
+    # iobj_phrases = []
+    # dobj_phrases = []
+    # for subtree in q_parsed.subtrees():
+    #     assert isinstance(subtree, Tree)
+    #     for i in range(min(len(subtree.leaves()), len(subj_ordered))):
+    #         if subtree.leaves()[i] != subj_ordered:
+    #             break
+    #     subj_phrases.append(subtree)
+    #     for i in range(min(len(subtree.leaves()), len(subj_ordered))):
+    #         subj_ordered.pop(0)
+
+        # # shorter subtree
+        # for i, word in enumerate(subtree.leaves()):
+        #     if word != subj_ordered[i]:
+        #         break
+        # # shorter subj_ordered
+        # for i, (word, tag) in enumerate(subj_ordered):
+        #     if word != subtree.leaves()[i]:
+        #         break
+
+    return Question(
+        q_class,
+        q_word,
+        verb,
+        subj_ordered,
+        iobj_ordered,
+        dobj_ordered
+    )
+
+
+if __name__ == "__main__":
+    formulate_question("Did the man in blue overalls give Lisa the memo?")
+    formulate_question("Why did the man in blue overalls give Lisa the memo?")

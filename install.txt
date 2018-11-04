@@ -13,6 +13,6 @@ NLTK parse stuff:
 Stanford-CoreNLP:
     download: https://stanfordnlp.github.io/CoreNLP/download.html
     extract, cd to folder, then
-    run: java -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer \
+    run: java -Xmx1024M -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer \
             -preload tokenize,ssplit,pos,lemma,ner,parse,depparse \
             -status_port 9000 -port 9000 -timeout 15000 &

@@ -15,7 +15,7 @@ if __name__ == '__main__':
     try:
         input_file = open(sys.argv[1], 'r+')
     except IOError:
-        print('Failed to open ' + str(sys.argv[1]))
+        print('Failed to open {}'.format(sys.argv[1]))
 
     stories_filename = input_file.readline().strip()
     story_ids = []
