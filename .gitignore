@@ -1,4 +1,5 @@
 .idea/
 stanford-parser/
 stanford-corenlp/
-stanford-ner
+stanford-ner/
+.DS_Store
