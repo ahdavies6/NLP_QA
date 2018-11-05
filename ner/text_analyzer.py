@@ -1,8 +1,6 @@
 from nltk.tag import StanfordNERTagger
 from nltk.parse.corenlp import CoreNLPParser
-from gensim.models import Word2Vec
 import nltk
-from nltk.corpus import stopwords
 from syntax import parse
 import os
 
@@ -23,6 +21,7 @@ def lemmatize(text, pos: str='v'):
         return _wnl.lemmatize(text, pos)
 
 
+# Converts a tagged sentence into a string.
 def restring(sentence):
     restring = []
     for word in sentence:
@@ -58,6 +57,8 @@ def squash(tagged_sentence):
     return final_form
 
 
+# Function assumes we have only a tagged sentence, similar to squashed or flattened sentences.
+# Used to convert a sentence's 3-letter, specialized pos tags, into 2-letter, generalized tags.
 def normalize_forms(tagged_sentence):
     final_form = []
     squash_class = ['EX', 'TO', 'DT', 'CC']
@@ -67,6 +68,16 @@ def normalize_forms(tagged_sentence):
         elif len(sub_form[1]) > 2:
             final_form.append((sub_form[0], sub_form[1][:2]))
     return final_form
+
+
+def get_words_with_tag_x(tagged_sentence, tag):
+    x_words = []
+    for word in tagged_sentence:
+        if word[1] is tag:
+            x_words.append(word)
+
+    return x_words
+
 
 def get_feedback(text, nes, sigwords):
     model = '../stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
@@ -88,7 +99,7 @@ def get_prospects_simple(text, sigwords):
         if count > 0:
             in_list.append((-count, sentence))
 
-    return sort(in_list)
+    return sorted(in_list)
 
 
 def get_prospects_with_stemmer(text, sigwords):
@@ -137,7 +148,6 @@ def get_prospects_with_lemmatizer2(text, question_form):
     sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(question_form)), binary=True)))
     ps_sentences = []
 
-
     for sentence in sentences:
         count = 0
         in_word = []
@@ -178,8 +188,6 @@ def get_prospects_with_lemmatizer2(text, question_form):
     return sorted(in_list)
 
 
-
-
 # def get_prospects_with_word2vec(text, sigwords):
 #     sentences = nltk.sent_tokenize(text)
 #
@@ -215,7 +223,7 @@ def get_prospects_with_lemmatizer2(text, question_form):
 #     return sorted(in_list)
 
 def get_prospects_for_where(text, sigwords):
-    sentences = get_feedback_with_stemmer(text, sigwords)
+    sentences = get_prospects_with_stemmer(text, sigwords)
 
     model = os.getcwd() + '/stanford-ner/classifiers/english.muc.7class.distsim.crf.ser.gz'
     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
@@ -231,6 +239,7 @@ def get_prospects_for_where(text, sigwords):
                 break
 
     return sorted(in_list)
+
 
 def get_prospects_for_who(text, sigwords):
     sentences = get_feedback_with_lemmatizer(text, sigwords)

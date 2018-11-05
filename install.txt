@@ -7,7 +7,7 @@ NLTK parse stuff:
     """
     import nltk
 
-    for x in ["words", "tagsets", "averaged_perceptron_tagger", "stopwords", "wordnet", "brown"]:
+    for x in ["words", "tagsets", "averaged_perceptron_tagger", "wordnet"]:
         nltk.download(x)
     """
 
