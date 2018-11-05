@@ -25,18 +25,21 @@ class Sentence(object):
     def __init__(self, dependents=None):
         self._dependents = dependents if dependents else {}
 
-    def __getitem__(self, key):
-        return self._dependents.get(key)
-
-    def __setitem__(self, key, value):
-        self._dependents[key] = value
-
 
 class Question(Sentence):
 
     def __init__(self, question_word, dependents=None):
         super().__init__(dependents)
         self._dependents['qword'] = [question_word]
+
+    def __getitem__(self, key):
+        return self._dependents.get(key)
+
+    def __setitem__(self, key, value):
+        self._dependents[key] = value
+
+    def __contains__(self, item):
+        return item in self._dependents
 
 
 def parse_for(tree, label):
