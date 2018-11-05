@@ -32,23 +32,42 @@ def formulate_question(question_sentence):
     # find the "question word" (see: "5 W's", "WH word") for the question
     q_parsed = next(CoreNLPParser().raw_parse(question_sentence))
     q_word = None
+    # try out the normal constructions to find a question
     for subtree in q_parsed.subtrees():
-        if subtree.label() == "SBARQ":
+        if subtree.label() in ["SBARQ", "SBAR", "SINV"]:
             for sub_subtree in subtree.subtrees():
-                assert isinstance(sub_subtree, Tree)
                 if sub_subtree.label()[0] == "W" and sub_subtree.label()[0:2] != "WH":
                     q_word = (sub_subtree.leaves()[0], sub_subtree.label())
                     break
             break
+    # the normal constructions didn't work; just grab the first question word
+    if q_word is None:
+        for subtree in q_parsed.subtrees():
+            if subtree.label()[0] == "W" and subtree.label()[0:2] != "WH":
+                q_word = (subtree.leaves()[0], subtree.label())
 
     return Question(get_sentence(question_sentence), q_word)
 
 
 if __name__ == "__main__":
-    # a = formulate_question("Did the man in blue overalls give Lisa the memo?")
     # b = formulate_question("Why did the man in blue overalls give Lisa the memo?")
     # c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
-    d = formulate_question(
-        "Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?"
+    # d = formulate_question(
+    #     "Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?"
+    # )
+    # e = formulate_question(
+    #     "According to Bushie , what should the schools do to combat racism?"
+    # )
+    # f = formulate_question(
+    #     " Of which province in Canada was Stanley Faulder a native?"
+    # )
+    g = formulate_question(
+        "Besides being very strong , what are the advantages of BioSteel?"
+    )
+    h = formulate_question(
+        "According to NATO spokesman Jamie Shea , how is troop deployment going?"
+    )
+    i = formulate_question(
+        "According to their Quebec office , how did McDonald 's feel about the vote to unionize the Montreal franchise?"
     )
     x = None
