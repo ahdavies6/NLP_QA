@@ -1,4 +1,26 @@
-from parse import *
+from parse import DependencyNode, get_sentence
+from nltk import Tree
+from nltk.parse.corenlp import CoreNLPParser
+
+
+class Question(object):
+
+    def __init__(self, sentence_structure, question_word):
+        self._root_node = sentence_structure
+        self._q_pair = question_word
+
+    def __str__(self):
+        return self._root_node.__str__()
+
+    def __getitem__(self, item):
+        if item == 'qword':
+            # todo: get the actual structure (and then remove self._q_word)
+            return self._q_pair
+        else:
+            return self._root_node.__getitem__(item)
+
+    def __contains__(self, item):
+        return self._root_node.__contains__(item)
 
 
 def formulate_question(question_sentence):
@@ -19,19 +41,14 @@ def formulate_question(question_sentence):
                     break
             break
 
-    sentence = get_sentence(question_sentence)
-    sentence['qword'] = q_word
-    sentence.__class__ = Question   # "cast" as a Question
-
-    return sentence
+    return Question(get_sentence(question_sentence), q_word)
 
 
 if __name__ == "__main__":
     # a = formulate_question("Did the man in blue overalls give Lisa the memo?")
     # b = formulate_question("Why did the man in blue overalls give Lisa the memo?")
     # c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
-    d = formulate_question("Who is the principal of South Queens Junior High School?")
-    # todo: figure out how to deal with a nested clause like this
-    # e = formulate_question("If you were a student, how much would a club membership cost you?")
-    f = formulate_question("Where is South Queens Junior High School?")
+    d = formulate_question(
+        "Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?"
+    )
     x = None
