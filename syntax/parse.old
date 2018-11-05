@@ -20,23 +20,23 @@ import nltk
 #     WHICH = 6
 
 
-class Sentence(object):
+class Question(object):
 
+    # def __init__(self, q_class, q_word, verb, subj, iobj, dobj):
     def __init__(self, dependents=None):
+        # self.q_class = q_class
+        # self.q_word = q_word
+        # self.verb = verb
+        # self.subj = subj
+        # self.iobj = iobj
+        # self.dobj = dobj
         self._dependents = dependents if dependents else {}
 
-    def __getitem__(self, key):
-        return self._dependents.get(key)
+    def __getitem__(self, item):
+        return self._dependents[item]
 
     def __setitem__(self, key, value):
         self._dependents[key] = value
-
-
-class Question(Sentence):
-
-    def __init__(self, question_word, dependents=None):
-        super().__init__(dependents)
-        self._dependents['qword'] = [question_word]
 
 
 def parse_for(tree, label):
@@ -134,38 +134,47 @@ def traverse_dep_tree(tree):
     return nodes
 
 
-# TODO: THIS!!!
-# def get_nested_dependencies(dependency, dependency_list):
-#     # note: assume root has already been established (e.g. dependency = {'root': dependency} is already done)
-#     dependencies = {'root': dependency}
-#     for head, relationship, dependent in dependency_list:
-#         for head in
-
-
 def formulate_question(question_sentence):
     """
     Formulates a Question object from question_sentence
     :param question_sentence: a string of the question sentence
     :return: a Question object representing the dependency structure of the question
     """
-    # gather syntactic data from parse
-    q_parsed = next(CoreNLPParser().raw_parse(question_sentence))
-    q_word = None
-    for subtree in q_parsed.subtrees():
-        if subtree.label() == "SBARQ":
-            for sub_subtree in subtree.subtrees():
-                assert isinstance(sub_subtree, Tree)
-                if sub_subtree.label()[0] == "W" and sub_subtree.label()[0:2] != "WH":
-                    q_word = (sub_subtree.leaves()[0], sub_subtree.label())
-                    break
-            break
+    # # gather syntactic data from parse
+    # q_parsed = next(CoreNLPParser().raw_parse(question_sentence))
+    # q_word = None
+    # for subtree in q_parsed.subtrees():
+    #     if subtree.label() == "SQ":
+    #         # q_class = QuestionClass.POLAR
+    #         q_word = next(subtree.subtrees())[0].leaves()[0]
+    #         break
+    #     elif subtree.label() == "SBARQ":
+    #         # q_class = QuestionClass.WH
+    #         for sub_subtree in subtree.subtrees():
+    #             if sub_subtree.label()[0:2] == "WH":
+    #                 q_word = sub_subtree.leaves()[0]
+    #                 break
+    #         break
 
     # gather SVO data from dependency parse
     q_dependency_graph = next(CoreNLPDependencyParser().raw_parse(question_sentence))
+    assert isinstance(q_dependency_graph, DependencyGraph)
     root = (q_dependency_graph.root['word'], q_dependency_graph.root['tag'])
     q_dependency_list = list(q_dependency_graph.triples())
-    q_heads = {'root': root}
+    # verb = q_dependencies.root['word']
+    # subj = None
+    # iobj = None
+    # dobj = None
+    # extra = []
+    q_heads = {"root": root}
     for head, relationship, dependent in q_dependency_list:
+        # item 1: (head, POS); item 2: relationship; item 3: (dependent, POS)
+        # if relationship == "nsubj" and head == verb:
+        #     subj = dependent
+        # elif relationship == "iobj" and head == verb:
+        #     iobj = dependent
+        # elif relationship == "dobj" and head == verb:
+        #     dobj = dependent
         if head == root:
             q_heads[relationship] = dependent
 
@@ -240,7 +249,7 @@ def formulate_question(question_sentence):
     # q_final['iobj'] = iobj_final
     # q_final['dobj'] = dobj_final
 
-    q_final = Question(q_word, final_dependencies)
+    q_final = Question(final_dependencies)
 
     return q_final
 
@@ -283,7 +292,7 @@ def formulate_question(question_sentence):
 if __name__ == "__main__":
     # a = formulate_question("Did the man in blue overalls give Lisa the memo?")
     # b = formulate_question("Why did the man in blue overalls give Lisa the memo?")
-    # c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
+    c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
     d = formulate_question("Who is the principal of South Queens Junior High School?")
     # todo: figure out how to deal with a nested clause like this
     # e = formulate_question("If you were a student, how much would a club membership cost you?")
