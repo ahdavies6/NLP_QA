@@ -2,8 +2,23 @@ from nltk.tag import StanfordNERTagger
 from nltk.parse.corenlp import CoreNLPParser
 from gensim.models import Word2Vec
 import nltk
-from nltk.corpus import stopwords, brown
+from nltk.corpus import stopwords
+from syntax import parse
 import os
+
+
+# Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
+def lemmatize(text, pos: str='v'):
+    wnl = nltk.stem.WordNetLemmatizer()
+    if type(text) is not list:
+        text_list = nltk.word_tokenize(text)
+
+    if len(text_list) > 1:
+        wnl_sentence = [wnl.lemmatize(word, pos) for word in text_list]
+
+        return wnl_sentence
+    else:
+        return wnl.lemmatize(text, pos)
 
 
 def get_feedback(text, nes, sigwords):
@@ -81,14 +96,11 @@ def get_feedback_with_lemmatizer(text, sigwords):
 
     stopword = set(stopwords.words('english'))
 
-    wnl = nltk.stem.WordNetLemmatizer()
-
     for sentence in sentences:
         count = 0
-        tk_sentence = nltk.word_tokenize(sentence)
-        wnl_sentence = [wnl.lemmatize(word, 'v') for word in tk_sentence]
+        lm_sentence = lemmatize(sentence)
         for word in sigwords:
-            if wnl.lemmatize(word, 'v') in wnl_sentence and word not in stopword:
+            if lemmatize(word) in lm_sentence and word not in stopword:
                 count += sentence.count(word)
 
         if count > 0:
@@ -96,39 +108,51 @@ def get_feedback_with_lemmatizer(text, sigwords):
 
     return in_list
 
-def get_feedback_with_word2vec(text, sigwords):
+def get_feedback_with_lemmatizer2(text, question_form):
     sentences = nltk.sent_tokenize(text)
 
     in_list = []
-    expand_list = []
-
-    w2v = Word2Vec([nltk.word_tokenize(sent) for sent in sentences])
-    wnl = nltk.stem.WordNetLemmatizer()
-
-    for sword in sigwords:
-        try:
-            add_word = w2v.most_similar(wnl.lemmatize(sword, 'v'), topn=3)
-            for word in add_word:
-                expand_list.append((wnl.lemmatize(word[0], 'v'), word[1]))
-        except:
-            pass
-    sigwords = [(wnl.lemmatize(word, 'v'), 1.0) for word in sigwords]
-
-    sigwords.extend(expand_list)
 
     for sentence in sentences:
-        similarity = 0
-        count = 0
-        tk_sentence = [wnl.lemmatize(word, 'v') for word in nltk.word_tokenize(sentence)]
-        for word in sigwords:
-            if word[0] in tk_sentence:
-                similarity += word[1]
-                count += 1
+        ps_sentence = nltk.ne_chunk(lemmatize(sentence))
 
-        if count > 0:
-            in_list.append((-similarity/len(sentence), sentence))
 
-    return sorted(in_list)
+
+
+
+# def get_feedback_with_word2vec(text, sigwords):
+#     sentences = nltk.sent_tokenize(text)
+#
+#     in_list = []
+#     expand_list = []
+#
+#     w2v = Word2Vec([nltk.word_tokenize(sent) for sent in sentences])
+#     wnl = nltk.stem.WordNetLemmatizer()
+#
+#     for sword in sigwords:
+#         try:
+#             add_word = w2v.most_similar(wnl.lemmatize(sword, 'v'), topn=3)
+#             for word in add_word:
+#                 expand_list.append((wnl.lemmatize(word[0], 'v'), word[1]))
+#         except:
+#             pass
+#     sigwords = [(wnl.lemmatize(word, 'v'), 1.0) for word in sigwords]
+#
+#     sigwords.extend(expand_list)
+#
+#     for sentence in sentences:
+#         similarity = 0
+#         count = 0
+#         tk_sentence = lemmatize(sentence)
+#         for word in sigwords:
+#             if word[0] in tk_sentence:
+#                 similarity += word[1]
+#                 count += 1
+#
+#         if count > 0:
+#             in_list.append((-similarity/len(sentence), sentence))
+#
+#     return sorted(in_list)
 
 def get_feedback_for_where(text, sigwords):
     sentences = get_feedback_with_stemmer(text, sigwords)
@@ -149,7 +173,7 @@ def get_feedback_for_where(text, sigwords):
     return sorted(in_list)
 
 def get_feedback_for_who(text, sigwords):
-    sentences = get_feedback_with_word2vec(text, sigwords)
+    sentences = get_feedback_with_lemmatizer(text, sigwords)
 
     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
