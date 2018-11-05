@@ -23,15 +23,14 @@ import nltk
 class Question(object):
 
     # def __init__(self, q_class, q_word, verb, subj, iobj, dobj):
-    # todo: set this constructor up to accept an initial dictionary
-    def __init__(self):
+    def __init__(self, dependents=None):
         # self.q_class = q_class
         # self.q_word = q_word
         # self.verb = verb
         # self.subj = subj
         # self.iobj = iobj
         # self.dobj = dobj
-        self._dependents = {}
+        self._dependents = dependents if dependents else {}
 
     def __getitem__(self, item):
         return self._dependents[item]
@@ -138,7 +137,6 @@ def traverse_dep_tree(tree):
 def formulate_question(question):
     # gather syntactic data from parse
     q_parsed = next(CoreNLPParser().raw_parse(question))
-    q_class = None
     q_word = None
     for subtree in q_parsed.subtrees():
         if subtree.label() == "SQ":
@@ -157,43 +155,49 @@ def formulate_question(question):
     q_dependencies = next(CoreNLPDependencyParser().raw_parse(question))
     assert isinstance(q_dependencies, DependencyGraph)
     t_dependencies = list(q_dependencies.triples())
-    verb = q_dependencies.root['word']
-    subj = None
-    iobj = None
-    dobj = None
-    extra = []
-    # TODO: get dependents of subj, dobj, iobj, etc.
-    for (head, head_pos), relationship, (dependent, dependent_pos) in t_dependencies:
+    # verb = q_dependencies.root['word']
+    verb_new = (q_dependencies.root['word'], q_dependencies.root['tag'])
+    # subj = None
+    # iobj = None
+    # dobj = None
+    # extra = []
+    dependent_heads = {"root": verb_new}
+    for head, relationship, dependent in t_dependencies:
         # item 1: (head, POS); item 2: relationship; item 3: (dependent, POS)
-        if relationship == "nsubj" and head == verb:
-            subj = dependent
-        elif relationship == "iobj" and head == verb:
-            iobj = dependent
-        elif relationship == "dobj" and head == verb:
-            dobj = dependent
+        # if relationship == "nsubj" and head == verb:
+        #     subj = dependent
+        # elif relationship == "iobj" and head == verb:
+        #     iobj = dependent
+        # elif relationship == "dobj" and head == verb:
+        #     dobj = dependent
+        if head == verb_new:
+            dependent_heads[relationship] = dependent
 
     # dobjs = get_all_dependents(q_dependency, q_dependency.nodes[q_dependency.root['deps']['dobj'][0]])
+    dependency_string_sets = {}     # keys are the head word, values are the fully traversed string
     for dependency in q_dependencies.tree():
         if isinstance(dependency, Tree):
-            if dependency.label() == subj:
-                # subj = dependency.leaves() + [dependency.label()]
-                subj = traverse_dep_tree(dependency)
-            elif dependency.label() == iobj:
-                # iobj = dependency.leaves() + [dependency.label()]
-                iobj = traverse_dep_tree(dependency)
-            elif dependency.label() == dobj:
-                # dobj = dependency.leaves() + [dependency.label()]
-                dobj = traverse_dep_tree(dependency)
-            # # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
-            # else:
-            #     extra.append(dependency.flatten())
-        else:
-            if dependency == subj:
-                subj = [dependency]
-            elif dependency == iobj:
-                iobj = [dependency]
-            elif dependency == dobj:
-                dobj = [dependency]
+            # if dependency.label() == subj:
+            #     # subj = dependency.leaves() + [dependency.label()]
+            #     subj = traverse_dep_tree(dependency)
+            # elif dependency.label() == iobj:
+            #     # iobj = dependency.leaves() + [dependency.label()]
+            #     iobj = traverse_dep_tree(dependency)
+            # elif dependency.label() == dobj:
+            #     # dobj = dependency.leaves() + [dependency.label()]
+            #     dobj = traverse_dep_tree(dependency)
+            # # # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
+            # # else:
+            # #     extra.append(dependency.flatten())
+            dependency_string_sets[dependency.label()] = traverse_dep_tree(dependency)
+        # else:
+        #     # if dependency == subj:
+        #     #     subj = [dependency]
+        #     # elif dependency == iobj:
+        #     #     iobj = [dependency]
+        #     # elif dependency == dobj:
+        #     #     dobj = [dependency]
+        #     dependency_string_sets[dependency.label()] = [dependency]
 
     # get full sentence as S = [(word1, tag1), ...]
     sentence = []
@@ -221,16 +225,26 @@ def formulate_question(question):
     # for i in range(1, len(q_dependencies.nodes)):
     #     sentence.append(q_dependencies.nodes[i]['word'])
 
-    subj_final = put_in_order(subj, sentence)
-    iobj_final = put_in_order(iobj, sentence)
-    dobj_final = put_in_order(dobj, sentence)
+    # subj_final = put_in_order(subj, sentence)
+    # iobj_final = put_in_order(iobj, sentence)
+    # dobj_final = put_in_order(dobj, sentence)
 
-    q_final = Question()
-    q_final['wh'] = q_word
-    q_final['verb'] = (q_dependencies.root['word'], q_dependencies.root['tag'])
-    q_final['subj'] = subj_final
-    q_final['iobj'] = iobj_final
-    q_final['dobj'] = dobj_final
+    final_dependencies = {}
+    for dependency in dependent_heads:
+        head_string = dependent_heads[dependency][0]
+        if head_string in dependency_string_sets:
+            final_dependencies[dependency] = put_in_order(dependency_string_sets[head_string], sentence)
+        else:
+            final_dependencies[dependency] = [dependent_heads[dependency]]
+
+    # q_final = Question()
+    # q_final['wh'] = q_word
+    # q_final['verb'] = (q_dependencies.root['word'], q_dependencies.root['tag'])
+    # q_final['subj'] = subj_final
+    # q_final['iobj'] = iobj_final
+    # q_final['dobj'] = dobj_final
+
+    q_final = Question(final_dependencies)
 
     return q_final
 
@@ -274,4 +288,7 @@ if __name__ == "__main__":
     # a = formulate_question("Did the man in blue overalls give Lisa the memo?")
     # b = formulate_question("Why did the man in blue overalls give Lisa the memo?")
     c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
+    d = formulate_question("Who is the principal of South Queens Junior High School?")
+    # todo: figure out how to deal with a nested clause like this
+    # e = formulate_question("If you were a student, how much would a club membership cost you?")
     x = None
