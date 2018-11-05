@@ -7,19 +7,66 @@ from syntax import parse
 import os
 
 
+_wnl = None
+
+
 # Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
 def lemmatize(text, pos: str='v'):
-    wnl = nltk.stem.WordNetLemmatizer()
     if type(text) is not list:
         text_list = nltk.word_tokenize(text)
 
     if len(text_list) > 1:
-        wnl_sentence = [wnl.lemmatize(word, pos) for word in text_list]
-
+        wnl_sentence = [_wnl.lemmatize(word, pos) for word in text_list]
         return wnl_sentence
-    else:
-        return wnl.lemmatize(text, pos)
 
+    else:
+        return _wnl.lemmatize(text, pos)
+
+
+def restring(sentence):
+    restring = []
+    for word in sentence:
+        restring.append(word[0])
+
+    return ' '.join(restring)
+
+
+# Reduces recursive tree structures in ne_chunked sentences
+def flatten(tagged_sentence):
+    final_form = []
+    for sub_form in tagged_sentence:
+        if type(sub_form) is nltk.tree.Tree:
+            final_form.extend(flatten(sub_form))
+        else:
+            final_form.append(sub_form)
+
+    return final_form
+
+
+# Just like flatten, but removes determiners, existential there, conjuctions, punctuations, and 'to'
+def squash(tagged_sentence):
+    final_form = []
+    squash_class = ['EX', 'TO', 'DT', 'CC']
+    for sub_form in tagged_sentence:
+        if type(sub_form) is nltk.tree.Tree:
+            final_form.extend(squash(sub_form))
+        else:
+            if len(sub_form[1]) < 2:
+                continue
+            if sub_form[1] not in squash_class:
+                final_form.append((sub_form[0].lower(), sub_form[1]))
+    return final_form
+
+
+def normalize_forms(tagged_sentence):
+    final_form = []
+    squash_class = ['EX', 'TO', 'DT', 'CC']
+    for sub_form in tagged_sentence:
+        if len(sub_form[1]) == 2:
+            final_form.append(sub_form)
+        elif len(sub_form[1]) > 2:
+            final_form.append((sub_form[0], sub_form[1][:2]))
+    return final_form
 
 def get_feedback(text, nes, sigwords):
     model = '../stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
@@ -28,50 +75,26 @@ def get_feedback(text, nes, sigwords):
     pass
 
 
-def get_feedback1(text, sigwords):
+def get_prospects_simple(text, sigwords):
     sentences = nltk.sent_tokenize(text)
 
     in_list = []
 
-    stopword = set(stopwords.words('english'))
-
     for sentence in sentences:
         count = 0
-        for word in sigwords:
-            if word in sentence and word not in stopword:
-                count += sentence.count(word)
+        for word in sentence:
+            if word in sigwords:
+                count += 1
         if count > 0:
             in_list.append((-count, sentence))
 
-    return in_list
+    return sort(in_list)
 
 
-def get_feedback2(text, sigphrases):
-    sentences = nltk.sent_tokenize(text)
-
-    print(nltk.sent_tokenize(text))
-
-    in_list = []
-
-    for words in sigphrases:
-        pass
-
-    for sentence in sentences:
-        count = 0
-        for word in sigphrases:
-            if word in sentence:
-                count += sentence.count(word)
-        if count > 0:
-            in_list.append((count, sentence))
-
-    return in_list
-
-def get_feedback_with_stemmer(text, sigwords):
+def get_prospects_with_stemmer(text, sigwords):
     sentences = nltk.sent_tokenize(text)
 
     in_list = []
-
-    stopword = set(stopwords.words('english'))
 
     ps = nltk.stem.PorterStemmer()
 
@@ -80,13 +103,13 @@ def get_feedback_with_stemmer(text, sigwords):
         tk_sentence = nltk.word_tokenize(sentence)
         ps_sentence = [ps.stem(word) for word in tk_sentence]
         for word in sigwords:
-            if ps.stem(word) in ps_sentence and word not in stopword:
+            if ps.stem(word) in ps_sentence:
                 count += sentence.count(word)
 
         if count > 0:
             in_list.append((-count/len(sentence), sentence))
 
-    return in_list
+    return sorted(in_list)
 
 
 def get_feedback_with_lemmatizer(text, sigwords):
@@ -94,33 +117,70 @@ def get_feedback_with_lemmatizer(text, sigwords):
 
     in_list = []
 
-    stopword = set(stopwords.words('english'))
-
     for sentence in sentences:
         count = 0
         lm_sentence = lemmatize(sentence)
         for word in sigwords:
-            if lemmatize(word) in lm_sentence and word not in stopword:
+            if lemmatize(word) in lm_sentence:
                 count += sentence.count(word)
 
         if count > 0:
-            in_list.append((-count/len(sentence), sentence))
+            in_list.append((-count, sentence))
 
-    return in_list
+    return sorted(in_list)
 
-def get_feedback_with_lemmatizer2(text, question_form):
+def get_prospects_with_lemmatizer2(text, question_form):
     sentences = nltk.sent_tokenize(text)
 
     in_list = []
 
+    sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(question_form)), binary=True)))
+    ps_sentences = []
+
+
     for sentence in sentences:
-        ps_sentence = nltk.ne_chunk(lemmatize(sentence))
+        count = 0
+        in_word = []
+        ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+        for word in ps_sentence:
+            if word in sigwords:
+                count += 1
+                in_word.append(word)
+        ps_sentences.append((ps_sentence, in_word))         # For debugging purposes
+
+        if count > 0:
+            in_list.append((-count, sentence))
+        #     print('sentence: ' + str(ps_sentence))
+        #     print('\twords: ' + str(in_word))
+
+        # if 'root' in question_form:
+        #     sigwords.append(lemmatize(restring(question_form['root'])))
+        #
+        #
+        # if 'nsubj' in question_form:
+        #     sent = [word for word in lemmatize(restring(question_form['nsubj']))]
+        #     for word in sent:
+        #         if word not in _stopWords:
+        #             sigwords.extend(sent)
+        #
+        # if 'dobj' in question_form:
+        #     sent = [word for word in lemmatize(restring(question_form['dobj']))]
+        #     for word in sent:
+        #         if word not in _stopWords:
+        #             sigwords.extend(sent)
+        #
+        # if 'iobj' in question_form:
+        #     sent = [word for word in lemmatize(restring(question_form['iobj']))]
+        #     for word in sent:
+        #         if word not in _stopWords:
+        #             sigwords.extend(sent)
+
+    return sorted(in_list)
 
 
 
 
-
-# def get_feedback_with_word2vec(text, sigwords):
+# def get_prospects_with_word2vec(text, sigwords):
 #     sentences = nltk.sent_tokenize(text)
 #
 #     in_list = []
@@ -154,7 +214,7 @@ def get_feedback_with_lemmatizer2(text, question_form):
 #
 #     return sorted(in_list)
 
-def get_feedback_for_where(text, sigwords):
+def get_prospects_for_where(text, sigwords):
     sentences = get_feedback_with_stemmer(text, sigwords)
 
     model = os.getcwd() + '/stanford-ner/classifiers/english.muc.7class.distsim.crf.ser.gz'
@@ -172,7 +232,7 @@ def get_feedback_for_where(text, sigwords):
 
     return sorted(in_list)
 
-def get_feedback_for_who(text, sigwords):
+def get_prospects_for_who(text, sigwords):
     sentences = get_feedback_with_lemmatizer(text, sigwords)
 
     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
@@ -193,6 +253,7 @@ def get_feedback_for_who(text, sigwords):
 
     return sorted(in_list)
 
+
 def main():
     pass
 
@@ -201,8 +262,7 @@ if __name__ == "__main__":
     main()
 
 
-# example_sentence = 'Where did Fred find the cookies?'.split()
-# example_sentence2 = 'The rain in Spain falls mostly on the plain.'.split()
-#
-# print(st.tag(example_sentence))
-# print(st.tag(example_sentence2))
+if _wnl == None:
+    _wnl = nltk.stem.WordNetLemmatizer()
+
+

@@ -3,6 +3,7 @@ import sys
 import heapq
 import nltk
 from ner.text_analyzer import *
+from syntax import parse
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -13,14 +14,14 @@ question_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Difficulty:\s*(.*)\
 
 
 def print_answer(story, inquiry, questionID):
-    inquiry = nltk.word_tokenize(inquiry)
-    if inquiry[0].lower() == 'where':
-
-        feedback = get_feedback_for_where(story, inquiry)
-    elif inquiry[0].lower() == 'who':
-        feedback = get_feedback_for_who(story, inquiry)
-    else:
-        feedback = get_feedback_with_stemmer(story, inquiry)
+    # inquiry = parse.formulate_question(inquiry)
+    feedback = get_prospects_with_lemmatizer2(story, inquiry)
+    # if inquiry[0].lower() == 'where':
+    #     feedback = get_prospects_for_where(story, inquiry)
+    # elif inquiry[0].lower() == 'who':
+    #     feedback = get_prospects_for_who(story, inquiry)
+    # else:
+    #     feedback = get_prospects_with_stemmer(story, inquiry)
     heapq.heapify(feedback)
 
     print('QuestionID: ' + questionID)
