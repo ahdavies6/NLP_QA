@@ -1,23 +1,10 @@
-from enum import Enum
 from nltk import Tree
 from nltk.parse.corenlp import CoreNLPParser, CoreNLPDependencyParser
 from nltk.parse.dependencygraph import DependencyGraph
-# from nltk.parse.bllip import BllipParser
-import nltk
 
 
 # todo: try this out
 # from nltk.stem.wordnet import WordNetLemmatizer
-
-
-# class WhQuestions(Enum):
-#     WHO = 0     # also includes "whom", "whose"
-#     WHAT = 1
-#     WHERE = 2
-#     WHEN = 3
-#     WHY = 4
-#     HOW = 5
-#     WHICH = 6
 
 
 class Sentence(object):
@@ -31,42 +18,15 @@ class Sentence(object):
     def __setitem__(self, key, value):
         self._dependents[key] = value
 
+    def __contains__(self, item):
+        return item in self._dependents
+
 
 class Question(Sentence):
 
     def __init__(self, question_word, dependents=None):
         super().__init__(dependents)
         self._dependents['qword'] = [question_word]
-
-
-def parse_for(tree, label):
-    """
-    :param tree: The parse tree (typically beginning at ROOT)
-    :param label: The non-terminal label
-    :return: Returns a list of Tree representations of all non-terminals in the tree with the specified label.
-        If none can be found, returns None
-    """
-    # trees = []
-    # if tree.label() == label:
-    #     trees.append(tree)
-    # else:
-    #     for child in tree:
-    #         if isinstance(child, Tree):
-    #             grandchildren = parse_for(child, label)
-    #             if grandchildren is not None:
-    #                 for grandchild in grandchildren:
-    #                     trees.append(grandchild)
-    # return trees if trees else None
-
-    # trees = []
-    # assert isinstance(tree, Tree)
-    # for tree in tree.subtrees():
-    #     if tree.label() == label:
-    #         trees.append(tree)
-    # return trees if trees else None
-
-    subtrees = [x for x in tree.subtrees(filter=lambda f: f.label() == label)]
-    return subtrees if subtrees else None
 
 
 def get_all_dependents(graph, node):
@@ -92,19 +52,6 @@ def put_in_order(dependents, sentence):
     :param sentence: (ordered) list of tuples of word tokens [(word1, tag1), (word2, tag2), ...]
     :return: the dependents, in the order they appear in the sentence
     """
-
-    # # transform SVO chunks into contiguous strings of words from sentence
-    # subj_ordered = []
-    # iobj_ordered = []
-    # dobj_ordered = []
-    # for word, tag in sentence:
-    #     if word in subj and len([x[0] for x in subj_ordered if x[0] == word]) < len([x for x in subj if x == word]):
-    #         subj_ordered.append((word, tag))
-    #     elif word in iobj and len([x[0] for x in iobj_ordered if x[0] == word]) < len([x for x in iobj if x == word]):
-    #         iobj_ordered.append((word, tag))
-    #     elif word in dobj and len([x[0] for x in dobj_ordered if x[0] == word]) < len([x for x in dobj if x == word]):
-    #         dobj_ordered.append((word, tag))
-
     potential_order = []
     for word, tag in sentence:
         if word in dependents:
@@ -113,15 +60,6 @@ def put_in_order(dependents, sentence):
                 return potential_order
         else:
             potential_order = []
-
-
-# def flatten(monstrosity):
-#     order = {}
-#     for monster in monstrosity:
-#         if isinstance(monster, dict):
-#             order[monster['address']] = monster['word']
-#         elif isinstance(monster, list):
-#             pass
 
 
 def traverse_dep_tree(tree):
@@ -134,157 +72,44 @@ def traverse_dep_tree(tree):
     return nodes
 
 
-# TODO: THIS!!!
-# def get_nested_dependencies(dependency, dependency_list):
-#     # note: assume root has already been established (e.g. dependency = {'root': dependency} is already done)
-#     dependencies = {'root': dependency}
-#     for head, relationship, dependent in dependency_list:
-#         for head in
-
-
-def formulate_question(question_sentence):
-    """
-    Formulates a Question object from question_sentence
-    :param question_sentence: a string of the question sentence
-    :return: a Question object representing the dependency structure of the question
-    """
-    # gather syntactic data from parse
-    q_parsed = next(CoreNLPParser().raw_parse(question_sentence))
-    q_word = None
-    for subtree in q_parsed.subtrees():
-        if subtree.label() == "SBARQ":
-            for sub_subtree in subtree.subtrees():
-                assert isinstance(sub_subtree, Tree)
-                if sub_subtree.label()[0] == "W" and sub_subtree.label()[0:2] != "WH":
-                    q_word = (sub_subtree.leaves()[0], sub_subtree.label())
-                    break
-            break
-
-    # gather SVO data from dependency parse
-    q_dependency_graph = next(CoreNLPDependencyParser().raw_parse(question_sentence))
-    root = (q_dependency_graph.root['word'], q_dependency_graph.root['tag'])
-    q_dependency_list = list(q_dependency_graph.triples())
-    q_heads = {'root': root}
-    for head, relationship, dependent in q_dependency_list:
+def get_nested_dependencies(root, dependency_list, sentence, dependency_string_sets):
+    dependencies = {
+        'root': root,
+        'full': put_in_order(dependency_string_sets[root[0]], sentence) if root[0] in dependency_string_sets else [root]
+    }
+    for head, relationship, dependent in dependency_list:
         if head == root:
-            q_heads[relationship] = dependent
+            dependencies[relationship] = get_nested_dependencies(
+                dependent,
+                dependency_list,
+                sentence,
+                dependency_string_sets
+            )
+    return dependencies
 
-    # dobjs = get_all_dependents(q_dependency, q_dependency.nodes[q_dependency.root['deps']['dobj'][0]])
-    dependency_string_sets = {}     # keys are the head word, values are the fully traversed string
-    for dependency in q_dependency_graph.tree():
+
+def get_sentence(sentence):
+    """
+    Get a full Sentence object from a raw text sentence
+    :param sentence: the sentence (in raw text)
+    :return: a Sentence object representing the syntactic dependencies in the sentence
+    """
+    # find all syntactic dependencies for the question
+    dependency_graph = next(CoreNLPDependencyParser().raw_parse(sentence))
+
+    # todo: debug the part of this that gives repeat words the wrong text
+    dependency_string_sets = {}  # keys are the head word, values are the fully traversed string
+    for dependency in dependency_graph.tree().subtrees():
         if isinstance(dependency, Tree):
-            # if dependency.label() == subj:
-            #     # subj = dependency.leaves() + [dependency.label()]
-            #     subj = traverse_dep_tree(dependency)
-            # elif dependency.label() == iobj:
-            #     # iobj = dependency.leaves() + [dependency.label()]
-            #     iobj = traverse_dep_tree(dependency)
-            # elif dependency.label() == dobj:
-            #     # dobj = dependency.leaves() + [dependency.label()]
-            #     dobj = traverse_dep_tree(dependency)
-            # # # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
-            # # else:
-            # #     extra.append(dependency.flatten())
             dependency_string_sets[dependency.label()] = traverse_dep_tree(dependency)
-        # else:
-        #     # if dependency == subj:
-        #     #     subj = [dependency]
-        #     # elif dependency == iobj:
-        #     #     iobj = [dependency]
-        #     # elif dependency == dobj:
-        #     #     dobj = [dependency]
-        #     dependency_string_sets[dependency.label()] = [dependency]
 
-    # get full sentence as S = [(word1, tag1), ...]
-    sentence = []
-    for i in range(1, len(q_dependency_graph.nodes)):
-        sentence.append((q_dependency_graph.nodes[i]['word'], q_dependency_graph.nodes[i]['tag']))
+    root = (dependency_graph.root['word'], dependency_graph.root['tag'])
+    dependency_list = list(dependency_graph.triples())
 
-    # # get phrase from "argument" (e.g. subj, iobj, etc.)
-    # for subtree in q_parsed.subtrees():
-    #     assert isinstance(subtree, Tree)
-    #     if {*subtree.leaves()} == {*subj}:
-    #         subj = subtree
-    #     elif {*subtree.leaves()} == {*iobj}:
-    #         iobj = subtree
-    #     elif {*subtree.leaves()} == {*dobj}:
-    #         dobj = subtree
-    #     # TODO: integrate this somehow (would include adverbs, prep phrases, etc.)
-    #     else:
-    #         pass
+    sentence = []   # get full sentence as S = [(word1, tag1), ...]
+    for i in range(1, len(dependency_graph.nodes)):
+        sentence.append((dependency_graph.nodes[i]['word'], dependency_graph.nodes[i]['tag']))
 
-    # TODO: try this!
-    # temp = CoreNLPParser().make_tree(q_thing)
+    heads = get_nested_dependencies(root, dependency_list, sentence, dependency_string_sets)
 
-    # # get full sentence as S = [(word1, tag1), ...]
-    # sentence = []
-    # for i in range(1, len(q_dependencies.nodes)):
-    #     sentence.append(q_dependencies.nodes[i]['word'])
-
-    # subj_final = put_in_order(subj, sentence)
-    # iobj_final = put_in_order(iobj, sentence)
-    # dobj_final = put_in_order(dobj, sentence)
-
-    final_dependencies = {}
-    for dependency in q_heads:
-        head_string = q_heads[dependency][0]
-        if head_string in dependency_string_sets:
-            final_dependencies[dependency] = put_in_order(dependency_string_sets[head_string], sentence)
-        else:
-            final_dependencies[dependency] = [q_heads[dependency]]
-
-    # q_final = Question()
-    # q_final['wh'] = q_word
-    # q_final['verb'] = (q_dependencies.root['word'], q_dependencies.root['tag'])
-    # q_final['subj'] = subj_final
-    # q_final['iobj'] = iobj_final
-    # q_final['dobj'] = dobj_final
-
-    q_final = Question(q_word, final_dependencies)
-
-    return q_final
-
-    # todo: remove deprecated
-    # # transform SVO chunks into contiguous strings of words from sentence
-    # subj_ordered = []
-    # iobj_ordered = []
-    # dobj_ordered = []
-    # for word, tag in sentence:
-    #     if word in subj and len([x[0] for x in subj_ordered if x[0] == word]) < len([x for x in subj if x == word]):
-    #         subj_ordered.append((word, tag))
-    #     elif word in iobj and len([x[0] for x in iobj_ordered if x[0] == word]) < len([x for x in iobj if x == word]):
-    #         iobj_ordered.append((word, tag))
-    #     elif word in dobj and len([x[0] for x in dobj_ordered if x[0] == word]) < len([x for x in dobj if x == word]):
-    #         dobj_ordered.append((word, tag))
-
-    # # todo: transform sentence into pieces of parse tree
-    # subj_phrases = []
-    # iobj_phrases = []
-    # dobj_phrases = []
-    # for subtree in q_parsed.subtrees():
-    #     assert isinstance(subtree, Tree)
-    #     for i in range(min(len(subtree.leaves()), len(subj_ordered))):
-    #         if subtree.leaves()[i] != subj_ordered:
-    #             break
-    #     subj_phrases.append(subtree)
-    #     for i in range(min(len(subtree.leaves()), len(subj_ordered))):
-    #         subj_ordered.pop(0)
-
-    # return Question(
-    #     q_class,
-    #     q_word,
-    #     verb,
-    #     subj_ordered,
-    #     iobj_ordered,
-    #     dobj_ordered
-    # )
-
-
-if __name__ == "__main__":
-    # a = formulate_question("Did the man in blue overalls give Lisa the memo?")
-    # b = formulate_question("Why did the man in blue overalls give Lisa the memo?")
-    # c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
-    d = formulate_question("Who is the principal of South Queens Junior High School?")
-    # todo: figure out how to deal with a nested clause like this
-    # e = formulate_question("If you were a student, how much would a club membership cost you?")
-    x = None
+    return Sentence(heads)
