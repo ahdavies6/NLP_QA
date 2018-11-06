@@ -212,7 +212,6 @@ def get_sentence(sentence):
     #     Node(dependency_graph.get_by_address(i), dependency_graph.nodes) for i in range(1, len(dependency_graph.nodes))
     # ]
     #
-    # # todo: debug the part of this that gives repeat words the wrong text
     # # dependency_string_sets = {}  # keys are the head word, values are the fully traversed string
     # # for dependency in dependency_graph.tree().subtrees():
     # #     if isinstance(dependency, Tree):

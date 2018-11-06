@@ -4,6 +4,7 @@ from nltk.corpus import stopwords
 import nltk
 import text_analyzer
 import re
+import string
 
 
 """
@@ -83,7 +84,7 @@ def get_dep_trees_with_tag(root_node, tag):
     return tagged
 
 
-def calculate_overlap(sequence1, sequence2):
+def calculate_overlap(sequence1, sequence2, eliminate_stopwords=True):
     overlap = 0
     for word in sequence1:
         if word in sequence2 and word not in stopwords.words('english'):
@@ -132,6 +133,9 @@ def to_sentence(tokens, index=0):
         else:
             return " ".join(tokens)
 
+def remove_punctuation(s):
+    return ''.join(c for c in s if c not in set(string.punctuation))
+
 
 # todo: put a huge try/catch(all) block to just return the sentence
 def get_answer_phrase(question_sentence, answer_sentence):
@@ -141,6 +145,12 @@ def get_answer_phrase(question_sentence, answer_sentence):
     :param answer_sentence: a question sentence
     :return: the narrowest phrase containing the full answer
     """
+    # todo: discuss with Carlos, decide whether to remove punctuation or not
+    # todo: test the above, and see whether it helps or hurts more
+    # todo: if not, make sure to output the punctuation without spaces around it
+    question_sentence = remove_punctuation(question_sentence)
+    answer_sentence = remove_punctuation(answer_sentence)
+
     question = formulate_question(question_sentence)
     answer = get_sentence(answer_sentence)
 
@@ -173,6 +183,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
             if num_occurrences_time(top_prep_string) > 0:
                 return top_prep_string
 
+        # todo: find a way to use my dependency parse here?
         prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(answer_sentence, "PP")]
 
         if prep_phrases:
@@ -195,11 +206,15 @@ def get_answer_phrase(question_sentence, answer_sentence):
             ]
         ]
 
-        # prep_phrases = get_phrases_with_tag(answer_sentence, "PP")
-        # if answer['prep']:
-            # get_dep_trees_with_tag()
+        # get_dep_trees_with_tag(answer, "prep")
+        prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(answer_sentence, "PP")]
 
-        pass
+        # todo: strip preposition (e.g. "in") out of the answer
+        if prep_phrases:
+            return to_sentence(max(
+                prep_phrases,
+                key=lambda x: calculate_overlap(x, untagged, False)
+            ))
 
     elif question['qword'][0].lower() == "which":
         pass
@@ -217,6 +232,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
             ]
         ]
 
+        # todo: figure out what to do if not untagged
         if untagged:
             return to_sentence(max(untagged, key=lambda x: len(x)))
 
@@ -232,9 +248,16 @@ def get_answer_phrase(question_sentence, answer_sentence):
         return answer_sentence
 
 
-def test_who():
+def test_who1():
     question_sentence = "Who is the principal of South Queens Junior High School?"
     answer_sentence = "Principal Betty Jean Aucoin says the club is a first for a Nova Scotia public school."
+    test = get_answer_phrase(question_sentence, answer_sentence)
+    print(test)
+
+
+def test_who2():
+    question_sentence = "Who said \"the effects were top notch\" when he was talking about \"The Phantom Menace\"?"
+    answer_sentence = "Mark Churchill and Ken Green were at the St. John's screening."
     test = get_answer_phrase(question_sentence, answer_sentence)
     print(test)
 
@@ -254,6 +277,7 @@ def test_when():
 
 
 if __name__ == "__main__":
-    # test_who()
-    # test_where()
-    test_when()
+    # test_who1()
+    # test_who2()
+    test_where()
+    # test_when()
