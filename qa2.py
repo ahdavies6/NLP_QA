@@ -4,6 +4,7 @@ import heapq
 import nltk
 from ner.text_analyzer import *
 from question_classifier import formulate_question
+from answer_identification import get_answer_phrase
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -18,16 +19,16 @@ def print_answer(story, inquiry, questionID):
     qword = q_inquiry['qword'][0].lower()
     if qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
-    elif qword == 'how':
-        feedback = get_prospects_for_how_regex(story, inquiry)
+    # elif qword == 'how':
+    #     feedback = get_prospects_for_how_regex(story, inquiry)
     elif qword == 'when':
         feedback = get_prospects_for_when_regex(story, inquiry)
-    elif qword == 'where':
-        feedback = get_prospects_for_where_ner(story, inquiry)
-    elif qword == 'why':
-        feedback = get_prospects_for_why(story, inquiry)
+    # elif qword == 'where':
+    #     feedback = get_prospects_for_where_ner(story, inquiry)
+    # elif qword == 'why':
+    #     feedback = get_prospects_for_why(story, inquiry)
     else:
-        return
+        feedback = []
         # feedback = get_prospects_with_lemmatizer2(story, inquiry)
     # if qword == 'how':
     #     feedback = get_prospects_for_how_regex_q(story, q_inquiry)
@@ -36,13 +37,19 @@ def print_answer(story, inquiry, questionID):
     # else:
     #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
 
-    heapq.heapify(feedback)
-    print('Question: ' + inquiry)
+    # print('Question: ' + inquiry)
     print('QuestionID: ' + questionID)
-    for x in range(0, 3):
-        if len(feedback) > 0:
-            best_sentence = ''.join(heapq.heappop(feedback)[1])
-            print('Answer: ' + best_sentence)
+    if len(feedback) > 0:
+        best_sentence = heapq.heappop(feedback)[1]
+        answer = get_answer_phrase(inquiry, best_sentence)
+        print('Answer: ' + answer)
+    else:
+        print()
+    # for x in range(0, 3):
+    #     if len(feedback) > 0:
+    #         best_sentence = ''.join(heapq.heappop(feedback)[1])
+    #         print('Answer: ' + best_sentence)
+
     print()
 
     x=1
