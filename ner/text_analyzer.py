@@ -162,7 +162,7 @@ def get_prospects_with_stemmer(text, sigwords):
     return sorted(in_list)
 
 
-def get_feedback_with_lemmatizer(text, sigwords):
+def get_prospects_with_lemmatizer(text, sigwords):
     sentences = nltk.sent_tokenize(text)
 
     in_list = []
@@ -301,13 +301,14 @@ def get_prospects_for_who_ner(text, inquiry):
 
     for sentence in sentences:
         ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
-        ne_phrases = get_contiguous_x_phrases(ps_sentence, 'NE')
+        ne_phrases = []
+        # ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'NE'))
         ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'PE'))
         ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'OR'))
         if len(ne_phrases) > 0:
             ne_check_list.append(sentence)
             print(ne_phrases)
-            continue
+            continue            # for breakpoint
 
     # sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(inquiry)), binary=True)))
     #
@@ -328,7 +329,13 @@ def get_prospects_for_who_ner(text, inquiry):
     #
     #     in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    sub_story = ' '.join(ne_check_list)
+    in_list = get_prospects_with_stemmer(sub_story, inquiry)
+    print()
+    print(ne_check_list)
+    print()
+    print(in_list)
+    return in_list
 
 
 def get_prospects_for_when_ner(text, inquiry):
