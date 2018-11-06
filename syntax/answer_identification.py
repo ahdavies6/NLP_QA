@@ -32,6 +32,8 @@ def num_occurrences_time(chunk):
     begin_pattern = r"first|last|since|ago"
     end_pattern = r"start|begin|since|year"
 
+    if isinstance(chunk, list):
+        chunk = " ".join(chunk)
     chunk = chunk.lower()
 
     return len(re.findall(dates_pattern, chunk)) + \
@@ -171,18 +173,17 @@ def get_answer_phrase(question_sentence, answer_sentence):
                 return top_prep_string
 
         prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(answer_sentence, "PP")]
-        prep_time = sorted(
-            [(num_occurrences_time(" ".join(x)), x) for x in prep_phrases],
-            key=lambda x: x[0],
-            reverse=True
-        )
 
-        if prep_time:
-            # todo: regex here (super easy)
-            return to_sentence(prep_time[0][1])
+        if prep_phrases:
+            return to_sentence(
+                max(
+                    prep_phrases, key=lambda x: num_occurrences_time(x)
+                )
+            )
         else:
             # todo: perhaps reconsider which one to return here. this may be the wrong idea.
-            return max(prep_phrases, key=lambda x: len(x))
+            if prep_phrases:
+                return max(prep_phrases, key=lambda x: len(x))
 
     elif question['qword'][0].lower() == "where":
         answer_chunks = get_top_ner_chunk_of_each_tag(answer_sentence, {"GPE"})

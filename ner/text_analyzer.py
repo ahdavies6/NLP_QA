@@ -657,7 +657,7 @@ if __name__ == "__main__":
 if _wnl == None:
     _wnl = nltk.stem.WordNetLemmatizer()
 
-if _sner == None:
-    model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
-    jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
-    _sner = StanfordNERTagger(model, jar, encoding='utf-8')
+# if _sner == None:
+#     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
+#     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
+#     _sner = StanfordNERTagger(model, jar, encoding='utf-8')
