@@ -51,7 +51,7 @@ def formulate_question(question_sentence):
 
 if __name__ == "__main__":
     # b = formulate_question("Why did the man in blue overalls give Lisa the memo?")
-    # c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
+    c = formulate_question("Why did the man in blue overalls give Lisa the memo on the bus?")
     # d = formulate_question(
     #     "Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?"
     # )
@@ -61,13 +61,13 @@ if __name__ == "__main__":
     # f = formulate_question(
     #     " Of which province in Canada was Stanley Faulder a native?"
     # )
-    g = formulate_question(
-        "Besides being very strong , what are the advantages of BioSteel?"
-    )
-    h = formulate_question(
-        "According to NATO spokesman Jamie Shea , how is troop deployment going?"
-    )
-    i = formulate_question(
-        "According to their Quebec office , how did McDonald 's feel about the vote to unionize the Montreal franchise?"
-    )
+    # g = formulate_question(
+    #     "Besides being very strong , what are the advantages of BioSteel?"
+    # )
+    # h = formulate_question(
+    #     "According to NATO spokesman Jamie Shea , how is troop deployment going?"
+    # )
+    # i = formulate_question(
+    #     "According to their Quebec office , how did McDonald 's feel about the vote to unionize the Montreal franchise?"
+    # )
     x = None

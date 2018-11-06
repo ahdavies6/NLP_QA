@@ -40,31 +40,28 @@ class DependencyNode(object):
                     }
 
     def __str__(self):
-        full_str = ""
-        if 'dep_Nodes' in self._node_dict:
-            for i in range(self._node_dict['num_nodes']):
-                if i == self._node_dict['address']:
-                    # if self._node_dict['tag'] != '.':
-                    #     full_str = "{} {}".format(full_str, self._node_dict['word'])
-                    # else:
-                    #     full_str = "{}{}".format(full_str, self._node_dict['word'])
-                    full_str = "{}{}{}".format(
-                        full_str,
-                        " " if self._node_dict['tag'] != '.' else "",
-                        self._node_dict['word']
-                    )
-                for rel in self._node_dict['dep_Nodes']:
-                    for node in self._node_dict['dep_Nodes'][rel]:
-                        if node['address'] == i:
-                            full_str = "{}{}{}".format(
-                                full_str,
-                                " " if node['tag'] != '.' else "",
-                                " ".join(node.__str__().split())
-                            )
-        else:
-            return self._node_dict['word']
-        return full_str
-        
+        # full_str = ""
+        # if 'dep_Nodes' in self._node_dict:
+        #     for i in range(self._node_dict['num_nodes']):
+        #         if i == self._node_dict['address']:
+        #             full_str = "{}{}{}".format(
+        #                 full_str,
+        #                 " " if self._node_dict['tag'] != '.' else "",
+        #                 self._node_dict['word']
+        #             )
+        #         for rel in self._node_dict['dep_Nodes']:
+        #             for node in self._node_dict['dep_Nodes'][rel]:
+        #                 if node['address'] == i:
+        #                     full_str = "{}{}{}".format(
+        #                         full_str,
+        #                         " " if node['tag'] != '.' else "",
+        #                         " ".join(node.__str__().split())
+        #                     )
+        #     return full_str
+        # else:
+        #     return self._node_dict['word']
+        return " ".join([token[0] for token in self.get_pairs])
+
     def __getitem__(self, key):
         result = self._node_dict.get(key)
         if result:
@@ -81,6 +78,30 @@ class DependencyNode(object):
 
     def __contains__(self, item):
         return item in self._node_dict
+
+    @property
+    def get_pairs(self):
+        return [(node['word'], node['tag']) for node in self.get_nodes]
+
+    @property
+    def get_nodes(self):
+        nodes = [self]
+        if 'dep_Nodes' in self._node_dict:
+            # if i == self._node_dict['address']:
+            #     full_str = "{}{}{}".format(
+            #         full_str,
+            #         " " if self._node_dict['tag'] != '.' else "",
+            #         self._node_dict['word']
+            #     )
+            for rel in self._node_dict['dep_Nodes']:
+                for node in self._node_dict['dep_Nodes'][rel]:
+                    # full = "{}{}{}".format(
+                    #     full,
+                    #     " " if node['tag'] != '.' else "",
+                    #     " ".join(node.__str__().split())
+                    # )
+                    nodes += node.get_nodes
+        return sorted(nodes, key=lambda n: n['address'])
 
 
 def get_all_dependents(graph, node):
@@ -213,4 +234,6 @@ def get_sentence(sentence):
     # return Sentence(heads)
 
 
-get_sentence("Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?")
+# a = get_sentence("Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?")
+# b = a['nsubj'].get_nodes
+# print()
