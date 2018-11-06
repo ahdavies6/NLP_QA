@@ -76,10 +76,11 @@ def get_parse_trees_with_tag(sentence, tag):
 
 
 def get_dep_trees_with_tag(root_node, tag):
-    nodes = root_node.get_nodes
-    for node in nodes:
+    tagged = []
+    for node in root_node.get_nodes:
         if node['tag'].lower() == tag.lower():
-            pass
+            tagged.append(node)
+    return tagged
 
 
 def calculate_overlap(sequence1, sequence2):
