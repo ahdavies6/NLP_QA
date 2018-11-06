@@ -1,0 +1,102 @@
+QuestionID: 1999-W18-4-1
+Answer: 
+
+QuestionID: 1999-W18-4-2
+Answer: pastor ken gartly
+
+QuestionID: 1999-W18-4-4
+Answer: 
+
+QuestionID: 1999-W18-4-5
+Answer: littleton colorado
+
+QuestionID: 1999-W18-4-7
+Answer: 
+
+QuestionID: 1999-W18-4-8
+Answer: after the shooting tragedy at Columbine high school in Littleton , Colorado
+
+QuestionID: 1999-W21-3-1
+Answer: for tickets in late April
+
+QuestionID: 1999-W21-3-2
+Answer: 
+
+QuestionID: 1999-W21-3-3
+Answer: 
+
+QuestionID: 1999-W21-3-4
+Answer: ken
+
+QuestionID: 1999-W21-3-6
+Answer: 
+
+QuestionID: 1999-W21-3-8
+Answer: 
+
+QuestionID: 1999-W21-3-9
+Answer: 
+
+QuestionID: 1999-W11-2-1
+Answer: 
+
+QuestionID: 1999-W11-2-2
+Answer: 
+
+QuestionID: 1999-W11-2-3
+Answer: of chemical pollutants in marine Mammals
+
+QuestionID: 1999-W11-2-4
+Answer: 
+
+QuestionID: 1999-W11-2-5
+Answer: 
+
+QuestionID: 1999-W11-2-6
+Answer: 
+
+QuestionID: 1999-W11-2-8
+Answer: 
+
+QuestionID: 1999-W11-2-9
+Answer: mills
+
+QuestionID: 1999-W11-2-10
+Answer: 
+
+QuestionID: 1999-W04-5-2
+Answer: 
+
+QuestionID: 1999-W04-5-3
+Answer: alexi yashin
+
+QuestionID: 1999-W04-5-4
+Answer: 
+
+QuestionID: 1999-W04-5-7
+Answer: 
+
+QuestionID: 1999-W04-5-8
+Answer: 
+
+QuestionID: 1999-W04-5-9
+Answer: 
+
+QuestionID: 1999-W12-3-1
+Answer: alberta
+
+QuestionID: 1999-W12-3-2
+Answer: 
+
+QuestionID: 1999-W12-3-4
+Answer: 
+
+QuestionID: 1999-W12-3-6
+Answer: 
+
+QuestionID: 1999-W12-3-8
+Answer: for months
+
+QuestionID: 1999-W12-3-10
+Answer: 
+
