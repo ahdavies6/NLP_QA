@@ -3,3 +3,4 @@ stanford-parser/
 stanford-corenlp/
 stanford-ner/
 .DS_Store
+*.pyc
