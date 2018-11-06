@@ -64,13 +64,20 @@ def num_occurrences_time(chunk):
 #     return x_phrases
 
 
-def get_phrases_with_tag(question_sentence, tag):
-    parse_tree = next(CoreNLPParser().raw_parse(question_sentence))
+def get_parse_trees_with_tag(sentence, tag):
+    parse_tree = next(CoreNLPParser().raw_parse(sentence))
     phrases = []
     for subtree in parse_tree.subtrees():
         if subtree.label() == tag:
             phrases.append(subtree)
     return phrases
+
+
+def get_dep_trees_with_tag(root_node, tag):
+    nodes = root_node.get_nodes
+    for node in nodes:
+        if node['tag'].lower() == tag.lower():
+            pass
 
 
 def calculate_overlap(sequence1, sequence2):
@@ -163,7 +170,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
             if num_occurrences_time(top_prep_string) > 0:
                 return top_prep_string
 
-        prep_phrases = [x.leaves() for x in get_phrases_with_tag(question_sentence, "PP")]
+        prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(answer_sentence, "PP")]
         prep_time = sorted(
             [(num_occurrences_time(" ".join(x)), x) for x in prep_phrases],
             key=lambda x: x[0],
@@ -171,7 +178,8 @@ def get_answer_phrase(question_sentence, answer_sentence):
         )
 
         if prep_time:
-            return prep_time[0][1].leaves()
+            # todo: regex here (super easy)
+            return to_sentence(prep_time[0][1])
         else:
             # todo: perhaps reconsider which one to return here. this may be the wrong idea.
             return max(prep_phrases, key=lambda x: len(x))
@@ -185,7 +193,9 @@ def get_answer_phrase(question_sentence, answer_sentence):
             ]
         ]
 
-        prep_phrases = get_phrases_with_tag(question_sentence, "PP")
+        # prep_phrases = get_phrases_with_tag(answer_sentence, "PP")
+        # if answer['prep']:
+            # get_dep_trees_with_tag()
 
         pass
 
@@ -233,6 +243,14 @@ def test_where():
     print(test)
 
 
+def test_when():
+    question_sentence = "When did Babe play for \"the finest basketball team that ever stepped out on a floor\"?"
+    answer_sentence = "Babe Belanger played with the Grads from 1929 to 1937."
+    test = get_answer_phrase(question_sentence, answer_sentence)
+    print(test)
+
+
 if __name__ == "__main__":
     # test_who()
-    test_where()
+    # test_where()
+    test_when()
