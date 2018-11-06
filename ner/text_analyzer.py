@@ -292,6 +292,45 @@ def get_prospects_for_how_with_pos_check(text, inquiry):
     return sorted(in_list)
 
 
+def get_prospects_for_who_ner(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    in_list = []
+
+    ne_check_list = []
+
+    for sentence in sentences:
+        ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
+        ne_phrases = get_contiguous_x_phrases(ps_sentence, 'NE')
+        ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'PE'))
+        ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'OR'))
+        if len(ne_phrases) > 0:
+            ne_check_list.append(sentence)
+            print(ne_phrases)
+            continue
+
+    # sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(inquiry)), binary=True)))
+    #
+    # nn_phrases = get_contiguous_x_phrases(sigwords, 'NN')
+    # vb_phrases = get_contiguous_x_phrases(sigwords, 'VB')
+    #
+    # for sentence in cd_check_list:
+    #     count = 0
+    #     ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+    #     local_nn_phrases = get_contiguous_x_phrases(ps_sentence, 'NN')
+    #     for phrase in local_nn_phrases:
+    #         if phrase in nn_phrases:
+    #             count += 1
+    #     local_vb_phrases = get_contiguous_x_phrases(ps_sentence, 'VB')
+    #     for phrase in local_vb_phrases:
+    #         if phrase in vb_phrases:
+    #             count += 1
+    #
+    #     in_list.append((-count, sentence))
+
+    return sorted(in_list)
+
+
 def get_prospects_for_when_ner(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 

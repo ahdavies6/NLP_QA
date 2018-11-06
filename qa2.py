@@ -16,7 +16,10 @@ question_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Difficulty:\s*(.*)\
 def print_answer(story, inquiry, questionID):
     q_inquiry = formulate_question(inquiry)
     qword = q_inquiry['qword'][0].lower()
-    feedback = get_prospects_with_lemmatizer2(story, inquiry)
+    if qword == 'who':
+        feedback = get_prospects_for_who_ner(story, inquiry)
+    else:
+        feedback = get_prospects_with_lemmatizer2(story, inquiry)
     # if qword == 'how':
     #     feedback = get_prospects_for_how_regex_q(story, q_inquiry)
     # elif qword == 'when':
