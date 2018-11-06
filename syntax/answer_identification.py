@@ -182,7 +182,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
                 )
             )
         else:
-            # todo: perhaps reconsider which one to return here. this may be the wrong idea.
+            # todo: perhaps reconsider which one to return here. sentence length may be the wrong idea.
             if prep_phrases:
                 return max(prep_phrases, key=lambda x: len(x))
 
@@ -217,7 +217,8 @@ def get_answer_phrase(question_sentence, answer_sentence):
             ]
         ]
 
-        return to_sentence(max(untagged, key=lambda x: len(x)))
+        if untagged:
+            return to_sentence(max(untagged, key=lambda x: len(x)))
 
     elif question['qword'][0].lower() == "why":
         pass
