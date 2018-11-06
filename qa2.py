@@ -18,8 +18,17 @@ def print_answer(story, inquiry, questionID):
     qword = q_inquiry['qword'][0].lower()
     if qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
+    elif qword == 'how':
+        feedback = get_prospects_for_how_regex(story, inquiry)
+    elif qword == 'when':
+        feedback = get_prospects_for_when_regex(story, inquiry)
+    elif qword == 'where':
+        feedback = get_prospects_for_where_ner(story, inquiry)
+    elif qword == 'why':
+        feedback = get_prospects_for_why(story, inquiry)
     else:
-        feedback = get_prospects_with_lemmatizer2(story, inquiry)
+        return
+        # feedback = get_prospects_with_lemmatizer2(story, inquiry)
     # if qword == 'how':
     #     feedback = get_prospects_for_how_regex_q(story, q_inquiry)
     # elif qword == 'when':
@@ -28,7 +37,7 @@ def print_answer(story, inquiry, questionID):
     #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
 
     heapq.heapify(feedback)
-
+    print('Question: ' + inquiry)
     print('QuestionID: ' + questionID)
     for x in range(0, 3):
         if len(feedback) > 0:
@@ -73,7 +82,6 @@ if __name__ == '__main__':
         text = questions.read()
         question = re.findall(question_pattern, text)
         for match in question:
-            print('Question: ' + match[1])
             print_answer(story_files[id][2], match[1], match[0])        # match[1] is question itself, match[0] is questionID
             print()
 
