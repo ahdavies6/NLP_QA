@@ -3,7 +3,7 @@ import sys
 import heapq
 import nltk
 from ner.text_analyzer import *
-from syntax import parse
+from question_classifier import formulate_question
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -14,28 +14,25 @@ question_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Difficulty:\s*(.*)\
 
 
 def print_answer(story, inquiry, questionID):
-    # inquiry = parse.formulate_question(inquiry)
-    feedback = get_prospects_with_lemmatizer2(story, inquiry)
-    # if inquiry[0].lower() == 'where':
-    #     feedback = get_prospects_for_where(story, inquiry)
-    # elif inquiry[0].lower() == 'who':
-    #     feedback = get_prospects_for_who(story, inquiry)
+    q_inquiry = formulate_question(inquiry)
+    qword = q_inquiry['qword'][0].lower()
+    feedback = get_prospects_with_lemmatizer2()
+    # if qword == 'how':
+    #     feedback = get_prospects_for_how_regex_q(story, q_inquiry)
+    # elif qword == 'when':
+    #     feedback = get_prospects_for_when_regex(story, inquiry)
     # else:
-    #     feedback = get_prospects_with_stemmer(story, inquiry)
+    #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
+
     heapq.heapify(feedback)
 
-    print('QuestionID: ' + questionID)
-    if len(feedback) > 0:
-        best_sentence = ''.join(heapq.heappop(feedback)[1])
-        print('Answer: ' + best_sentence)
+    for x in range(0, 3):
+        if len(feedback) > 0:
+            print('QuestionID: ' + questionID)
+            best_sentence = ''.join(heapq.heappop(feedback)[1])
+            print('Answer: ' + best_sentence)
+    print()
 
-    if len(feedback) > 0:
-        best_sentence2 = ''.join(heapq.heappop(feedback)[1])
-        print('Answer2: ' + best_sentence2)
-
-    if len(feedback) > 0:
-        best_sentence3 = ''.join(heapq.heappop(feedback)[1])
-        print('Answer3: ' + best_sentence3)
     x=1
 
 
@@ -77,5 +74,4 @@ if __name__ == '__main__':
             print_answer(story_files[id][2], match[1], match[0])        # match[1] is question itself, match[0] is questionID
             print()
 
-    x = 100
 

@@ -22,3 +22,10 @@ Stanford-NER:
     https://nlp.stanford.edu/software/CRF-NER.html#Download
     extract
     rename extracted dir to 'stanford-ner'
+
+Instructions for text_analyzer:
+    all sentence functions currently the full question, untokenized.
+    Conversion for use with parse classes is needed.
+    use get_prospects_for_who() for who questions
+    use get_prospects_for_where() for where questions
+    use get_prospects_with_lemmatizer2() for others, for now.
