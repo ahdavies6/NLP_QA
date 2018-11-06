@@ -627,7 +627,7 @@ def get_prospects_for_where_sner(text, sigwords):
 
 
 def get_prospects_for_who(text, sigwords):
-    sentences = get_feedback_with_lemmatizer(text, sigwords)
+    sentences = get_prospects_with_lemmatizer(text, sigwords)
 
     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'

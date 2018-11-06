@@ -215,7 +215,8 @@ def get_answer_phrase(question_sentence, answer_sentence):
             ]
         ]
 
-        return to_sentence(max(untagged, key=lambda x: len(x)))
+        if untagged:
+            return to_sentence(max(untagged, key=lambda x: len(x)))
 
     elif question['qword'][0].lower() == "why":
         pass
