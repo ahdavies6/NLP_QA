@@ -59,6 +59,21 @@ def squash(tagged_sentence):
     return final_form
 
 
+def squash_with_ne(tagged_sentence):
+    final_form = []
+    squash_class = ['EX', 'TO', 'DT', 'CC']
+    for sub_form in tagged_sentence:
+        if type(sub_form) is nltk.tree.Tree:
+            for sub_sub_form in sub_form:
+                final_form.append((sub_sub_form[0].lower(), sub_form._label))
+        else:
+            if len(sub_form[1]) < 2:
+                continue
+            if sub_form[1] not in squash_class:
+                final_form.append((sub_form[0].lower(), sub_form[1]))
+    return final_form
+
+
 # Function assumes we have only a tagged sentence, similar to squashed or flattened sentences.
 # Used to convert a sentence's 3-letter, specialized pos tags, into 2-letter, generalized tags.
 def normalize_forms(tagged_sentence):
@@ -163,6 +178,7 @@ def get_feedback_with_lemmatizer(text, sigwords):
             in_list.append((-count, sentence))
 
     return sorted(in_list)
+
 
 def get_prospects_with_lemmatizer2(text, inquiry):
     sentences = nltk.sent_tokenize(text)
