@@ -5,7 +5,6 @@ import text_analyzer
 import re
 import string
 
-
 """
 dep
     aux
@@ -15,6 +14,7 @@ dep
         subj
     mod (modifier)
 """
+
 
 # todo: squash_with_ne
 # squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)
@@ -51,7 +51,7 @@ def num_occurrences_quant_regex(tokens):
     much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
     much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
     much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
-    
+
     if isinstance(tokens, list):
         tokens = " ".join(tokens)
     tokens = tokens.lower()
@@ -80,8 +80,12 @@ def num_occurrences_quant_regex(tokens):
 #     return x_phrases
 
 
-def get_parse_trees_with_tag(sentence, tag):
-    parse_tree = next(CoreNLPParser().raw_parse(sentence))
+def get_parse_tree(sentence_text):
+    return next(CoreNLPParser().raw_parse(sentence_text))
+
+
+def get_parse_trees_with_tag(sentence_text, tag):
+    parse_tree = next(CoreNLPParser().raw_parse(sentence_text))
     phrases = []
     for subtree in parse_tree.subtrees():
         if subtree.label() == tag:
@@ -212,7 +216,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
         else:
             # todo: perhaps reconsider which one to return here. sentence length may be the wrong idea.
             if prep_phrases:
-                return max(prep_phrases, key=lambda x: len(x))
+                return to_sentence(max(prep_phrases, key=lambda x: len(x)))
 
     elif question['qword'][0].lower() == "where":
         answer_chunks = get_top_ner_chunk_of_each_tag(answer_sentence, {"GPE"})
@@ -267,20 +271,25 @@ def get_answer_phrase(question_sentence, answer_sentence):
                         prev_was_to = True
         # todo: potentially strip out "to", and might consider including object?
         # todo: honestly, might just pick out things after "to"
-        if to_vp_phrases:
-            return to_sentence(min(
-                [tree.leaves() for tree in to_vp_phrases],
-                key=lambda x: calculate_overlap(to_vp_phrases, x)
-            ))
+        # if to_vp_phrases:
+        #     return to_sentence(min(
+        #         [tree.leaves() for tree in to_vp_phrases],
+        #         key=lambda x: calculate_overlap(to_vp_phrases, x)
+        #     ))
 
-        to_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(answer_sentence, "PP")]
-        if to_phrases:
-            return to_phrases
+        # todo: finish debugging
+        # vp_phrases = get_parse_trees_with_tag(answer_sentence, "VP")
+        # to_phrases = []
+        # if to_phrases:
+        #     return to_sentence(max(
+        #         to_phrases,
+        #         key=lambda x: len([])
+        #     ))
 
         # todo: soup up this absolute trash
         for i, word in enumerate(answer_sentence.split()):
             if word in ["to", "so", "because"]:
-                return answer_sentence.split()[:i]
+                return to_sentence(answer_sentence.split()[:i])
 
         # todo: try things with conjunctions, potentially? test.
         # conj_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(answer_sentence, "PP")]
@@ -304,10 +313,6 @@ def get_answer_phrase(question_sentence, answer_sentence):
                 ))
 
         # todo: non-measure cases! (mostly thinking about "how did/does")
-
-    # if nothing else worked, just return the whole sentence...?
-    else:
-        return answer_sentence
 
 
 def test_who1():
@@ -379,7 +384,7 @@ if __name__ == "__main__":
     # test_who2()
     # test_where()
     # test_when()
-    # test_why_to()
+    test_why_to()
     # test_why_other()
     # test_how_does()
-    test_how_much()
+    # test_how_much()
