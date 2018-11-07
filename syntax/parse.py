@@ -80,6 +80,10 @@ class DependencyNode(object):
         return item in self._node_dict
 
     @property
+    def tuple(self):
+        return self._node_dict['word'], self._node_dict['tag']
+
+    @property
     def get_pairs(self):
         return [(node['word'], node['tag']) for node in self.get_nodes]
 

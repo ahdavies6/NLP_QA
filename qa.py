@@ -24,8 +24,8 @@ def form_output(story, inquiry, questionID):
     #     feedback = get_prospects_for_how_regex(story, inquiry)
     elif qword == 'when':
         feedback = get_prospects_for_when_regex(story, inquiry)
-    # elif qword == 'where':
-    #     feedback = get_prospects_for_where_ner(story, inquiry)
+    elif qword == 'where':
+        feedback = get_prospects_for_where_ner(story, inquiry)
     # elif qword == 'why':
     #     feedback = get_prospects_for_why(story, inquiry)
     else:

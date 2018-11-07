@@ -3,6 +3,7 @@ from nltk import Tree
 from nltk.parse.corenlp import CoreNLPParser
 
 
+# todo: have this inherit from DependencyNode
 class Question(object):
 
     def __init__(self, sentence_structure, question_word):
@@ -22,6 +23,34 @@ class Question(object):
     def __contains__(self, item):
         return self._root_node.__contains__(item)
 
+    @property
+    def tuple(self):
+        return self['word'], self['tag']
+
+    @property
+    def get_pairs(self):
+        return [(node['word'], node['tag']) for node in self.get_nodes]
+
+    @property
+    def get_nodes(self):
+        nodes = [self]
+        if 'dep_Nodes' in self:
+            # if i == self['address']:
+            #     full_str = "{}{}{}".format(
+            #         full_str,
+            #         " " if self['tag'] != '.' else "",
+            #         self['word']
+            #     )
+            for rel in self['dep_Nodes']:
+                for node in self['dep_Nodes'][rel]:
+                    # full = "{}{}{}".format(
+                    #     full,
+                    #     " " if node['tag'] != '.' else "",
+                    #     " ".join(node.__str__().split())
+                    # )
+                    nodes += node.get_nodes
+        return sorted(nodes, key=lambda n: n['address'])
+    
 
 def formulate_question(question_sentence):
     """

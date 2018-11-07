@@ -24,7 +24,7 @@ dep
 # for
 
 
-def num_occurrences_time(chunk):
+def num_occurrences_time_regex(tokens):
     dates_pattern = r'[[0-9]{1,2}/]*[0-9]{1,2}/[0-9]{2,4}|[0-9]{4}|january|february|march|april|may|june|july|' \
                     r'august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|' \
                     r'sept|oct|nov|dec|[0-2]?[0-9]'
@@ -33,19 +33,33 @@ def num_occurrences_time(chunk):
     begin_pattern = r"first|last|since|ago"
     end_pattern = r"start|begin|since|year"
 
-    if isinstance(chunk, list):
-        chunk = " ".join(chunk)
-    chunk = chunk.lower()
+    if isinstance(tokens, list):
+        tokens = " ".join(tokens)
+    tokens = tokens.lower()
 
-    return len(re.findall(dates_pattern, chunk)) + \
-           len(re.findall(time_pattern, chunk)) + \
-           len(re.findall(span_pattern, chunk))
+    return len(re.findall(dates_pattern, tokens)) + \
+           len(re.findall(time_pattern, tokens)) + \
+           len(re.findall(span_pattern, tokens))
 
     # return any([
-    #     re.search(dates_pattern, chunk),
-    #     re.search(time_pattern, chunk),
-    #     re.search(span_pattern, chunk),
+    #     re.search(dates_pattern, tokens),
+    #     re.search(time_pattern, tokens),
+    #     re.search(span_pattern, tokens),
     # ])
+
+
+def num_occurrences_quant_regex(tokens):
+    much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
+    much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
+    much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
+    
+    if isinstance(tokens, list):
+        tokens = " ".join(tokens)
+    tokens = tokens.lower()
+
+    return len(re.findall(much_pattern, tokens)) + \
+           len(re.findall(much_pattern2, tokens)) + \
+           len(re.findall(much_pattern3, tokens))
 
 
 # def get_contiguous_x_in_y_phrases(tagged_sentence, list_tags):
@@ -133,11 +147,15 @@ def to_sentence(tokens, index=0):
         else:
             return " ".join(tokens)
 
+
 def remove_punctuation(s):
     return ''.join(c for c in s if c not in set(string.punctuation))
 
 
 # todo: put a huge try/catch(all) block to just return the sentence
+# todo: look through all of Carlos' stuff and make sure I'm implementing anything useful that he has
+# todo: consider adding a "bad" tag in last-resort-y responses... or just don't return... idk
+# todo: re-capitalize text when returning?
 def get_answer_phrase(question_sentence, answer_sentence):
     """
     Extract the narrowest phrase from the answer sentence containing the full answer to the question sentence
@@ -171,7 +189,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
     # sentence = nltk.word_tokenize(answer_sentence.lower())
     # overlap = overlap_indices(targets, sentence)
 
-    if question['qword'][0].lower() == "what":
+    if question['qword'][0].lower() in ["what", "which"]:
         pass
 
     elif question['qword'][0].lower() == "when":
@@ -180,7 +198,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
         if prep_nodes:
             # todo: should this be the uppermost node (which'll be [0], always)?
             top_prep_string = " ".join([x[0] for x in prep_nodes[0].get_pairs])
-            if num_occurrences_time(top_prep_string) > 0:
+            if num_occurrences_time_regex(top_prep_string) > 0:
                 return top_prep_string
 
         # todo: find a way to use my dependency parse here?
@@ -189,7 +207,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
         if prep_phrases:
             return to_sentence(
                 max(
-                    prep_phrases, key=lambda x: num_occurrences_time(x)
+                    prep_phrases, key=lambda x: num_occurrences_time_regex(x)
                 )
             )
         else:
@@ -216,10 +234,7 @@ def get_answer_phrase(question_sentence, answer_sentence):
                 key=lambda x: calculate_overlap(x, untagged, False)
             ))
 
-    elif question['qword'][0].lower() == "which":
-        pass
-
-    elif question['qword'][0].lower() == "who":
+    elif question['qword'][0].lower() in ["who", "whose", "whom"]:
         question_chunks = get_top_ner_chunk_of_each_tag(question_sentence)
         answer_chunks = get_top_ner_chunk_of_each_tag(answer_sentence)
 
@@ -237,11 +252,59 @@ def get_answer_phrase(question_sentence, answer_sentence):
             return to_sentence(max(untagged, key=lambda x: len(x)))
 
     elif question['qword'][0].lower() == "why":
-        pass
+        # q_verb = question.tuple
+        # a_verb = answer.tuple
+
+        parse_tree = next(CoreNLPParser().raw_parse(answer_sentence))
+        to_vp_phrases = []
+        prev_was_to = False
+        for tree in parse_tree.subtrees():
+            if tree.label() == "VP":
+                for subtree in tree.subtrees():
+                    if prev_was_to:
+                        to_vp_phrases.append(subtree)
+                        prev_was_to = False
+                    elif subtree.label() == "TO":
+                        prev_was_to = True
+        # todo: potentially strip out "to", and might consider including object?
+        # todo: honestly, might just pick out things after "to"
+        if to_vp_phrases:
+            return to_sentence(min(
+                [tree.leaves() for tree in to_vp_phrases],
+                key=lambda x: calculate_overlap(to_vp_phrases, x)
+            ))
+
+        to_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(answer_sentence, "PP")]
+        if to_phrases:
+            return to_phrases
+
+        # todo: soup up this absolute trash
+        for i, word in enumerate(answer_sentence.split()):
+            if word in ["to", "so", "because"]:
+                return answer_sentence.split()[:i]
+
+        # todo: try things with conjunctions, potentially? test.
+        # conj_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(answer_sentence, "PP")]
 
     elif question['qword'][0].lower() == "how":
         # TODO: look at "QP" parse tag for this!
-        pass
+        if any([
+            # 'advmod' in [
+            #     pair[1] for pair in [
+            #         node.get_pairs[1] for node in question.get_nodes if node['tag'][0].lower() == 'w'
+            #     ]
+            # ],
+            get_parse_trees_with_tag(question_sentence, "WHADJP"),
+            re.search(r"much|many|tall|long", question_sentence)
+        ]):
+            qp_phrases = get_parse_trees_with_tag(answer_sentence, "QP")
+            if qp_phrases:
+                return to_sentence(min(
+                    [tree.leaves() for tree in qp_phrases],
+                    key=lambda x: num_occurrences_quant_regex(x)
+                ))
+
+        # todo: non-measure cases! (mostly thinking about "how did/does")
 
     # if nothing else worked, just return the whole sentence...?
     else:
@@ -276,8 +339,48 @@ def test_when():
     print(test)
 
 
+def test_why_to():
+    question_sentence = "Why did someone sleep in a tent on a sidewalk in front of a theater in Montreal?"
+    answer_sentence = "In Montreal someone actually slept in a tent out on the sidewalk in front of a movie " \
+                      "theatre to make sure he got the first ticket."
+    test = get_answer_phrase(question_sentence, answer_sentence)
+    print(test)
+
+
+def test_why_other():
+    question_sentence = "Why will diabetics have to be patient, despite Dr. Ji-Won Yoon's discovery?"
+    answer_sentence = "But, diabetics will have to be patient -- a cure for humans is between five and 10 years away."
+    test = get_answer_phrase(question_sentence, answer_sentence)
+    print(test)
+
+
+def test_how_does():
+    question_sentence = "How does Newfoundland intend to use a film of seals feasting on cod?"
+    answer_sentence = "The Newfoundland government has a new weapon in its fight to increase the seal hunt: film of cod carnage."
+    test = get_answer_phrase(question_sentence, answer_sentence)
+    print(test)
+
+
+def test_how_much():
+    question_sentence = "How much was sealing worth to the Newfoundland economy in 1996?"
+    answer_sentence = "In 1996 alone it was worth in excess of $11 million, with seal products being sold in Canada, Norway and Asia."
+    test = get_answer_phrase(question_sentence, answer_sentence)
+    print(test)
+
+
+def template():
+    question_sentence = 0
+    answer_sentence = 0
+    test = get_answer_phrase(question_sentence, answer_sentence)
+    print(test)
+
+
 if __name__ == "__main__":
     # test_who1()
     # test_who2()
-    test_where()
+    # test_where()
     # test_when()
+    # test_why_to()
+    # test_why_other()
+    # test_how_does()
+    test_how_much()

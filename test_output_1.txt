@@ -5,16 +5,16 @@ QuestionID: 1999-W18-4-2
 Answer: pastor ken gartly
 
 QuestionID: 1999-W18-4-4
-Answer: 
+Answer: into custody
 
 QuestionID: 1999-W18-4-5
-Answer: littleton colorado
+Answer: littleton
 
 QuestionID: 1999-W18-4-7
 Answer: 
 
 QuestionID: 1999-W18-4-8
-Answer: after the shooting tragedy at Columbine high school in Littleton , Colorado
+Answer: after the shooting tragedy at Columbine high school in Littleton Colorado
 
 QuestionID: 1999-W21-3-1
 Answer: for tickets in late April
@@ -32,13 +32,13 @@ QuestionID: 1999-W21-3-6
 Answer: 
 
 QuestionID: 1999-W21-3-8
-Answer: 
+Answer: on sale
 
 QuestionID: 1999-W21-3-9
 Answer: 
 
 QuestionID: 1999-W11-2-1
-Answer: 
+Answer: with the problem daily both in the contaminants division of the Department of Indian and Northern Affairs and as a representative of the Canadian
 
 QuestionID: 1999-W11-2-2
 Answer: 
@@ -59,7 +59,7 @@ QuestionID: 1999-W11-2-8
 Answer: 
 
 QuestionID: 1999-W11-2-9
-Answer: mills
+Answer: gwichin
 
 QuestionID: 1999-W11-2-10
 Answer: 
@@ -80,10 +80,10 @@ QuestionID: 1999-W04-5-8
 Answer: 
 
 QuestionID: 1999-W04-5-9
-Answer: 
+Answer: After the game
 
 QuestionID: 1999-W12-3-1
-Answer: alberta
+Answer: calgary alberta
 
 QuestionID: 1999-W12-3-2
 Answer: 
@@ -92,10 +92,10 @@ QuestionID: 1999-W12-3-4
 Answer: 
 
 QuestionID: 1999-W12-3-6
-Answer: 
+Answer: from Oman
 
 QuestionID: 1999-W12-3-8
-Answer: for months
+Answer: for months all I thought about
 
 QuestionID: 1999-W12-3-10
 Answer: 
