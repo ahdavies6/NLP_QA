@@ -26,28 +26,22 @@ def form_output(story, inquiry, questionID):
         feedback = get_prospects_for_where_ner(story, inquiry)
     elif qword == 'why':
         feedback = get_prospects_for_why(story, inquiry)
+    elif qword == 'what':
+        feedback = get_prospects_with_wordnet(story, inquiry)
     else:
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
-    # if qword == 'who':
-    #     feedback = get_prospects_for_who_ner(story, inquiry)
-    # else:
-    #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
-        #feedback = []
 
     output = 'QuestionID: ' + questionID + '\n'
     output += 'Answer: '
     if len(feedback) > 0:
         best_sentence = heapq.heappop(feedback)[1]
-        if len(feedback) > 0:
-            pass #best_sentence = heapq.heappop(feedback)[1]
-        answer = get_answer_phrase(inquiry, best_sentence)
+        if qword == 'what':
+            answer = best_sentence
+        else:
+            answer = get_answer_phrase(inquiry, best_sentence)
         if answer:
             output += answer
     output += '\n\n'
-    # for x in range(0, 3):
-    #     if len(feedback) > 0:
-    #         best_sentence = ''.join(heapq.heappop(feedback)[1])
-    #         print('Answer: ' + best_sentence)
 
     return output
 

@@ -1,5 +1,5 @@
 from nltk.tag import StanfordNERTagger
-from nltk.parse.corenlp import CoreNLPParser
+from nltk.corpus import wordnet
 import nltk
 import re
 import question_classifier
@@ -152,18 +152,58 @@ def get_to_phrases(tagged_sentence):
 
     return x_phrases
 
+#Convert between a Penn Treebank tag to a simplified Wordnet tag
+def get_wordnet_tag(tag):
+    if tag.startswith('N'):
+        return 'n'
+    if tag.startswith('V'):
+        return 'v'
+    if tag.startswith('J'):
+        return 'a'
+    if tag.startswith('R'):
+        return 'r'
 
-def get_feedback(text, nes, sigwords):
-    model = '../stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
-    jar = '../stanford-ner/stanford-ner.jar'
-    st = StanfordNERTagger(model, jar, encoding='utf-8')
-    pass
+    return None
 
 
-def get_prospects_with_q_analysis(text, q_inquiry):
-    sentences = nltk.sent_tokenize(text)
+#
+def get_synset(word, tag):
+    wn_tag = get_wordnet_tag(tag)
+    if wn_tag is None:
+        return None
+    try:
+        return wordnet.synsets(word, wn_tag)[0]
+    except:
+        return None
 
-    in_list = []
+
+def sentence_similarity(sentence1, sentence2):
+    sentence1 = nltk.pos_tag(nltk.word_tokenize(sentence1))
+    sentence2 = nltk.pos_tag(nltk.word_tokenize(sentence2))
+
+    synsets1 = [get_synset(*tagged_word) for tagged_word in sentence1]
+    synsets2 = [get_synset(*tagged_word) for tagged_word in sentence2]
+
+    synsets1 = [ss for ss in synsets1 if ss]
+    synsets2 = [ss for ss in synsets2 if ss]
+
+    score, count = 0.0, 0
+
+    for synset_one in synsets1:
+        score_list = [synset_one.path_similarity(ss) for ss in synsets2]
+        verify_scores = [0]
+        for s in score_list:
+            if type(s) is float:
+                verify_scores.append(s)
+
+        best_score = max(verify_scores)
+
+        if best_score is not None:
+            score += best_score
+            count += 1
+
+    score /= count
+    return score
 
 
 def get_prospects_simple(text, sigwords):
@@ -246,30 +286,6 @@ def get_prospects_with_lemmatizer2(text, inquiry):
 
         if count > 0:
             in_list.append((-count, sentence))
-        #     print('sentence: ' + str(ps_sentence))
-        #     print('\twords: ' + str(in_word))
-
-        # if 'root' in question_form:
-        #     sigwords.append(lemmatize(restring(question_form['root'])))
-        #
-        #
-        # if 'nsubj' in question_form:
-        #     sent = [word for word in lemmatize(restring(question_form['nsubj']))]
-        #     for word in sent:
-        #         if word not in _stopWords:
-        #             sigwords.extend(sent)
-        #
-        # if 'dobj' in question_form:
-        #     sent = [word for word in lemmatize(restring(question_form['dobj']))]
-        #     for word in sent:
-        #         if word not in _stopWords:
-        #             sigwords.extend(sent)
-        #
-        # if 'iobj' in question_form:
-        #     sent = [word for word in lemmatize(restring(question_form['iobj']))]
-        #     for word in sent:
-        #         if word not in _stopWords:
-        #             sigwords.extend(sent)
 
     return sorted(in_list)
 
@@ -324,6 +340,16 @@ def get_prospects_with_phrase_matching(text, inquiry):
     return sorted(in_list)
 
 
+
+def get_prospects_with_wordnet(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    in_list = [(-sentence_similarity(sentence, inquiry), sentence) for sentence in sentences]
+
+    return sorted(in_list)
+
+
+
 def get_prospects_for_how_with_pos_check(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
@@ -360,46 +386,6 @@ def get_prospects_for_how_with_pos_check(text, inquiry):
     return sorted(in_list)
 
 
-def get_prospects_for_why(text, inquiry):
-    sentences = nltk.sent_tokenize(text)
-
-    why_check_list = []
-
-    for sentence in sentences:
-        l_sentence = sentence.lower()
-        occupations = re.search(r'because', l_sentence)
-        if occupations is not None:
-            why_check_list.append(sentence)
-
-    if len(why_check_list) == 0:
-        for sentence in sentences:
-            ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
-            to_phrases = get_to_phrases(ps_sentence)
-            if len(to_phrases) > 0:
-                why_check_list.append(sentence)
-
-
-    sub_story = ' '.join(why_check_list)
-    return get_prospects_with_lemmatizer_all(sub_story, inquiry)
-
-
-def get_prospects_for_where_ner(text, inquiry):
-    sentences = nltk.sent_tokenize(text)
-
-    loc_check_list = []
-
-    for sentence in sentences:
-        ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
-        loc_phrases = []
-        loc_phrases.append(get_contiguous_x_phrases(ps_sentence, 'GP'))
-        loc_phrases.append(get_prep_phrases(ps_sentence))
-        if len(loc_phrases) > 0:
-            loc_check_list.append(sentence)
-
-    sub_story = ' '.join(loc_check_list)
-    return get_prospects_with_lemmatizer_all(sub_story, inquiry)
-
-
 def get_prospects_for_who_ner(text, inquiry):
     occupation_pattern = r'(?:teacher|fighter|leader|father|minister|lawyer|officer|mother|member|chef|politician|' \
                          r'salesperson|cashier|person|worker|janitor|engineer|accountant|manager|woman|man|boy|girl|' \
@@ -425,49 +411,51 @@ def get_prospects_for_who_ner(text, inquiry):
                 ne_check_list.append(sentence)
 
     sub_story = ' '.join(ne_check_list)
-    return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+    return get_prospects_with_wordnet(sub_story, inquiry)
 
 
-def get_prospects_for_when_ner(text, inquiry):
+def get_prospects_for_how_regex(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
-    in_list = []
+    s_inquiry = inquiry.lower().split()
 
-    cd_check_list = []
+    if 'much' in s_inquiry:
+        much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
+        much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
+        much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
 
-    for sentence in sentences:
-        ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
-        cd_phrases = get_contiguous_x_phrases(ps_sentence, 'CD')
-        if len(cd_phrases) > 0:
-            cd_check_list.append(sentence)
-            continue
+        regex_check_list = []
 
-    sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(inquiry)), binary=True)))
+        for sentence in sentences:
+            l_sentence = sentence.lower()
+            monies = re.search(much_pattern, l_sentence)
+            monies2 = re.search(much_pattern2, l_sentence)
+            monies3 = re.search(much_pattern3, l_sentence)
+            if monies is not None or monies2 is not None or monies3 is not None:
+                regex_check_list.append(sentence)
 
-    nn_phrases = get_contiguous_x_phrases(sigwords, 'NN')
-    vb_phrases = get_contiguous_x_phrases(sigwords, 'VB')
+        sub_text = ' '.join(regex_check_list)
 
-    for sentence in cd_check_list:
-        count = 0
-        ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
-        local_nn_phrases = get_contiguous_x_phrases(ps_sentence, 'NN')
-        for phrase in local_nn_phrases:
-            if phrase in nn_phrases:
-                count += 1
-        local_vb_phrases = get_contiguous_x_phrases(ps_sentence, 'VB')
-        for phrase in local_vb_phrases:
-            if phrase in vb_phrases:
-                count += 1
+        return get_prospects_with_wordnet(sub_text, inquiry)
 
-        ner_sentence = _sner.tag(nltk.word_tokenize(sentence))
-        for word in ner_sentence:
-            if word[1] == 'TIME' or word[1] == 'DATE':
-                count *= 2
-                break
+    elif 'long' in s_inquiry:
+        long_time_pattern = r'\d*\s*(?:minute[s]?|second[s]?|year[s]?|century|centuries|decade[s]?|day[s]?|hour[s]?|lifetime[s]?)'
+        long_size_pattern = r'(?:meter[s]?|metre[s]?|kilometer[s]?|kilometre[s]?|mile[s]?feet|inche?s?|centimeter[s]?|centimetre[s]?|yard[s]?|light-year[s]?)'
 
-        in_list.append((-count, sentence))
+        regex_check_list = []
 
-    return sorted(in_list)
+        for sentence in sentences:
+            l_sentence = sentence.lower()
+            lengths = re.search(long_time_pattern, l_sentence)
+            lengths2 = re.search(long_size_pattern, l_sentence)
+            if lengths is not None or lengths2 is not None:
+                regex_check_list.append(sentence)
+
+        sub_text = ' '.join(regex_check_list)
+
+        return get_prospects_with_wordnet(sub_text, inquiry)
+    else:
+        return get_prospects_with_wordnet(text, inquiry)
 
 
 # Most promising for when.
@@ -504,7 +492,7 @@ def get_prospects_for_when_regex(text, inquiry):
 
         sub_text = ' '.join(regex_check_list)
 
-        return get_prospects_with_lemmatizer_all(text, inquiry)
+        return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
     else:
         dates_pattern = r'[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}|[0-9]{4}|january|february|march|april|may|' \
@@ -512,8 +500,6 @@ def get_prospects_for_when_regex(text, inquiry):
                         r'jul|aug|sep|sept|oct|nov|dec|[0-2]?[0-9]'
         time_pattern = r"\s*(\d{1,2}\:\d{2}\s?(?:AM|PM|am|pm)?)|\d{1,2}\s*(?:o'clock)"
         span_pattern = r'(?:last|next|this)?\s*(?:week|month|yesterday|today|tomorrow|year)'
-
-        in_list = []
 
         regex_check_list = []
 
@@ -527,76 +513,82 @@ def get_prospects_for_when_regex(text, inquiry):
 
         sub_text = ' '.join(regex_check_list)
 
-        return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+        return get_prospects_with_wordnet(sub_text, inquiry)
 
 
-def get_prospects_for_how_regex(text, inquiry):
+def get_prospects_for_when_ner(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
-    s_inquiry = inquiry.lower().split()
+    in_list = []
 
-    if 'much' in s_inquiry:
-        much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
-        much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
-        much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
+    cd_check_list = []
 
-        regex_check_list = []
+    for sentence in sentences:
+        ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+        cd_phrases = get_contiguous_x_phrases(ps_sentence, 'CD')
+        if len(cd_phrases) > 0:
+            cd_check_list.append(sentence)
+            continue
 
+    sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(inquiry)), binary=True)))
+
+    nn_phrases = get_contiguous_x_phrases(sigwords, 'NN')
+    vb_phrases = get_contiguous_x_phrases(sigwords, 'VB')
+
+    for sentence in cd_check_list:
+        count = 0
+        ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+        local_nn_phrases = get_contiguous_x_phrases(ps_sentence, 'NN')
+        for phrase in local_nn_phrases:
+            if phrase in nn_phrases:
+                count += 1
+        local_vb_phrases = get_contiguous_x_phrases(ps_sentence, 'VB')
+        for phrase in local_vb_phrases:
+            if phrase in vb_phrases:
+                count += 1
+
+        in_list.append((-count, sentence))
+
+    return sorted(in_list)
+
+def get_prospects_for_where_ner(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    loc_check_list = []
+
+    for sentence in sentences:
+        ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
+        loc_phrases = []
+        loc_phrases.append(get_contiguous_x_phrases(ps_sentence, 'GP'))
+        loc_phrases.append(get_prep_phrases(ps_sentence))
+        if len(loc_phrases) > 0:
+            loc_check_list.append(sentence)
+
+    sub_story = ' '.join(loc_check_list)
+    return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+
+
+def get_prospects_for_why(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    why_check_list = []
+
+    for sentence in sentences:
+        l_sentence = sentence.lower()
+        occupations = re.search(r'because', l_sentence)
+        if occupations is not None:
+            why_check_list.append(sentence)
+
+    if len(why_check_list) == 0:
         for sentence in sentences:
-            l_sentence = sentence.lower()
-            monies = re.search(much_pattern, l_sentence)
-            monies2 = re.search(much_pattern2, l_sentence)
-            monies3 = re.search(much_pattern3, l_sentence)
-            if monies is not None or monies2 is not None or monies3 is not None:
-                regex_check_list.append(sentence)
-
-        sub_text = ' '.join(regex_check_list)
-
-        return get_prospects_for_how_with_pos_check(sub_text, inquiry)
-
-    elif 'long' in s_inquiry:
-        long_time_pattern = r'\d*\s*(?:minute[s]?|second[s]?|year[s]?|century|centuries|decade[s]?|day[s]?|hour[s]?|lifetime[s]?)'
-        long_size_pattern = r'(?:meter[s]?|metre[s]?|kilometer[s]?|kilometre[s]?|mile[s]?feet|inche?s?|centimeter[s]?|centimetre[s]?|yard[s]?|light-year[s]?)'
-
-        regex_check_list = []
-
-        for sentence in sentences:
-            l_sentence = sentence.lower()
-            lengths = re.search(long_time_pattern, l_sentence)
-            lengths2 = re.search(long_size_pattern, l_sentence)
-            if lengths is not None or lengths2 is not None:
-                regex_check_list.append(sentence)
-
-        sub_text = ' '.join(regex_check_list)
-
-        return get_prospects_with_lemmatizer_all(sub_text, inquiry)
-    else:
-        return get_prospects_for_how_with_pos_check(text, inquiry)
+            ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
+            to_phrases = get_to_phrases(ps_sentence)
+            if len(to_phrases) > 0:
+                why_check_list.append(sentence)
 
 
-# Do not use. Not fully converted.
-def get_prospects_for_how_regex_q(text, q_inquiry):
-    much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
-    much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
-    much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
-    if 'much' not in restring(q_inquiry.get_pairs):
-        return get_prospects_for_how_with_pos_check(text, q_inquiry)
-    else:
-        sentences = nltk.sent_tokenize(text)
-
-        regex_check_list = []
-
-        for sentence in sentences:
-            l_sentence = sentence.lower()
-            monies = re.search(much_pattern, l_sentence)
-            monies2 = re.search(much_pattern2, l_sentence)
-            monies3 = re.search(much_pattern3, l_sentence)
-            if monies is not None or monies2 is not None or monies3 is not None:
-                regex_check_list.append(sentence)
-
-        sub_text = ' '.join(regex_check_list)
-
-        return get_prospects_with_stemmer(sub_text, q_inquiry)
+    sub_story = ' '.join(why_check_list)
+    return get_prospects_with_lemmatizer_all(sub_story, inquiry)
 
 
 # def get_prospects_with_word2vec(text, sigwords):
@@ -633,44 +625,44 @@ def get_prospects_for_how_regex_q(text, q_inquiry):
 #
 #     return sorted(in_list)
 
-def get_prospects_for_where_sner(text, sigwords):
-    sentences = get_prospects_with_stemmer(text, sigwords)
+# def get_prospects_for_where_sner(text, sigwords):
+#     sentences = get_prospects_with_stemmer(text, sigwords)
+#
+#     model = os.getcwd() + '/stanford-ner/classifiers/english.muc.7class.distsim.crf.ser.gz'
+#     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
+#     st = StanfordNERTagger(model, jar, encoding='utf-8')
+#
+#     in_list = []
+#
+#     for sentence in sentences:
+#         ner_sentence = st.tag(nltk.word_tokenize(sentence[1]))
+#         for word in ner_sentence:
+#             if word[1] == 'LOCATION':
+#                 in_list.append(sentence)
+#                 break
+#
+#     return sorted(in_list)
 
-    model = os.getcwd() + '/stanford-ner/classifiers/english.muc.7class.distsim.crf.ser.gz'
-    jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
-    st = StanfordNERTagger(model, jar, encoding='utf-8')
 
-    in_list = []
+# def get_prospects_for_who(text, sigwords):
+#     sentences = get_prospects_with_lemmatizer2(text, sigwords)
+#
+#     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
+#     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
+#     st = StanfordNERTagger(model, jar, encoding='utf-8')
+#
+#     in_list = []
+#
+#     for sentence in sentences:
+#         pos = nltk.pos_tag(nltk.word_tokenize(sentence[1]))
+#
+#         ner_sentence = st.tag(nltk.word_tokenize(sentence[1]))
+#         for word in ner_sentence:
+#             if word[1] == 'PERSON' or word[1] == 'ORGANIZATION':
+#                 in_list.append(sentence)
+#                 break
 
-    for sentence in sentences:
-        ner_sentence = st.tag(nltk.word_tokenize(sentence[1]))
-        for word in ner_sentence:
-            if word[1] == 'LOCATION':
-                in_list.append(sentence)
-                break
-
-    return sorted(in_list)
-
-
-def get_prospects_for_who(text, sigwords):
-    sentences = get_prospects_with_lemmatizer2(text, sigwords)
-
-    model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
-    jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
-    st = StanfordNERTagger(model, jar, encoding='utf-8')
-
-    in_list = []
-
-    for sentence in sentences:
-        pos = nltk.pos_tag(nltk.word_tokenize(sentence[1]))
-
-        ner_sentence = st.tag(nltk.word_tokenize(sentence[1]))
-        for word in ner_sentence:
-            if word[1] == 'PERSON' or word[1] == 'ORGANIZATION':
-                in_list.append(sentence)
-                break
-
-    return sorted(in_list)
+    # return sorted(in_list)
 
 
 def main():
