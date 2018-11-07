@@ -355,3 +355,30 @@ Answer: in the West
 QuestionID: 1999-W10-3-7
 Answer: red guards
 
+QuestionID: 2000-W06-4-1
+Answer: 
+
+QuestionID: 2000-W06-4-2
+Answer: 
+
+QuestionID: 2000-W06-4-3
+Answer: 
+
+QuestionID: 2000-W06-4-4
+Answer: 
+
+QuestionID: 2000-W06-4-5
+Answer: 
+
+QuestionID: 2000-W06-4-6
+Answer: winnipegs sisler high school
+
+QuestionID: 2000-W06-4-7
+Answer: in East Asia where bowing was the allpurpose form of greeting and kissing was left for private moments
+
+QuestionID: 2000-W06-4-8
+Answer: for learning as the principals say
+
+QuestionID: 2000-W06-4-9
+Answer: 
+

@@ -133,6 +133,26 @@ def get_prep_phrases(tagged_sentence):
     return x_phrases
 
 
+def get_to_phrases(tagged_sentence):
+    x_phrases = []
+    x_words = []
+    for word in tagged_sentence:
+        if len(x_words) == 0:
+            if word[1] == 'TO':
+                x_words.append(word)
+        elif word[1] == 'VB':
+            x_words.append(word)
+        else:
+            if len(x_words) > 1:
+                x_phrases.append(restring(x_words))
+            x_words.clear()
+    if len(x_words) > 1:
+        x_phrases.append(restring(x_words))
+        x_words.clear()
+
+    return x_phrases
+
+
 def get_feedback(text, nes, sigwords):
     model = '../stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
     jar = '../stanford-ner/stanford-ner.jar'
@@ -340,7 +360,6 @@ def get_prospects_for_how_with_pos_check(text, inquiry):
     return sorted(in_list)
 
 
-# todo: Improve this very naïve version of get for why.
 def get_prospects_for_why(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
@@ -351,6 +370,14 @@ def get_prospects_for_why(text, inquiry):
         occupations = re.search(r'because', l_sentence)
         if occupations is not None:
             why_check_list.append(sentence)
+
+    if len(why_check_list) == 0:
+        for sentence in sentences:
+            ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
+            to_phrases = get_to_phrases(ps_sentence)
+            if len(to_phrases) > 0:
+                why_check_list.append(sentence)
+
 
     sub_story = ' '.join(why_check_list)
     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
@@ -368,7 +395,6 @@ def get_prospects_for_where_ner(text, inquiry):
         loc_phrases.append(get_prep_phrases(ps_sentence))
         if len(loc_phrases) > 0:
             loc_check_list.append(sentence)
-            continue  # for breakpoint
 
     sub_story = ' '.join(loc_check_list)
     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
@@ -377,7 +403,7 @@ def get_prospects_for_where_ner(text, inquiry):
 def get_prospects_for_who_ner(text, inquiry):
     occupation_pattern = r'(?:teacher|fighter|leader|father|minister|lawyer|officer|mother|member|chef|politician|' \
                          r'salesperson|cashier|person|worker|janitor|engineer|accountant|manager|woman|man|boy|girl|' \
-                         r'driver|captain|marshall|doctor|nurse)'
+                         r'driver|captain|marshall|doctor|nurse|chairman)'
 
     sentences = nltk.sent_tokenize(text)
 
@@ -386,7 +412,7 @@ def get_prospects_for_who_ner(text, inquiry):
     for sentence in sentences:
         ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
         ne_phrases = []
-        # ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'NE'))
+        ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'NE'))
         ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'PE'))
         ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'OR'))
         if len(ne_phrases) > 0:
@@ -481,9 +507,9 @@ def get_prospects_for_when_regex(text, inquiry):
         return get_prospects_with_lemmatizer_all(text, inquiry)
 
     else:
-        dates_pattern = r'[[0-9]{1,2}/]*[0-9]{1,2}/[0-9]{2,4}|[0-9]{4}|january|february|march|april|may|june|july|' \
-                        r'august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|' \
-                        r'sept|oct|nov|dec|[0-2]?[0-9]'
+        dates_pattern = r'[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}|[0-9]{4}|january|february|march|april|may|' \
+                        r'june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|' \
+                        r'jul|aug|sep|sept|oct|nov|dec|[0-2]?[0-9]'
         time_pattern = r"\s*(\d{1,2}\:\d{2}\s?(?:AM|PM|am|pm)?)|\d{1,2}\s*(?:o'clock)"
         span_pattern = r'(?:last|next|this)?\s*(?:week|month|yesterday|today|tomorrow|year)'
 
@@ -627,7 +653,7 @@ def get_prospects_for_where_sner(text, sigwords):
 
 
 def get_prospects_for_who(text, sigwords):
-    sentences = get_feedback_with_lemmatizer(text, sigwords)
+    sentences = get_prospects_with_lemmatizer2(text, sigwords)
 
     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
@@ -640,7 +666,7 @@ def get_prospects_for_who(text, sigwords):
 
         ner_sentence = st.tag(nltk.word_tokenize(sentence[1]))
         for word in ner_sentence:
-            if word[1] == 'PERSON':
+            if word[1] == 'PERSON' or word[1] == 'ORGANIZATION':
                 in_list.append(sentence)
                 break
 
