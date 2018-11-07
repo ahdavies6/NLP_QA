@@ -1,7 +1,5 @@
-import re
 import sys
 import heapq
-import nltk
 from text_analyzer import *
 from question_classifier import formulate_question
 from answer_identification import get_answer_phrase
