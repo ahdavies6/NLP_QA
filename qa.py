@@ -1,8 +1,6 @@
-import re
 import sys
 import heapq
-import nltk
-from ner.text_analyzer import *
+from text_analyzer import *
 from question_classifier import formulate_question
 from answer_identification import get_answer_phrase
 
@@ -20,22 +18,28 @@ def form_output(story, inquiry, questionID):
     qword = q_inquiry['qword'][0].lower()
     if qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
-    # elif qword == 'how':
-    #     feedback = get_prospects_for_how_regex(story, inquiry)
+    elif qword == 'how':
+        feedback = get_prospects_for_how_regex(story, inquiry)
     elif qword == 'when':
         feedback = get_prospects_for_when_regex(story, inquiry)
     elif qword == 'where':
         feedback = get_prospects_for_where_ner(story, inquiry)
-    # elif qword == 'why':
-    #     feedback = get_prospects_for_why(story, inquiry)
+    elif qword == 'why':
+        feedback = get_prospects_for_why(story, inquiry)
     else:
-        feedback = []
+        feedback = get_prospects_with_lemmatizer2(story, inquiry)
+    # if qword == 'who':
+    #     feedback = get_prospects_for_who_ner(story, inquiry)
+    # else:
+    #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
+        #feedback = []
 
-    # print('Question: ' + inquiry)
     output = 'QuestionID: ' + questionID + '\n'
     output += 'Answer: '
     if len(feedback) > 0:
         best_sentence = heapq.heappop(feedback)[1]
+        if len(feedback) > 0:
+            pass #best_sentence = heapq.heappop(feedback)[1]
         answer = get_answer_phrase(inquiry, best_sentence)
         if answer:
             output += answer

@@ -1,4 +1,3 @@
-from parse import get_sentence
 from question_classifier import *
 from nltk.corpus import stopwords
 import nltk

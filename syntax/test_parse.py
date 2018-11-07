@@ -1,4 +1,3 @@
-from parse import *
 from nltk.parse.corenlp import CoreNLPParser
 import unittest
 
