@@ -16,22 +16,23 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
 def form_output(story, inquiry, questionID):
     q_inquiry = formulate_question(inquiry)
     qword = q_inquiry['qword'][0].lower()
-    # if qword == 'who':
-    #     feedback = get_prospects_for_who_ner(story, inquiry)
-    # elif qword == 'how':
-    #     feedback = get_prospects_for_how_regex(story, inquiry)
-    # elif qword == 'when':
-    #     feedback = get_prospects_for_when_regex(story, inquiry)
-    # elif qword == 'where':
-    #     feedback = get_prospects_for_where_ner(story, inquiry)
-    # elif qword == 'why':
-    #     feedback = get_prospects_for_why(story, inquiry)
-    # else:
-    #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
     if qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
+    elif qword == 'how':
+        feedback = get_prospects_for_how_regex(story, inquiry)
+    elif qword == 'when':
+        feedback = get_prospects_for_when_regex(story, inquiry)
+    elif qword == 'where':
+        feedback = get_prospects_for_where_ner(story, inquiry)
+    elif qword == 'why':
+        feedback = get_prospects_for_why(story, inquiry)
     else:
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
+    # if qword == 'who':
+    #     feedback = get_prospects_for_who_ner(story, inquiry)
+    # else:
+    #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
+        #feedback = []
 
     output = 'QuestionID: ' + questionID + '\n'
     output += 'Answer: '

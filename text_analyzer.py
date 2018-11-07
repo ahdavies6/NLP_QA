@@ -412,7 +412,7 @@ def get_prospects_for_who_ner(text, inquiry):
     for sentence in sentences:
         ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
         ne_phrases = []
-        ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'NE'))
+        # ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'NE'))
         ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'PE'))
         ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'OR'))
         if len(ne_phrases) > 0:
