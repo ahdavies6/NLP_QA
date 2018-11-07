@@ -1,3 +1,36 @@
+QuestionID: 1999-W26-5-1
+Answer: 
+
+QuestionID: 1999-W26-5-3
+Answer: at a Toronto hospital
+
+QuestionID: 1999-W26-5-4
+Answer: 
+
+QuestionID: 1999-W26-5-5
+Answer: 
+
+QuestionID: 1999-W26-5-6
+Answer: 
+
+QuestionID: 1999-W26-5-7
+Answer: 
+
+QuestionID: 1999-W18-3-1
+Answer: 
+
+QuestionID: 1999-W18-3-2
+Answer: 
+
+QuestionID: 1999-W18-3-3
+Answer: 
+
+QuestionID: 1999-W18-3-4
+Answer: 
+
+QuestionID: 1999-W18-3-7
+Answer: 
+
 QuestionID: 1999-W18-4-1
 Answer: 
 
@@ -5,98 +38,320 @@ QuestionID: 1999-W18-4-2
 Answer: pastor ken gartly
 
 QuestionID: 1999-W18-4-4
-Answer: 
+Answer: into custody
 
 QuestionID: 1999-W18-4-5
-Answer: littleton colorado
+Answer: littleton
 
 QuestionID: 1999-W18-4-7
 Answer: 
 
 QuestionID: 1999-W18-4-8
-Answer: after the shooting tragedy at Columbine high school in Littleton , Colorado
+Answer: after the shooting tragedy at Columbine high school in Littleton Colorado
 
-QuestionID: 1999-W21-3-1
-Answer: for tickets in late April
+QuestionID: 1999-W10-1-1
+Answer: news network
 
-QuestionID: 1999-W21-3-2
+QuestionID: 1999-W10-1-2
 Answer: 
 
-QuestionID: 1999-W21-3-3
+QuestionID: 1999-W10-1-3
 Answer: 
 
-QuestionID: 1999-W21-3-4
-Answer: ken
+QuestionID: 1999-W10-1-4
+Answer: with YNN
 
-QuestionID: 1999-W21-3-6
+QuestionID: 1999-W10-1-6
 Answer: 
 
-QuestionID: 1999-W21-3-8
+QuestionID: 1999-W10-1-7
+Answer: athena educational partners inc meadowvale
+
+QuestionID: 1999-W10-1-10
 Answer: 
 
-QuestionID: 1999-W21-3-9
+QuestionID: 1999-W10-1-11
 Answer: 
 
-QuestionID: 1999-W11-2-1
+QuestionID: 1999-W23-5-1
 Answer: 
 
-QuestionID: 1999-W11-2-2
+QuestionID: 1999-W23-5-2
 Answer: 
 
-QuestionID: 1999-W11-2-3
-Answer: of chemical pollutants in marine Mammals
-
-QuestionID: 1999-W11-2-4
+QuestionID: 1999-W23-5-3
 Answer: 
 
-QuestionID: 1999-W11-2-5
+QuestionID: 1999-W23-5-4
 Answer: 
 
-QuestionID: 1999-W11-2-6
+QuestionID: 1999-W23-5-5
+Answer: in 32 years
+
+QuestionID: 1999-W23-5-6
+Answer: in our team
+
+QuestionID: 1999-W23-5-8
+Answer: mike harris
+
+QuestionID: 1999-W23-5-10
 Answer: 
 
-QuestionID: 1999-W11-2-8
+QuestionID: 1999-W19-2-1
 Answer: 
 
-QuestionID: 1999-W11-2-9
-Answer: mills
-
-QuestionID: 1999-W11-2-10
+QuestionID: 1999-W19-2-2
 Answer: 
 
-QuestionID: 1999-W04-5-2
+QuestionID: 1999-W19-2-3
+Answer: chad harris
+
+QuestionID: 1999-W19-2-4
+Answer: of 10 deaths
+
+QuestionID: 1999-W19-2-5
+Answer: with seven people inside his mobile home in Haysville
+
+QuestionID: 1999-W19-2-6
 Answer: 
 
-QuestionID: 1999-W04-5-3
-Answer: alexi yashin
-
-QuestionID: 1999-W04-5-4
+QuestionID: 1999-W19-2-7
 Answer: 
 
-QuestionID: 1999-W04-5-7
+QuestionID: 1999-W19-2-8
 Answer: 
 
-QuestionID: 1999-W04-5-8
+QuestionID: 1999-W19-2-9
 Answer: 
 
-QuestionID: 1999-W04-5-9
+QuestionID: 1999-W29-2-1
 Answer: 
 
-QuestionID: 1999-W12-3-1
-Answer: alberta
-
-QuestionID: 1999-W12-3-2
+QuestionID: 1999-W29-2-3
 Answer: 
 
-QuestionID: 1999-W12-3-4
+QuestionID: 1999-W29-2-4
+Answer: at 76
+
+QuestionID: 1999-W29-2-5
+Answer: united nations
+
+QuestionID: 1999-W29-2-6
 Answer: 
 
-QuestionID: 1999-W12-3-6
+QuestionID: 1999-W29-2-7
 Answer: 
 
-QuestionID: 1999-W12-3-8
-Answer: for months
-
-QuestionID: 1999-W12-3-10
+QuestionID: 1999-W19-1-1
 Answer: 
+
+QuestionID: 1999-W19-1-2
+Answer: 
+
+QuestionID: 1999-W19-1-4
+Answer: in Eastern Beringia 40000 years ago
+
+QuestionID: 1999-W19-1-4
+Answer: in Eastern Beringia 40000 years ago
+
+QuestionID: 1999-W19-1-6
+Answer: of In Search of Ancient North America part of which is about the Bluefish Caves in northern Yukon
+
+QuestionID: 1999-W19-1-7
+Answer: 
+
+QuestionID: 1999-W19-1-8
+Answer: jacques cinqmars
+
+QuestionID: 1999-W19-1-9
+Answer: 
+
+QuestionID: 1999-W02-5-1
+Answer: at the fitness market
+
+QuestionID: 1999-W02-5-2
+Answer: nova scotia
+
+QuestionID: 1999-W02-5-3
+Answer: 
+
+QuestionID: 1999-W02-5-5
+Answer: principal betty jean aucoin
+
+QuestionID: 1999-W02-5-6
+Answer: 
+
+QuestionID: 1999-W02-5-7
+Answer: 
+
+QuestionID: 1999-W12-5-2
+Answer: junior hockey league
+
+QuestionID: 1999-W12-5-3
+Answer: Two weeks ago at a Bantam hockey game in Dauphin involving a team from Waywayseecappo First Nation fans for the other team
+
+QuestionID: 1999-W12-5-4
+Answer: 
+
+QuestionID: 1999-W12-5-5
+Answer: 
+
+QuestionID: 1999-W12-5-6
+Answer: 
+
+QuestionID: 1999-W12-5-7
+Answer: 
+
+QuestionID: 1999-W12-5-8
+Answer: of racism against an aboriginal hockey team and its fans
+
+QuestionID: 1999-W10-1-1
+Answer: news network
+
+QuestionID: 1999-W10-1-2
+Answer: 
+
+QuestionID: 1999-W10-1-3
+Answer: 
+
+QuestionID: 1999-W10-1-4
+Answer: with YNN
+
+QuestionID: 1999-W10-1-6
+Answer: 
+
+QuestionID: 1999-W10-1-7
+Answer: athena educational partners inc meadowvale
+
+QuestionID: 1999-W10-1-10
+Answer: 
+
+QuestionID: 1999-W10-1-11
+Answer: 
+
+QuestionID: 1999-W24-5-1
+Answer: in September
+
+QuestionID: 1999-W24-5-2
+Answer: louise arbour
+
+QuestionID: 1999-W24-5-3
+Answer: 
+
+QuestionID: 1999-W24-5-4
+Answer: from the University of Montreal
+
+QuestionID: 1999-W24-5-5
+Answer: earl levy
+
+QuestionID: 1999-W24-5-7
+Answer: 
+
+QuestionID: 1999-W24-5-8
+Answer: 
+
+QuestionID: 1999-W16-5-1
+Answer: in British Columbias Fraser Valley this year
+
+QuestionID: 1999-W16-5-2
+Answer: 
+
+QuestionID: 1999-W16-5-3
+Answer: 
+
+QuestionID: 1999-W16-5-5
+Answer: of time
+
+QuestionID: 1999-W16-5-7
+Answer: 
+
+QuestionID: 1999-W16-5-8
+Answer: 
+
+QuestionID: 1999-W16-5-9
+Answer: neil peters
+
+QuestionID: 1999-W15-4-2
+Answer: 
+
+QuestionID: 1999-W15-4-3
+Answer: 
+
+QuestionID: 1999-W15-4-4
+Answer: 
+
+QuestionID: 1999-W15-4-5
+Answer: joaquin garcia
+
+QuestionID: 1999-W15-4-6
+Answer: 
+
+QuestionID: 1999-W15-4-7
+Answer: to hand over the pottery
+
+QuestionID: 1999-W15-4-9
+Answer: 
+
+QuestionID: 1999-W15-4-10
+Answer: to hand over the pottery
+
+QuestionID: 1999-W14-1-2
+Answer: 
+
+QuestionID: 1999-W14-1-4
+Answer: 
+
+QuestionID: 1999-W14-1-5
+Answer: 
+
+QuestionID: 1999-W14-1-6
+Answer: computer emergency response team
+
+QuestionID: 1999-W14-1-7
+Answer: katherine
+
+QuestionID: 1999-W14-1-8
+Answer: at their computer terminals
+
+QuestionID: 1999-W14-1-9
+Answer: 
+
+QuestionID: 1999-W14-1-10
+Answer: 
+
+QuestionID: 1999-W28-5-1
+Answer: in January
+
+QuestionID: 1999-W28-5-3
+Answer: antarctic
+
+QuestionID: 1999-W28-5-4
+Answer: 
+
+QuestionID: 1999-W28-5-5
+Answer: in January
+
+QuestionID: 1999-W28-5-6
+Answer: across the world from Sweden
+
+QuestionID: 1999-W28-5-7
+Answer: 
+
+QuestionID: 1999-W10-3-1
+Answer: 
+
+QuestionID: 1999-W10-3-2
+Answer: 
+
+QuestionID: 1999-W10-3-4
+Answer: chinese
+
+QuestionID: 1999-W10-3-5
+Answer: in the West
+
+QuestionID: 1999-W10-3-6
+Answer: in the West
+
+QuestionID: 1999-W10-3-7
+Answer: red guards
 

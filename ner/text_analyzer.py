@@ -47,7 +47,7 @@ def flatten(tagged_sentence):
 # Just like flatten, but removes determiners, existential there, conjuctions, punctuations, and 'to'
 def squash(tagged_sentence):
     final_form = []
-    squash_class = ['EX', 'TO', 'DT', 'CC']
+    squash_class = ['EX', 'DT', 'CC']
     for sub_form in tagged_sentence:
         if type(sub_form) is nltk.tree.Tree:
             final_form.extend(squash(sub_form))
@@ -61,7 +61,7 @@ def squash(tagged_sentence):
 
 def squash_with_ne(tagged_sentence):
     final_form = []
-    squash_class = ['EX', 'TO', 'DT', 'CC']
+    squash_class = ['EX', 'DT', 'CC']
     for sub_form in tagged_sentence:
         if type(sub_form) is nltk.tree.Tree:
             for sub_sub_form in sub_form:
@@ -78,7 +78,7 @@ def squash_with_ne(tagged_sentence):
 # Used to convert a sentence's 3-letter, specialized pos tags, into 2-letter, generalized tags.
 def normalize_forms(tagged_sentence):
     final_form = []
-    squash_class = ['EX', 'TO', 'DT', 'CC']
+    squash_class = ['EX', 'DT', 'CC']
     for sub_form in tagged_sentence:
         if len(sub_form[1]) == 2:
             final_form.append(sub_form)

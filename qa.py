@@ -20,18 +20,17 @@ def form_output(story, inquiry, questionID):
     qword = q_inquiry['qword'][0].lower()
     if qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
-    # elif qword == 'how':
-    #     feedback = get_prospects_for_how_regex(story, inquiry)
+    elif qword == 'how':
+        feedback = get_prospects_for_how_regex(story, inquiry)
     elif qword == 'when':
         feedback = get_prospects_for_when_regex(story, inquiry)
-    # elif qword == 'where':
-    #     feedback = get_prospects_for_where_ner(story, inquiry)
-    # elif qword == 'why':
-    #     feedback = get_prospects_for_why(story, inquiry)
+    elif qword == 'where':
+        feedback = get_prospects_for_where_ner(story, inquiry)
+    elif qword == 'why':
+        feedback = get_prospects_for_why(story, inquiry)
     else:
-        feedback = []
+        feedback = get_prospects_with_lemmatizer2(story, inquiry)
 
-    # print('Question: ' + inquiry)
     output = 'QuestionID: ' + questionID + '\n'
     output += 'Answer: '
     if len(feedback) > 0:

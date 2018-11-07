@@ -1,3 +1,58 @@
+QuestionID: 1999-W26-5-1
+Question: What is a "resident"?
+Answer: a new doctor
+Difficulty: Easy
+
+QuestionID: 1999-W26-5-3
+Question: Where is Mt. Sinai hospital?
+Answer: Toronto
+Difficulty: Moderate
+
+QuestionID: 1999-W26-5-4
+Question: How does a doctor usually learn how to perform operations?
+Answer: by practising on real, live human patients
+Difficulty: Easy
+
+QuestionID: 1999-W26-5-5
+Question: What do doctors at Mt. Sinai hospital learn on?
+Answer: latex intestines | latex simulations | surgical dummies
+Difficulty: Moderate
+
+QuestionID: 1999-W26-5-6
+Question: In the future, what might doctors use to perfect their techniques?
+Answer: 3-D animation programs and virtual patients | 3-D animation programs | virtual patients
+Difficulty: Moderate
+
+QuestionID: 1999-W26-5-7
+Question: Why are latex intestines a good teaching tool?
+Answer: they look and feel like the real thing | you can stop and talk and take things out and start again | they look and feel like the real thing and you can stop and talk and take things out and start again 
+Difficulty: Moderate
+
+QuestionID: 1999-W18-3-1
+Question: When was a sheep cloned by Scottish scientists?
+Answer: 1997
+Difficulty: Easy
+
+QuestionID: 1999-W18-3-2
+Question: What type of animal did Nexia Biotechnologies clone?
+Answer: goats
+Difficulty: Easy
+
+QuestionID: 1999-W18-3-3
+Question: How many clones did Nexia Biotechnologies make?
+Answer: three | triplets
+Difficulty: Moderate
+
+QuestionID: 1999-W18-3-4
+Question: Who is the president of Nexia Biotechnologies ?
+Answer: Jeffrey Turner
+Difficulty: Easy
+
+QuestionID: 1999-W18-3-7
+Question: Besides being very strong, what are the advantages of BioSteel?
+Answer: environmentally friendly, extremely light, and compatible with the human body
+Difficulty: Moderate
+
 QuestionID: 1999-W18-4-1
 Question: What is the population of Taber?
 Answer: eight thousand
@@ -28,143 +83,513 @@ Question: When was there a school shooting in Colorado?
 Answer: a week before the Taber shooting | a week ago
 Difficulty: Moderate
 
-QuestionID: 1999-W21-3-1
-Question: When did Star Wars fans across Canada begin lining up for tickets to Star Wars: Episode 1 The Phantom Menace" movie?
-Answer: late April
-Difficulty: easy
-
-QuestionID: 1999-W21-3-2
-Question: Why did someone sleep in a tent on a sidewalk in front of a theater in Montreal?
-Answer: to make sure he got the first ticket
+QuestionID: 1999-W10-1-1
+Question: Who owns Youth News Network?  
+Answer: Athena Educational Partners Inc. | a company in Montreal
 Difficulty: moderate
 
-QuestionID: 1999-W21-3-3
-Question: How did Mark Churchill describe the movie, "The Phantom Menace"?
-Answer: "definitely a five-star movie"
+QuestionID: 1999-W10-1-2
+Question: What did it cost Meadowvale secondary to have a satellite dish, televisions, and audio-visual equipment installed?
+Answer: nothing | it was free | free of charge
+Difficulty: moderate 
+
+QuestionID: 1999-W10-1-3
+Question: How many students attend Meadowvale secondary school?
+Answer: 1700
 Difficulty: easy
 
-QuestionID: 1999-W21-3-4
-Question: Who said "the effects were top notch" when he was talking about "The Phantom Menace"?
-Answer: Ken Green
+QuestionID: 1999-W10-1-4
+Question: When is the deadline by which the school must decide whether to sign a five-year contract with YNN?
+Answer: June 1999
+Difficulty: easy 
+
+QuestionID: 1999-W10-1-6
+Question: What does CBC Newsworld provide to schools?
+Answer: free TV programming | free television programming
 Difficulty: moderate
 
-QuestionID: 1999-W21-3-6
-Question: How much money are some scalpers in Los Angeles asking for a Phantom Menace ticket?
-Answer: $50 or more
+QuestionID: 1999-W10-1-7
+Question: Who is the principal of Meadowvale secondary?
+Answer: Laurie Pedwell
 Difficulty: easy
 
-QuestionID: 1999-W21-3-8
-Question: Where have offers for tickets been common?
-Answer: on the Internet
+QuestionID: 1999-W10-1-10
+Question: How long is YNN's newscast?
+Answer: 12 minutes
 Difficulty: easy
 
-QuestionID: 1999-W21-3-9
-Question: What does Stephen Cole of the National Post say is missing in the Phantom Menace?
-Answer: "the presence of a larger-than-life villain" | a larger-than-life villain 
+QuestionID: 1999-W10-1-11
+Question: What organization does Heather-Jane Robertson represent?
+Answer: the Canadian Teachers Federation
+Difficulty: easy
+
+QuestionID: 1999-W23-5-1
+Question: How did Ontario Premier Mike Harris describe his re-election campaign?
+Answer: the hardest-fought campaign in recent memory
 Difficulty: moderate
 
-QuestionID: 1999-W11-2-1
-Question: Where did the issue of chemical pollutants in the Arctic come to a head recently?
-Answer: at a United Nations conference in Africa
+QuestionID: 1999-W23-5-2
+Question: What are ridings?
+Answer: small political regions across the province
 Difficulty: easy
 
-QuestionID: 1999-W11-2-2
-Question: Why is eating Arctic fish and game a frightening and tricky business?
-Answer: because of the build-up of polluting chemicals in these animals
-Difficulty: easy
-
-QuestionID: 1999-W11-2-3
-Question: When did the issue of chemical contaminants in Arctic food come to a head?
-Answer: recently | this week
+QuestionID: 1999-W23-5-3
+Question: Why does a majority government make it much easier for the ruling party to make decisions?
+Answer: because they get more than half of the votes on any issue
 Difficulty: moderate
 
-QuestionID: 1999-W11-2-4
-Question: Who does Carole Mills represent?
-Answer: the Canadian Arctic Indigenous Peoples Against POPs
+QuestionID: 1999-W23-5-4
+Question: Who is the leader of the Liberals?
+Answer: Dalton McGuinty
 Difficulty: easy
 
-QuestionID: 1999-W11-2-5
-Question: How does Mills convince her family members to eat fish?
-Answer: talks to them and explains that the contaminants concentrate in specific parts, so they don't have to stop eating the animals | explains that the contaminants concentrate in specific parts, so they don't have to stop eating the animals 
-Difficulty: easy
-
-QuestionID: 1999-W11-2-6
-Question: What are POPs?
-Answer: persistent organic pollutants
-Difficulty: easy
-
-QuestionID: 1999-W11-2-8
-Question: What is muktuk?
-Answer: a dish made from seal, walrus or whale fat
-Difficulty: easy
-
-QuestionID: 1999-W11-2-9
-Question: Who is Eric Loring?
-Answer: environmental wildlife coordinator with the Inuit Tapirisat of Canada
-Difficulty: easy
-
-QuestionID: 1999-W11-2-10
-Question: Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?
-Answer: because country food contains vitamins and nutrients not found in store-bought food
+QuestionID: 1999-W23-5-5
+Question: When was the last time any party won two majority governments in a row in Ontario?
+Answer: 32 years ago
 Difficulty: moderate
 
-QuestionID: 1999-W04-5-2
-Question: How much does Alexi Yashin earn as a hockey player?
-Answer: more than three million dollars a season
-Difficulty: Easy
+QuestionID: 1999-W23-5-6
+Question: Where did Premier Mike Harris address cheering supporters?
+Answer: in North Bay
+Difficulty: easy
 
-QuestionID: 1999-W04-5-3
-Question: Who does Alexi Yashin play for?
-Answer: Ottawa Senators
-Difficulty: Easy
+QuestionID: 1999-W23-5-8
+Question: Who hounded Mike Harris at every appearance?
+Answer: protesters
+Difficulty: easy
 
-QuestionID: 1999-W04-5-4
-Question: How much money did Alexi Yashin actually donate to the National Arts Centre?
-Answer: $200,000
+QuestionID: 1999-W23-5-10
+Question: What are returning officers?
+Answer: the people in charge of a polling station
+Difficulty: easy
+
+QuestionID: 1999-W19-2-1
+Question: Which U.S. states were hit by the numerous tornados?
+Answer: Oklahoma and Kansas | Kansas and Oklahoma
+Difficulty: easy
+
+QuestionID: 1999-W19-2-2
+Question: What is the recognizable shape of a tornado?
+Answer: the swirling funnel cloud that extends from the base of a storm cloud to the ground
+Difficulty: easy
+
+QuestionID: 1999-W19-2-3
+Question: Who said 40 people were killed in Oklahoma alone?
+Answer: the Oklahoma state medical examiner
+Difficulty: easy
+
+QuestionID: 1999-W19-2-4
+Question: When did authorities discover the initial count of 10 deaths in Sedgwick County was wrong?
+Answer: when they realized victims had been counted twice
+Difficulty: easy
+
+QuestionID: 1999-W19-2-5
+Question: Where was Chad Harris when the tornado hit?
+Answer: in his mobile home | his mobile home in Haysville
+Difficulty: moderate
+
+QuestionID: 1999-W19-2-6
+Question: What is the wind speed range of an F-4 tornado?
+Answer: 333-419 kilometres per hour
+Difficulty: easy
+
+QuestionID: 1999-W19-2-7
+Question: How many F-5 tornados hit the United States each year on average?
+Answer: one
+Difficulty: easy
+
+QuestionID: 1999-W19-2-8
+Question: Why is the scale of intensity for tornados called the Fujita scale?
+Answer: named after a University of Chicago researcher
+Difficulty: moderate
+
+QuestionID: 1999-W19-2-9
+Question: How do scientists rank tornados?
+Answer: the Fujita scale | Fujita scale of intensity
+Difficulty: easy
+
+QuestionID: 1999-W29-2-1
+Question: How many years in a row has the United Nations ranked Canada the best country in the world to live in?
+Answer: six
+Difficulty: moderate
+
+QuestionID: 1999-W29-2-3
+Question: What is personal income?
+Answer: how much money a person earns
+Difficulty: easy
+
+QuestionID: 1999-W29-2-4
+Question: Where is life expectancy 76 years of age?
+Answer: United States
+Difficulty: easy
+
+QuestionID: 1999-W29-2-5
+Question: Who ranked first in healthcare?
+Answer: Japan
+Difficulty: moderate
+
+QuestionID: 1999-W29-2-6
+Question: In what year did Canadians earn an average of $16,525 US?
+Answer: 1997
+Difficulty: easy
+
+QuestionID: 1999-W29-2-7
+Question: Why is life improving for people in developed countries like Canada, according to the UN report?
+Answer: technology
+Difficulty: easy
+
+QuestionID: 1999-W19-1-1
+Question: How long have people inhabited the Yukon region, according to new research?
+Answer: 40,000 years
+Difficulty: easy
+
+QuestionID: 1999-W19-1-2
+Question: How did the first inhabitants of North America get here?
+Answer: crossed a land bridge from Asia into what is now Alaska | crossed a land bridge
+Difficulty: moderate
+
+QuestionID: 1999-W19-1-4
+Question: Where is Eastern Beringia?
+Answer: eastern Yukon
+Difficulty: easy
+
+QuestionID: 1999-W19-1-4
+Question: Where is Eastern Beringia?
+Answer: Jacques Cinq-Mars, an archeologist at the Canadian Museum of Civilization in Ottawa | Jacques Cinq-Mars
+Difficulty: easy
+
+QuestionID: 1999-W19-1-6
+Question: Where was the latest evidence supporting earlier dates for the first human inhabitants of North America found?
+Answer: in the Bluefish Caves
+Difficulty: moderate
+
+QuestionID: 1999-W19-1-7
+Question: What did archeologists find in the Bluefish Caves?
+Answer: a mammoth bone that was probably flaked and shaped by human hands roughly 23,500 years ago | a mammoth bone
+Difficulty: moderate
+
+QuestionID: 1999-W19-1-8
+Question: Who does Jacques Cing-Mars think used the caves?
+Answer: hunters
+Difficulty: easy
+
+QuestionID: 1999-W19-1-9
+Question: What does author Heather Pringle think archeology is about?
+Answer: "uncovering the lives of ancient people"
+Difficulty: easy
+
+QuestionID: 1999-W02-5-1
+Question: Where is South Queens Junior High School located?
+Answer: Liverpool, Nova Scotia | Canada
 Difficulty: Moderate
 
-QuestionID: 1999-W04-5-7
-Question: Why do people go to the National Arts Centre?
-Answer: to see plays and dance and to hear live music
+QuestionID: 1999-W02-5-2
+Question: Who is the principal of South Queens Junior High School?
+Answer: Betty Jean Aucoin
 Difficulty: Easy
 
-QuestionID: 1999-W04-5-8
-Question: How would Alexi's parents have benefited from his donation to the National Arts Centre?
-Answer: they would earn $85,000 a year  | the National Arts Centre would have hired them at $85,000 a year
+QuestionID: 1999-W02-5-3
+Question: What has South Queens Junior High School done with its old metal shop?
+Answer: turned it into a fitness club
 Difficulty: Moderate
 
-QuestionID: 1999-W04-5-9
-Question: Where did reporters question Alexi Yashin?
-Answer: in the locker room | Boston
-Difficulty: Easy
-
-QuestionID: 1999-W12-3-1
-Question: Who said Bedouin ways are "a death in life."?
-Answer: T.E. Lawrence
-Difficulty: Easy
-
-QuestionID: 1999-W12-3-2
-Question: How long did it take Jamie Clarke and his companions to travel 1,200 kilometers across the Arabian desert?
-Answer: 39 days
+QuestionID: 1999-W02-5-5
+Question: Who runs the club?
+Answer: a non-profit society | school and community volunteers
 Difficulty: Moderate
 
-QuestionID: 1999-W12-3-4
-Question: What was one of the things that motivated Clarke during the journey?
-Answer: the kids
+QuestionID: 1999-W02-5-6
+Question: How big is the club?
+Answer: 12,000 square feet
 Difficulty: Easy
 
-QuestionID: 1999-W12-3-6
-Question: Where did the team's journey begin?
-Answer: Salalah, Oman | Salalah | Oman
+QuestionID: 1999-W02-5-7
+Question: If you were a student, how much would a club membership cost you?
+Answer: $135 a year
+Difficulty: Moderate 
+
+QuestionID: 1999-W12-5-2
+Question: Who won Monday night's game?
+Answer: The OCN Blizzards | The OCN Blizzards of the Opaskwayak Cree Nation
 Difficulty: Moderate
 
-QuestionID: 1999-W12-3-8
-Question: When did Clarke dream about the desert?
-Answer: before the journey
-Difficulty: Moderate
-
-QuestionID: 1999-W12-3-10
-Question: How do camels like to be spoken to?
-Answer: softly | nicely | you have to be nice to it, you have to talk softly and show your love
+QuestionID: 1999-W12-5-3
+Question: When did hockey fans bring hand drums to a game to taunt the Native players?
+Answer: Two weeks ago
 Difficulty: Easy
+
+QuestionID: 1999-W12-5-4
+Question: Why do First Nations people allegedly "hate white people," according to some?
+Answer: because they have brand new cars, nice homes and new clothes
+Difficulty: Easy
+
+QuestionID: 1999-W12-5-5
+Question: What is Rod Bushie's role in the Assembly of Manitoba Chiefs?
+Answer: grand chief
+Difficulty: Easy
+
+QuestionID: 1999-W12-5-6
+Question: How should politicians respond to racism, according to Bushie?
+Answer: encourage racial tolerance
+Difficulty: Easy
+
+QuestionID: 1999-W12-5-7
+Question: According to Bushie, what should the schools do to combat racism?
+Answer: more aboriginal education 
+Difficulty: Moderate
+
+QuestionID: 1999-W12-5-8
+Question: Where have the First Nation leaders been invited?
+Answer: a meeting with the city council | Dauphin city council 
+Difficulty: Easy
+
+QuestionID: 1999-W10-1-1
+Question: Who owns Youth News Network?  
+Answer: Athena Educational Partners Inc. | a company in Montreal
+Difficulty: moderate
+
+QuestionID: 1999-W10-1-2
+Question: What did it cost Meadowvale secondary to have a satellite dish, televisions, and audio-visual equipment installed?
+Answer: nothing | it was free | free of charge
+Difficulty: moderate 
+
+QuestionID: 1999-W10-1-3
+Question: How many students attend Meadowvale secondary school?
+Answer: 1700
+Difficulty: easy
+
+QuestionID: 1999-W10-1-4
+Question: When is the deadline by which the school must decide whether to sign a five-year contract with YNN?
+Answer: June 1999
+Difficulty: easy 
+
+QuestionID: 1999-W10-1-6
+Question: What does CBC Newsworld provide to schools?
+Answer: free TV programming | free television programming
+Difficulty: moderate
+
+QuestionID: 1999-W10-1-7
+Question: Who is the principal of Meadowvale secondary?
+Answer: Laurie Pedwell
+Difficulty: easy
+
+QuestionID: 1999-W10-1-10
+Question: How long is YNN's newscast?
+Answer: 12 minutes
+Difficulty: easy
+
+QuestionID: 1999-W10-1-11
+Question: What organization does Heather-Jane Robertson represent?
+Answer: the Canadian Teachers Federation
+Difficulty: easy
+
+QuestionID: 1999-W24-5-1
+Question: When will Judge Arbour start her new job on Canada's Supreme Court?
+Answer: September | September, 1999 | September 15, 1999
+Difficulty: Easy
+
+QuestionID: 1999-W24-5-2
+Question: Who is Judge Arbour replacing in her new job?
+Answer: justice Peter Cory | Peter Cory 
+Difficulty: Easy
+
+QuestionID: 1999-W24-5-3
+Question: Before getting her new position, what was Judge Arbour's job?
+Answer: chief prosecutor at the war-crimes tribunal
+Difficulty: Moderate
+
+QuestionID: 1999-W24-5-4
+Question: Where did Judge Arbour get her law degree?
+Answer: University of Montreal
+Difficulty: Easy
+
+QuestionID: 1999-W24-5-5
+Question: Who says Louise Arbour is "a down-to-earth individual"?
+Answer: lawyer Earl Levy | Earl Levy
+Difficulty: Easy
+
+QuestionID: 1999-W24-5-7
+Question: What was the president of Yugoslavia indicted for?
+Answer: crimes against humanity
+Difficulty: Easy
+
+QuestionID: 1999-W24-5-8
+Question: Why was the announcement about Judge Arbour not made until NATO and Yugoslavia signed an agreement?
+Answer: The government was very aware of how tricky it would be to take her away from her high-profile assignment of prosecuting Milosevic
+Difficulty: Moderate
+
+QuestionID: 1999-W16-5-1
+Question: Where is the Fraser River?
+Answer: British Columbia
+Difficulty: Easy
+
+QuestionID: 1999-W16-5-2
+Question: What are the fertile soils of the Fraser River good for?
+Answer: growing food
+Difficulty: Moderate
+
+QuestionID: 1999-W16-5-3
+Question: How large is the Fraser River watershed?
+Answer: nearly one quarter of a million square kilometers | larger than the area of Great Britain
+Difficulty: Easy
+
+QuestionID: 1999-W16-5-5
+Question: When will the river probably reach its highest level this year?
+Answer: mid-May at earliest, and the peak flows might not occur until late June | mid-May to late June
+Difficulty: Moderate
+
+QuestionID: 1999-W16-5-7
+Question: How deep were the flood waters in 1948?
+Answer: 8 metres
+Difficulty: Moderate
+
+QuestionID: 1999-W16-5-8
+Question: How many people died in the 1948 flood?
+Answer: 10
+Difficulty: Moderate
+
+QuestionID: 1999-W16-5-9
+Question: Who is the Environment Ministry spokesman quoted in this story?
+Answer: Neil Peters
+Difficulty: Easy
+
+QuestionID: 1999-W15-4-2
+Question: What did Hudon do in jail to protest his arrest?
+Answer: staged a hunger strike
+Difficulty: easy
+
+QuestionID: 1999-W15-4-3
+Question: How did Hudon's relatives get him freed from jail?
+Answer: paid a $1,200 fine
+Difficulty: moderate
+
+QuestionID: 1999-W15-4-4
+Question: How did Pascal Hudon react when he was set free from jail, according to his mother?
+Answer: he shouted with joy
+Difficulty: moderate
+
+QuestionID: 1999-W15-4-5
+Question: Who is Joaquin Garcia?
+Answer: chairman of Mexico's archeology council
+Difficulty: easy
+
+QuestionID: 1999-W15-4-6
+Question: How long has Mexico had laws to prevent looting of archeological sites?
+Answer: the middle of the 19th century
+Difficulty: easy
+
+QuestionID: 1999-W15-4-7
+Question: Where did Pascal Hudon claim he found the eight figurines?
+Answer: on a path | on a path in the bush | on a path in the bush near the Palenque historical site in southern Mexico
+Difficulty: moderate
+
+QuestionID: 1999-W15-4-9
+Question: How many Mexican historical sites are monitored constantly?
+Answer: about 150
+Difficulty: easy
+
+QuestionID: 1999-W15-4-10
+Question: Where does Pascal Hudon intend to visit next?
+Answer: British Columbia
+Difficulty: moderate
+
+QuestionID: 1999-W14-1-2
+Question: How does the virus trick people into thinking they've received an e-mail from a person they know?
+Answer: the virus takes real addresses out of a users own address books | the virus reads the user's e-mail address book and sends an infected message to the first 50 entries
+Difficulty: Moderate
+
+QuestionID: 1999-W14-1-4
+Question: Why does the virus have the potential to clog e-mail servers?
+Answer: The virus launches documents into cyberspace
+Difficulty: Moderate
+
+QuestionID: 1999-W14-1-5
+Question: What three companies have had files affected by the virus?
+Answer: Charles Schwab and Co., Lucent Technologies, the Intel Corporation
+Difficulty: Moderate
+
+QuestionID: 1999-W14-1-6
+Question: Who has a Computer Emergency Response Team?
+Answer: Carnegie Mellon University
+Difficulty: Easy
+
+QuestionID: 1999-W14-1-7
+Question: Who is Ms. Fithen?
+Answer: a member of the Computer Emergency Response Team | a member of the Computer Emergency Response Team at Carnegie Mellon University
+Difficulty: Moderate
+
+QuestionID: 1999-W14-1-8
+Question: When did Carnagie Mellon learn of the virus?
+Answer: Friday afternoon
+Difficulty: Easy
+
+QuestionID: 1999-W14-1-9
+Question: What do "patches" from antivirus software makers do?
+Answer: detect and reject the virus
+Difficulty: Moderate
+
+QuestionID: 1999-W14-1-10
+Question: What can you do to protect yourself against "Melissa" and similar viruses?
+Answer: NEVER OPEN A DOCUMENT ATTACHMENT FROM SOMEONE YOU DON'T KNOW | by not opening the attachments
+Difficulty: Moderate
+
+QuestionID: 1999-W28-5-1
+Question: When did American geologists discover dinosaurs bones in the Antarctic?
+Answer: January 1999
+Difficulty: Easy
+
+QuestionID: 1999-W28-5-3
+Question: Who is the plesiosaur supposed to resemble?
+Answer: Scotland's legendary Loch Ness monster | the Loch Ness monster
+Difficulty: Moderate
+
+QuestionID: 1999-W28-5-4
+Question: How big were the mosasaur's teeth?
+Answer: 10 centimetres long
+Difficulty: Easy
+
+QuestionID: 1999-W28-5-5
+Question: When did mosasaurs probably arrive in Antarctica?
+Answer: around 75 million or 80 million years ago
+Difficulty: Easy
+
+QuestionID: 1999-W28-5-6
+Question: Where are all the places in the world mentioned in this article in which mosasaur bones been have been found?
+Answer: the Antarctic, North America, Europe, Sweden, New Zealand | Antarctica, North America, Europe, Sweden, New Zealand
+Difficulty: Easy
+
+QuestionID: 1999-W28-5-7
+Question: What does this new discovery of dinosaur bones tell us about the Antarctic?
+Answer: it was once much warmer than it is now
+Difficulty: Moderate
+
+QuestionID: 1999-W10-3-1
+Question: Why will Wang Shui-Bo be attending the Oscars this year?
+Answer: He's been nominated for an award. | He's been nominated for an Oscar. | He's hoping to win.
+Difficulty: Moderate
+
+QuestionID: 1999-W10-3-2
+Question: What is the name of Wang's documentary?
+Answer: "Sunrise over Tiananmen Square"
+Difficulty: Easy
+
+QuestionID: 1999-W10-3-4
+Question: Who fired on the student demonstrators in Tiananmen Square?
+Answer: Chinese government troops
+Difficulty: Easy
+
+QuestionID: 1999-W10-3-5
+Question: When did Wang leave China?
+Answer: after the student uprising | after the Tiananmen Square massacre | after June 4, 1989
+Difficulty: Moderate
+
+QuestionID: 1999-W10-3-6
+Question: Where does Wang live now?
+Answer: Montreal, Quebec | Canada | the West
+Difficulty: Easy
+
+QuestionID: 1999-W10-3-7
+Question: Who doesn't need another revolution, according to Wang?
+Answer: the Chinese people | China
+Difficulty: Moderate
 
