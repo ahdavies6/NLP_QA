@@ -41,7 +41,7 @@ def form_output(story, inquiry, questionID):
             answer = get_answer_phrase(inquiry, best_sentence)
         if answer:
             output += answer
-    output += '\n'
+    output += '\n\n'
 
     return output
 
@@ -74,10 +74,22 @@ if __name__ == '__main__':
         text = re.search(text_pattern, story).group(1)
         story_files[id] = (headline, date, text.replace('\n', ' '))
 
+    output_file = open('test_output_1.txt', 'w+')
     for id in story_ids:
         question_filename = stories_filename + id + '.questions'
         questions = open(question_filename, 'r+')
         text = questions.read()
         question = re.findall(question_pattern, text)
         for match in question:
-            print(form_output(story_files[id][2], match[1], match[0]))       # match[1] is question itself, match[0] is questionID
+            output = form_output(story_files[id][2], match[1], match[0])        # match[1] is question itself, match[0] is questionID
+            output_file.write(output)
+
+    output_file.close()
+
+    answer_key_file = open('answer_key_1.txt', 'w+')
+    for id in story_ids:
+        answers_filename = stories_filename + id + '.answers'
+        answer_text = open(answers_filename, 'r+')
+        text = answer_text.read()
+        answer_key_file.write(text)
+    answer_key_file.close()

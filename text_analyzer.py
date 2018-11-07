@@ -1,13 +1,8 @@
-from nltk.tag import StanfordNERTagger
 from nltk.corpus import wordnet
 import nltk
 import re
-import question_classifier
-import os
 
 _wnl = None
-
-_sner = None
 
 
 # Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
@@ -166,7 +161,7 @@ def get_wordnet_tag(tag):
     return None
 
 
-#
+# Takes a wordnet pos tagged word, and converts to synset
 def get_synset(word, tag):
     wn_tag = get_wordnet_tag(tag)
     if wn_tag is None:
@@ -201,8 +196,10 @@ def sentence_similarity(sentence1, sentence2):
         if best_score is not None:
             score += best_score
             count += 1
-
-    score /= count
+    if count != 0:
+        score /= count
+    else:
+        score = 0
     return score
 
 
@@ -340,7 +337,6 @@ def get_prospects_with_phrase_matching(text, inquiry):
     return sorted(in_list)
 
 
-
 def get_prospects_with_wordnet(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
@@ -453,9 +449,9 @@ def get_prospects_for_how_regex(text, inquiry):
 
         sub_text = ' '.join(regex_check_list)
 
-        return get_prospects_with_wordnet(sub_text, inquiry)
+        return get_prospects_with_lemmatizer_all(sub_text, inquiry)
     else:
-        return get_prospects_with_wordnet(text, inquiry)
+        return get_prospects_for_how_with_pos_check(text, inquiry)
 
 
 # Most promising for when.
@@ -591,80 +587,6 @@ def get_prospects_for_why(text, inquiry):
     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
 
 
-# def get_prospects_with_word2vec(text, sigwords):
-#     sentences = nltk.sent_tokenize(text)
-#
-#     in_list = []
-#     expand_list = []
-#
-#     w2v = Word2Vec([nltk.word_tokenize(sent) for sent in sentences])
-#     wnl = nltk.stem.WordNetLemmatizer()
-#
-#     for sword in sigwords:
-#         try:
-#             add_word = w2v.most_similar(wnl.lemmatize(sword, 'v'), topn=3)
-#             for word in add_word:
-#                 expand_list.append((wnl.lemmatize(word[0], 'v'), word[1]))
-#         except:
-#             pass
-#     sigwords = [(wnl.lemmatize(word, 'v'), 1.0) for word in sigwords]
-#
-#     sigwords.extend(expand_list)
-#
-#     for sentence in sentences:
-#         similarity = 0
-#         count = 0
-#         tk_sentence = lemmatize(sentence)
-#         for word in sigwords:
-#             if word[0] in tk_sentence:
-#                 similarity += word[1]
-#                 count += 1
-#
-#         if count > 0:
-#             in_list.append((-similarity/len(sentence), sentence))
-#
-#     return sorted(in_list)
-
-# def get_prospects_for_where_sner(text, sigwords):
-#     sentences = get_prospects_with_stemmer(text, sigwords)
-#
-#     model = os.getcwd() + '/stanford-ner/classifiers/english.muc.7class.distsim.crf.ser.gz'
-#     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
-#     st = StanfordNERTagger(model, jar, encoding='utf-8')
-#
-#     in_list = []
-#
-#     for sentence in sentences:
-#         ner_sentence = st.tag(nltk.word_tokenize(sentence[1]))
-#         for word in ner_sentence:
-#             if word[1] == 'LOCATION':
-#                 in_list.append(sentence)
-#                 break
-#
-#     return sorted(in_list)
-
-
-# def get_prospects_for_who(text, sigwords):
-#     sentences = get_prospects_with_lemmatizer2(text, sigwords)
-#
-#     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
-#     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
-#     st = StanfordNERTagger(model, jar, encoding='utf-8')
-#
-#     in_list = []
-#
-#     for sentence in sentences:
-#         pos = nltk.pos_tag(nltk.word_tokenize(sentence[1]))
-#
-#         ner_sentence = st.tag(nltk.word_tokenize(sentence[1]))
-#         for word in ner_sentence:
-#             if word[1] == 'PERSON' or word[1] == 'ORGANIZATION':
-#                 in_list.append(sentence)
-#                 break
-
-    # return sorted(in_list)
-
-
 def main():
     pass
 
@@ -672,10 +594,6 @@ def main():
 if __name__ == "__main__":
     main()
 
+
 if _wnl == None:
     _wnl = nltk.stem.WordNetLemmatizer()
-
-# if _sner == None:
-#     model = os.getcwd() + '/stanford-ner/classifiers/english.all.3class.distsim.crf.ser.gz'
-#     jar = os.getcwd() + '/stanford-ner/stanford-ner.jar'
-#     _sner = StanfordNERTagger(model, jar, encoding='utf-8')
