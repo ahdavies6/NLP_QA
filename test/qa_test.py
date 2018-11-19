@@ -1,11 +1,12 @@
-import sys
 import heapq
 import subprocess
 import os
+from sys import argv
 from requests.exceptions import ConnectionError
 from text_analyzer import *
 from src.question_classifier import formulate_question
 from answer_identification import get_answer_phrase
+from test_answer_id import get_all_ids, get_random_items
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -49,11 +50,12 @@ def form_output(story, inquiry, question_id):
     return output
 
 
-def main(stories_directory, story_ids):
+def main(random_seed, num_tests):
+    story_ids = get_random_items(get_all_ids(), num_tests, random_seed)
     story_files = {}
 
     for story_id in story_ids:
-        story_filename = stories_directory + story_id + '.story'
+        story_filename = story_id + '.story'
         with open(story_filename, 'r+') as story_file:
             story = story_file.read()
         headline = re.search(headline_pattern, story).group(1)
@@ -63,7 +65,7 @@ def main(stories_directory, story_ids):
 
     with open('output', 'w+') as output_file:
         for story_id in story_ids:
-            question_filename = stories_directory + story_id + '.questions'
+            question_filename = story_id + '.questions'
             with open(question_filename, 'r+') as questions:
                 text = questions.read()
             question_tuples = re.findall(question_pattern, text)
@@ -77,7 +79,7 @@ def main(stories_directory, story_ids):
 
     with open('key', 'w+') as answer_key_file:
         for story_id in story_ids:
-            answers_filename = stories_directory + story_id + '.answers'
+            answers_filename = story_id + '.answers'
             answer_text = open(answers_filename, 'r+')
             text = answer_text.read()
             answer_key_file.write(text)
@@ -88,16 +90,9 @@ def main(stories_directory, story_ids):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('qa requires 1 argument, you provided ' + str(len(sys.argv) - 1))
-        sys.exit()
-
-    try:
-        with open(sys.argv[1], 'r+') as input_file:
-            story_dir = input_file.readline().strip()
-            stories = [line.strip() for line in input_file.readlines()]
-    except IOError:
-        print('Failed to open ' + str(sys.argv[1]))
-        raise SystemExit
-
-    main(story_dir, stories)
+    if len(argv) == 1:
+        main(None, 25)
+    elif len(argv) == 2:
+        main(argv[1], 25)
+    elif len(argv) == 3:
+        main(argv[1], int(argv[2]))
