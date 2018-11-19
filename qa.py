@@ -1,7 +1,7 @@
 import sys
 import heapq
 from text_analyzer import *
-from question_classifier import formulate_question
+from src.question_classifier import formulate_question
 from answer_identification import get_answer_phrase
 
 

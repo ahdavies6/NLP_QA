@@ -1,5 +1,0 @@
-this is a sentence. sentences
-are cool. we don't really
-care about many details. this
-is sufficient
-(do not end with period)

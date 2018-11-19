@@ -1,0 +1,100 @@
+import sys
+import heapq
+import subprocess
+import os
+from text_analyzer import *
+from src.question_classifier import formulate_question
+from answer_identification import get_answer_phrase
+
+
+headline_pattern = r'HEADLINE:\s*(.*)\n'
+date_pattern = r'DATE:\s*(.*)\n'
+story_pattern = r'STORYID:\s*(.*)\n'
+text_pattern = r'TEXT:\s*([\s\w\d\S\W\D]*)'
+question_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Difficulty:\s*(.*)\s*'
+answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
+
+
+def form_output(story, inquiry, question_id):
+    q_inquiry = formulate_question(inquiry)
+    qword = q_inquiry['qword'][0].lower()
+    if qword == 'who':
+        feedback = get_prospects_for_who_ner(story, inquiry)
+    elif qword == 'how':
+        feedback = get_prospects_for_how_regex(story, inquiry)
+    elif qword == 'when':
+        feedback = get_prospects_for_when_regex(story, inquiry)
+    elif qword == 'where':
+        feedback = get_prospects_for_where_ner(story, inquiry)
+    elif qword == 'why':
+        feedback = get_prospects_for_why(story, inquiry)
+    elif qword == 'what':
+        feedback = get_prospects_with_wordnet(story, inquiry)
+    else:
+        feedback = get_prospects_with_lemmatizer2(story, inquiry)
+
+    output = 'QuestionID: ' + question_id + '\n'
+    output += 'Answer: '
+    if len(feedback) > 0:
+        best_sentence = heapq.heappop(feedback)[1]
+        if qword == 'what':
+            answer = best_sentence
+        else:
+            answer = get_answer_phrase(inquiry, best_sentence)
+        if answer:
+            output += answer
+    output += '\n\n'
+
+    return output
+
+
+def main(test_suite):
+    stories_filename = test_suite.readline().strip()
+    story_ids = []
+    story_files = {}
+
+    for line in test_suite.readlines():
+        story_ids.append(line.strip())
+
+    for story_id in story_ids:
+        story_filename = stories_filename + story_id + '.story'
+        with open(story_filename, 'r+') as story_file:
+            story = story_file.read()
+        headline = re.search(headline_pattern, story).group(1)
+        date = re.search(date_pattern, story).group(1)
+        text = re.search(text_pattern, story).group(1)
+        story_files[story_id] = (headline, date, text.replace('\n', ' '))
+
+    with open('output', 'w+') as output_file:
+        for story_id in story_ids:
+            question_filename = stories_filename + story_id + '.questions'
+            questions = open(question_filename, 'r+')
+            text = questions.read()
+            question = re.findall(question_pattern, text)
+            for match in question:  # match[0] is questionID, and match[1] is the actual question itself
+                output = form_output(story_files[story_id][2], match[1], match[0])
+                output_file.write(output)
+
+    with open('key', 'w+') as answer_key_file:
+        for story_id in story_ids:
+            answers_filename = stories_filename + story_id + '.answers'
+            answer_text = open(answers_filename, 'r+')
+            text = answer_text.read()
+            answer_key_file.write(text)
+
+    subprocess.run(['perl', 'score_answers.pl', 'output', 'key'])
+    os.remove('output')
+    os.remove('key')
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('qa requires 1 argument, you provided ' + str(len(sys.argv) - 1))
+        sys.exit()
+
+    try:
+        with open(sys.argv[1], 'r+') as input_file:
+            main(input_file)
+    except IOError:
+        print('Failed to open ' + str(sys.argv[1]))
+        sys.exit()
