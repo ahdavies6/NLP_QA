@@ -1,7 +1,9 @@
 Required packages: NLTK, numpy
     NLTK: conda install -c anaconda nltk
     numpy: conda install -c anaconda numpy
-    gensim conda install -c conda-forge gensim
+    gensim: conda install -c conda-forge gensim
+    spaCy: conda install -c conda-forge spacy
+        (optional)
 
 NLTK parse stuff:
     """
@@ -22,6 +24,9 @@ Stanford-NER:
     https://nlp.stanford.edu/software/CRF-NER.html#Download
     extract
     rename extracted dir to 'stanford-ner'
+
+spaCy (download English models):
+    python -m spacy download en
 
 Instructions for text_analyzer:
     all sentence functions currently the full question, untokenized.

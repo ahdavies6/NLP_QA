@@ -147,7 +147,8 @@ def get_to_phrases(tagged_sentence):
 
     return x_phrases
 
-#Convert between a Penn Treebank tag to a simplified Wordnet tag
+
+# Convert between a Penn Treebank tag to a simplified Wordnet tag
 def get_wordnet_tag(tag):
     if tag.startswith('N'):
         return 'n'
