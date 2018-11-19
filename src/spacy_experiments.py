@@ -43,12 +43,12 @@ def integrative(nlp):
 
 
 def main():
-    # nlp = spacy.load('en_core_web_sm')
-    # dependency(nlp)
-    # similarity(nlp)
+    nlp = spacy.load('en_core_web_sm')
+    dependency(nlp)
 
-    nlp = spacy.load('en_core_web_lg')
-    integrative(nlp)
+    # nlp = spacy.load('en_core_web_lg')
+    # similarity(nlp)
+    # integrative(nlp)
 
 
 if __name__ == '__main__':
