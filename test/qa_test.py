@@ -2,6 +2,7 @@ import sys
 import heapq
 import subprocess
 import os
+from requests.exceptions import ConnectionError
 from text_analyzer import *
 from src.question_classifier import formulate_question
 from answer_identification import get_answer_phrase
@@ -48,16 +49,11 @@ def form_output(story, inquiry, question_id):
     return output
 
 
-def main(test_suite):
-    stories_filename = test_suite.readline().strip()
-    story_ids = []
+def main(stories_directory, story_ids):
     story_files = {}
 
-    for line in test_suite.readlines():
-        story_ids.append(line.strip())
-
     for story_id in story_ids:
-        story_filename = stories_filename + story_id + '.story'
+        story_filename = stories_directory + story_id + '.story'
         with open(story_filename, 'r+') as story_file:
             story = story_file.read()
         headline = re.search(headline_pattern, story).group(1)
@@ -67,17 +63,21 @@ def main(test_suite):
 
     with open('output', 'w+') as output_file:
         for story_id in story_ids:
-            question_filename = stories_filename + story_id + '.questions'
-            questions = open(question_filename, 'r+')
-            text = questions.read()
-            question = re.findall(question_pattern, text)
-            for match in question:  # match[0] is questionID, and match[1] is the actual question itself
-                output = form_output(story_files[story_id][2], match[1], match[0])
+            question_filename = stories_directory + story_id + '.questions'
+            with open(question_filename, 'r+') as questions:
+                text = questions.read()
+            question_tuples = re.findall(question_pattern, text)
+            for question_id, question, _ in question_tuples:
+                try:
+                    output = form_output(story_files[story_id][2], question, question_id)
+                except ConnectionError:
+                    print('Server was inaccessible.')
+                    raise SystemExit
                 output_file.write(output)
 
     with open('key', 'w+') as answer_key_file:
         for story_id in story_ids:
-            answers_filename = stories_filename + story_id + '.answers'
+            answers_filename = stories_directory + story_id + '.answers'
             answer_text = open(answers_filename, 'r+')
             text = answer_text.read()
             answer_key_file.write(text)
@@ -94,7 +94,10 @@ if __name__ == '__main__':
 
     try:
         with open(sys.argv[1], 'r+') as input_file:
-            main(input_file)
+            story_dir = input_file.readline().strip()
+            stories = [line.strip() for line in input_file.readlines()]
     except IOError:
         print('Failed to open ' + str(sys.argv[1]))
-        sys.exit()
+        raise SystemExit
+
+    main(story_dir, stories)
