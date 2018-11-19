@@ -346,7 +346,6 @@ def get_prospects_with_wordnet(text, inquiry):
     return sorted(in_list)
 
 
-
 def get_prospects_for_how_with_pos_check(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
@@ -548,6 +547,7 @@ def get_prospects_for_when_ner(text, inquiry):
 
     return sorted(in_list)
 
+
 def get_prospects_for_where_ner(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
@@ -583,7 +583,6 @@ def get_prospects_for_why(text, inquiry):
             if len(to_phrases) > 0:
                 why_check_list.append(sentence)
 
-
     sub_story = ' '.join(why_check_list)
     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
 
@@ -596,5 +595,5 @@ if __name__ == "__main__":
     main()
 
 
-if _wnl == None:
+if _wnl is None:
     _wnl = nltk.stem.WordNetLemmatizer()
