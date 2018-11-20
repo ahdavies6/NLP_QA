@@ -11,9 +11,7 @@ def lemmatize(text, pos: str = 'v'):
         text = nltk.word_tokenize(text)
 
     if len(text) > 1:
-        wnl_sentence = [_wnl.lemmatize(word, pos) for word in text]
-        return wnl_sentence
-
+        return [_wnl.lemmatize(word, pos) for word in text]
     else:
         return _wnl.lemmatize(text, pos)
 
