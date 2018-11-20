@@ -19,8 +19,8 @@ def get_sentence_with_answer(story, answer):
     answer = lemmatize(answer)
     has_answer = []
     for sentence in sentences:
-        sentence = lemmatize(sentence)
-        if set([a.lower() for a in answer]) <= set([s.lower() for s in sentence]):
+        sentence_lemmas = lemmatize(sentence)
+        if set([a.lower() for a in answer]) <= set([s.lower() for s in sentence_lemmas]):
             has_answer.append(sentence)
 
     if len(has_answer) == 1:
@@ -32,7 +32,7 @@ def get_sentence_with_answer(story, answer):
 def form_output(story, inquiry, answer, question_id):
     output = 'QuestionID: ' + question_id + '\n'
     output += 'Answer: '
-    best_sentence = get_sentence_with_answer(story, answer)
+    best_sentence = get_sentence_with_answer(story, answer[0])
     answer = get_answer_phrase(inquiry, best_sentence)
     if answer:
         output += answer
@@ -91,7 +91,12 @@ def main(random_seed, num_tests):
             answer_tuples = re.findall(real_answer_pattern, text)
             for question_id, question, answer, _ in answer_tuples:
                 try:
-                    output = form_output(story_files[story_id][2], question, answer, question_id)
+                    output = form_output(
+                        story_files[story_id][2],
+                        question,
+                        [a.strip() for a in answer.split(r'|')],
+                        question_id
+                    )
                 except ConnectionError:
                     print('Server was inaccessible.')
                     raise SystemExit

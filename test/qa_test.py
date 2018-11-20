@@ -39,10 +39,11 @@ def form_output(story, inquiry, question_id):
     output += 'Answer: '
     if len(feedback) > 0:
         best_sentence = heapq.heappop(feedback)[1]
-        if qword == 'what':
-            answer = best_sentence
-        else:
-            answer = get_answer_phrase(inquiry, best_sentence)
+        # if qword == 'what':
+        #     answer = best_sentence
+        # else:
+        #     answer = get_answer_phrase(inquiry, best_sentence)
+        answer = get_answer_phrase(inquiry, best_sentence)
         if answer:
             output += answer
     output += '\n\n'

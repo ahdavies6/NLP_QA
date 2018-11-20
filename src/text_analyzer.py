@@ -10,10 +10,7 @@ def lemmatize(text, pos: str = 'v'):
     if type(text) is not list:
         text = nltk.word_tokenize(text)
 
-    if len(text) > 1:
-        return [_wnl.lemmatize(word, pos) for word in text]
-    else:
-        return _wnl.lemmatize(text, pos)
+    return [_wnl.lemmatize(word, pos) for word in text]
 
 
 # Converts a tagged sentence into a string.
