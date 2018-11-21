@@ -1,4 +1,4 @@
-from src.question_classifier import *
+from question_classifier import *
 from nltk.corpus import stopwords
 import nltk
 import text_analyzer

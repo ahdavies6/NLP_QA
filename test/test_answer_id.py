@@ -5,6 +5,7 @@ import random
 from sys import argv
 from nltk import sent_tokenize
 from answer_identification import calculate_overlap, get_answer_phrase
+from text_analyzer import lemmatize
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -15,23 +16,23 @@ real_answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s
 
 def get_sentence_with_answer(story, answer):
     sentences = sent_tokenize(story)
+    answer = lemmatize(answer)
     has_answer = []
     for sentence in sentences:
-        if answer in sentence:
+        sentence_lemmas = lemmatize(sentence)
+        if set([a.lower() for a in answer]) <= set([s.lower() for s in sentence_lemmas]):
             has_answer.append(sentence)
 
     if len(has_answer) == 1:
         return has_answer[0]
     elif len(has_answer) > 1:
         return max(has_answer, key=lambda x: calculate_overlap(x, answer))
-    else:
-        return max(sentences, key=lambda x: calculate_overlap(x, answer))
 
 
 def form_output(story, inquiry, answer, question_id):
     output = 'QuestionID: ' + question_id + '\n'
     output += 'Answer: '
-    best_sentence = get_sentence_with_answer(story, answer)
+    best_sentence = get_sentence_with_answer(story, answer[0])
     answer = get_answer_phrase(inquiry, best_sentence)
     if answer:
         output += answer
@@ -42,13 +43,14 @@ def form_output(story, inquiry, answer, question_id):
 
 def get_all_ids():
     all_filenames = []
-    for dirpath, dirnames, filenames in os.walk(os.getcwd() + './developset'):
+    for path, dirs, filenames in os.walk(os.getcwd() + '/developset/'):
         all_filenames += ['./developset/' + filename for filename in filenames]
         break
-    for dirpath, dirnames, filenames in os.walk(os.getcwd() + './testset1'):
+    for path, dirs, filenames in os.walk(os.getcwd() + '/testset1/'):
         all_filenames += ['./testset1/' + filename for filename in filenames]
         break
 
+    all_filenames = sorted(all_filenames)
     id_list = []
     for i in range(len(all_filenames)):
         if i % 3 == 0:  # answers file
@@ -90,7 +92,12 @@ def main(random_seed, num_tests):
             answer_tuples = re.findall(real_answer_pattern, text)
             for question_id, question, answer, _ in answer_tuples:
                 try:
-                    output = form_output(story_files[story_id][2], question, answer, question_id)
+                    output = form_output(
+                        story_files[story_id][2],
+                        question,
+                        [a.strip() for a in answer.split(r'|')],
+                        question_id
+                    )
                 except ConnectionError:
                     print('Server was inaccessible.')
                     raise SystemExit

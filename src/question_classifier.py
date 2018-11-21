@@ -1,4 +1,4 @@
-from src.parse import get_sentence
+from parse import get_sentence
 from nltk.parse.corenlp import CoreNLPParser
 
 
