@@ -51,6 +51,7 @@ def form_output(story, inquiry, question_id):
 
 
 def main(random_seed, num_tests):
+    # get_all_ids()
     story_ids = get_random_items(get_all_ids(), num_tests, random_seed)
     story_files = {}
 
