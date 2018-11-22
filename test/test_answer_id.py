@@ -43,9 +43,9 @@ def form_output(story, inquiry, answer, question_id):
 
 def get_all_ids():
     all_filenames = []
-    for path, dirs, filenames in os.walk(os.getcwd() + '/developset/'):
-        all_filenames += ['./developset/' + filename for filename in filenames]
-        break
+    # for path, dirs, filenames in os.walk(os.getcwd() + '/developset/'):
+    #     all_filenames += ['./developset/' + filename for filename in filenames]
+    #     break
     for path, dirs, filenames in os.walk(os.getcwd() + '/testset1/'):
         all_filenames += ['./testset1/' + filename for filename in filenames]
         break
