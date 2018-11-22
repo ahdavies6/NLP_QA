@@ -1,4 +1,5 @@
-from question_classifier import *
+from parse import get_constituency_parse, get_dependency_parse
+from question_classifier import formulate_question
 from nltk.corpus import stopwords
 import nltk
 import text_analyzer
@@ -17,7 +18,11 @@ def num_occurrences_time_regex(tokens):
         tokens = " ".join(tokens)
     tokens = tokens.lower()
 
-    return len(re.findall(dates_pattern, tokens)) + len(re.findall(time_pattern, tokens)) + len(re.findall(span_pattern, tokens))
+    return sum([
+        len(group) for group in [
+            re.findall(p, tokens) for p in (dates_pattern, time_pattern, span_pattern)
+        ]
+    ])
 
 
 def num_occurrences_quant_regex(tokens):
@@ -29,15 +34,15 @@ def num_occurrences_quant_regex(tokens):
         tokens = " ".join(tokens)
     tokens = tokens.lower()
 
-    return len(re.findall(much_pattern, tokens)) + len(re.findall(much_pattern2, tokens)) + len(re.findall(much_pattern3, tokens))
-
-
-def get_parse_tree(sentence_text):
-    return next(CoreNLPParser().raw_parse(sentence_text))
+    return sum([
+        len(group) for group in [
+            re.findall(p, tokens) for p in (much_pattern, much_pattern2, much_pattern3)
+        ]
+    ])
 
 
 def get_parse_trees_with_tag(sentence_text, tag):
-    parse_tree = next(CoreNLPParser().raw_parse(sentence_text))
+    parse_tree = get_constituency_parse(sentence_text)
     phrases = []
     for subtree in parse_tree.subtrees():
         if subtree.label() == tag:
@@ -69,8 +74,10 @@ def overlap_indices(target_words, sentence):
     return indices
 
 
-def get_top_ner_chunk_of_each_tag(sentence,
-                                  accepted_tags=("PERSON", "GPE", "ORGANIZATION")):
+def get_top_ner_chunk_of_each_tag(
+        sentence,
+        accepted_tags=("PERSON", "GPE", "ORGANIZATION")
+):
     named_question_chunks = text_analyzer.squash_with_ne(
         nltk.ne_chunk(nltk.pos_tag(
             text_analyzer.lemmatize(sentence)),
@@ -87,7 +94,7 @@ def get_top_ner_chunk_of_each_tag(sentence,
         if question_chunks:
             top_question_chunk = max(question_chunks, key=lambda x: len(x))
             if len(top_question_chunk) > 0:
-                top_chunks[tag] = [(tag, top_question_chunk)]
+                top_chunks[tag] = top_question_chunk
     return top_chunks
 
 
@@ -107,95 +114,230 @@ def remove_punctuation(s):
     return ''.join(c for c in s if c not in set(string.punctuation))
 
 
-def get_answer_phrase(question_sentence, answer_sentence):
+# TODO: test whether the NER type matching actually helps or not
+def get_phrase_for_who(raw_question, raw_sentence):
+    question_chunks = get_top_ner_chunk_of_each_tag(raw_question, ('PERSON', 'ORGANIZATION'))
+    answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence, ('PERSON', 'ORGANIZATION'))
+
+    # if the question has an NER chunk, try to return the "top NER chunk" of the same type in the answer sentence
+    if question_chunks:
+        q_tag_type = max(
+            [tag for tag in question_chunks],
+            key=lambda x: len(x)
+        )
+        if q_tag_type in answer_chunks:
+            return to_sentence(answer_chunks[q_tag_type])
+
+    # the question didn't have an NER chunk, or the answer didn't have one of the same type;
+    # either way, just return the longest NER chunk in the answer sentence, if the answer sentence
+    # has any NER chunks to begin with
+    if answer_chunks:
+        return to_sentence(
+            max(
+                [answer_chunks[tag] for tag in answer_chunks],
+                key=lambda x: len(x)
+            )
+        )
+
+
+# todo: either delete this or the other get_p_4_who
+def get_phrase_for_who2(raw_question, raw_sentence):
+    answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence)
+
+    if answer_chunks:
+        return to_sentence(
+            max(
+                [answer_chunks[tag] for tag in answer_chunks],
+                key=lambda x: len(x)
+            )
+        )
+
+
+def get_phrase_for_what(raw_question, raw_sentence):
+    pass
+
+
+def get_phrase_for_when(raw_question, raw_sentence):
+    answer_sentence = get_dependency_parse(raw_sentence)
+
+    # get prepositional phrases
+    prep_nodes = [d for d in answer_sentence.get_nodes if d['tag'] == "prep"]
+    if prep_nodes:
+        top_prep_string = " ".join([x[0] for x in prep_nodes[0].get_pairs])
+        if num_occurrences_time_regex(top_prep_string) > 0:
+            return top_prep_string
+
+    prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(raw_sentence, "PP")]
+    if prep_phrases:
+        return to_sentence(
+            max(
+                prep_phrases, key=lambda x: num_occurrences_time_regex(x)
+            )
+        )
+    else:
+        if prep_phrases:
+            return to_sentence(max(prep_phrases, key=lambda x: len(x)))
+
+
+def get_phrase_for_where(raw_question, raw_sentence):
+    answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence, {"GPE"})
+
+    untagged = [
+        tagged[0][1] for tagged in [
+            answer_chunks[tag] for tag in answer_chunks
+        ]
+    ]
+
+    # TODO: put this in conditional block for "if untagged isn't empty"; else look @ overlap for... question sentence?
+    prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(raw_sentence, "PP")]
+    if prep_phrases:
+        return to_sentence(max(
+            prep_phrases,
+            key=lambda x: calculate_overlap(x, untagged, False)
+        ))
+
+
+def get_phrase_for_why(raw_question, raw_sentence):
+    # parse_tree = next(CoreNLPParser().raw_parse(raw_sentence))
+    parse_tree = get_constituency_parse(raw_sentence)
+    to_vp_phrases = []
+    prev_was_to = False
+    for tree in parse_tree.subtrees():
+        if tree.label() == "VP":
+            for subtree in tree.subtrees():
+                if prev_was_to:
+                    to_vp_phrases.append(subtree)
+                    prev_was_to = False
+                elif subtree.label() == "TO":
+                    prev_was_to = True
+
+    for i, word in enumerate(raw_sentence.split()):
+        if word in ["to", "so", "because"]:
+            return to_sentence(raw_sentence.split()[:i])
+
+
+def get_phrase_for_how(raw_question, raw_sentence):
+    if any([
+        get_parse_trees_with_tag(raw_question, "WHADJP"),
+        re.search(r"much|many|tall|long", raw_question)
+    ]):
+        qp_phrases = get_parse_trees_with_tag(raw_sentence, "QP")
+        if qp_phrases:
+            return to_sentence(min(
+                [tree.leaves() for tree in qp_phrases],
+                key=lambda x: num_occurrences_quant_regex(x)
+            ))
+
+
+def get_answer_phrase(raw_question, raw_sentence):
     """
     Extract the narrowest phrase from the answer sentence containing the full answer to the question sentence
-    :param question_sentence: an answer sentence
-    :param answer_sentence: a question sentence
+    :param raw_question: an answer sentence
+    :param raw_sentence: a question sentence
     :return: the narrowest phrase containing the full answer
     """
-    try:
-        question_sentence = remove_punctuation(question_sentence)
-        answer_sentence = remove_punctuation(answer_sentence)
+    raw_question = remove_punctuation(raw_question)
+    raw_sentence = remove_punctuation(raw_sentence)
 
-        question = formulate_question(question_sentence)
-        answer = get_sentence(answer_sentence)
+    question = formulate_question(raw_question)
 
-        if question['qword'][0].lower() == "when":
-            # get prepositional phrases
-            prep_nodes = [d for d in answer.get_nodes if d['tag'] == "prep"]
-            if prep_nodes:
-                top_prep_string = " ".join([x[0] for x in prep_nodes[0].get_pairs])
-                if num_occurrences_time_regex(top_prep_string) > 0:
-                    return top_prep_string
+    get_phrases = {
+        # 'who': get_phrase_for_who,
+        # 'whose': get_phrase_for_who,
+        # 'whom': get_phrase_for_who,
+        'who': get_phrase_for_who2,
+        'whose': get_phrase_for_who2,
+        'whom': get_phrase_for_who2,
 
-            prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(answer_sentence, "PP")]
-            if prep_phrases:
-                return to_sentence(
-                    max(
-                        prep_phrases, key=lambda x: num_occurrences_time_regex(x)
-                    )
-                )
-            else:
-                if prep_phrases:
-                    return to_sentence(max(prep_phrases, key=lambda x: len(x)))
+        'what': get_phrase_for_what,
+        'when': get_phrase_for_when,
+        'where': get_phrase_for_where,
+        'why': get_phrase_for_why,
+        'how': get_phrase_for_how,
+        # TODO: put in 'which'? look for other qwords not included?
+    }
 
-        elif question['qword'][0].lower() == "where":
-            answer_chunks = get_top_ner_chunk_of_each_tag(answer_sentence, {"GPE"})
+    qword = question['qword'][0].lower()
+    if qword in get_phrases:
+        answer = get_phrases[qword](raw_question, raw_sentence)
+        if answer:
+            return answer
 
-            untagged = [
-                tagged[0][1] for tagged in [
-                    answer_chunks[tag] for tag in answer_chunks
-                ]
-            ]
+    # answer = get_dependency_parse(raw_sentence)
 
-            prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(answer_sentence, "PP")]
-
-            if prep_phrases:
-                return to_sentence(max(
-                    prep_phrases,
-                    key=lambda x: calculate_overlap(x, untagged, False)
-                ))
-
-        elif question['qword'][0].lower() in ["who", "whose", "whom"]:
-            answer_chunks = get_top_ner_chunk_of_each_tag(answer_sentence)
-
-            untagged = [
-                tagged[0][1] for tagged in [
-                    answer_chunks[tag] for tag in answer_chunks
-                ]
-            ]
-            if untagged:
-                return to_sentence(max(untagged, key=lambda x: len(x)))
-
-        elif question['qword'][0].lower() == "why":
-            parse_tree = next(CoreNLPParser().raw_parse(answer_sentence))
-            to_vp_phrases = []
-            prev_was_to = False
-            for tree in parse_tree.subtrees():
-                if tree.label() == "VP":
-                    for subtree in tree.subtrees():
-                        if prev_was_to:
-                            to_vp_phrases.append(subtree)
-                            prev_was_to = False
-                        elif subtree.label() == "TO":
-                            prev_was_to = True
-
-            for i, word in enumerate(answer_sentence.split()):
-                if word in ["to", "so", "because"]:
-                    return to_sentence(answer_sentence.split()[:i])
-
-        elif question['qword'][0].lower() == "how":
-            if any([
-                get_parse_trees_with_tag(question_sentence, "WHADJP"),
-                re.search(r"much|many|tall|long", question_sentence)
-            ]):
-                qp_phrases = get_parse_trees_with_tag(answer_sentence, "QP")
-                if qp_phrases:
-                    return to_sentence(min(
-                        [tree.leaves() for tree in qp_phrases],
-                        key=lambda x: num_occurrences_quant_regex(x)
-                    ))
-
-    except:
-        pass
+    # if question['qword'][0].lower() == "when":
+    #     # get prepositional phrases
+    #     prep_nodes = [d for d in answer.get_nodes if d['tag'] == "prep"]
+    #     if prep_nodes:
+    #         top_prep_string = " ".join([x[0] for x in prep_nodes[0].get_pairs])
+    #         if num_occurrences_time_regex(top_prep_string) > 0:
+    #             return top_prep_string
+    #
+    #     # todo: look into whether "answer_sentence" here was screwing it all up
+    #     prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(raw_sentence, "PP")]
+    #     if prep_phrases:
+    #         return to_sentence(
+    #             max(
+    #                 prep_phrases, key=lambda x: num_occurrences_time_regex(x)
+    #             )
+    #         )
+    #     else:
+    #         if prep_phrases:
+    #             return to_sentence(max(prep_phrases, key=lambda x: len(x)))
+    #
+    # elif question['qword'][0].lower() == "where":
+    #     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence, {"GPE"})
+    #
+    #     untagged = [
+    #         tagged[0][1] for tagged in [
+    #             answer_chunks[tag] for tag in answer_chunks
+    #         ]
+    #     ]
+    #
+    #     prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(raw_sentence, "PP")]
+    #
+    #     if prep_phrases:
+    #         return to_sentence(max(
+    #             prep_phrases,
+    #             key=lambda x: calculate_overlap(x, untagged, False)
+    #         ))
+    #
+    # elif question['qword'][0].lower() in ["who", "whose", "whom"]:
+    #     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence)
+    #
+    #     untagged = [
+    #         tagged[0][1] for tagged in [
+    #             answer_chunks[tag] for tag in answer_chunks
+    #         ]
+    #     ]
+    #     if untagged:
+    #         return to_sentence(max(untagged, key=lambda x: len(x)))
+    #
+    # elif question['qword'][0].lower() == "why":
+    #     parse_tree = next(CoreNLPParser().raw_parse(raw_sentence))
+    #     to_vp_phrases = []
+    #     prev_was_to = False
+    #     for tree in parse_tree.subtrees():
+    #         if tree.label() == "VP":
+    #             for subtree in tree.subtrees():
+    #                 if prev_was_to:
+    #                     to_vp_phrases.append(subtree)
+    #                     prev_was_to = False
+    #                 elif subtree.label() == "TO":
+    #                     prev_was_to = True
+    #
+    #     for i, word in enumerate(raw_sentence.split()):
+    #         if word in ["to", "so", "because"]:
+    #             return to_sentence(raw_sentence.split()[:i])
+    #
+    # elif question['qword'][0].lower() == "how":
+    #     if any([
+    #         get_parse_trees_with_tag(raw_question, "WHADJP"),
+    #         re.search(r"much|many|tall|long", raw_question)
+    #     ]):
+    #         qp_phrases = get_parse_trees_with_tag(raw_sentence, "QP")
+    #         if qp_phrases:
+    #             return to_sentence(min(
+    #                 [tree.leaves() for tree in qp_phrases],
+    #                 key=lambda x: num_occurrences_quant_regex(x)
+    #             ))

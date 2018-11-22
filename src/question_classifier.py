@@ -1,4 +1,4 @@
-from parse import get_sentence
+from parse import get_dependency_parse
 from nltk.parse.corenlp import CoreNLPParser
 
 
@@ -74,7 +74,7 @@ def formulate_question(question_sentence):
             if subtree.label()[0] == "W" and subtree.label()[0:2] != "WH":
                 q_word = (subtree.leaves()[0], subtree.label())
 
-    return Question(get_sentence(question_sentence), q_word)
+    return Question(get_dependency_parse(question_sentence), q_word)
 
 
 if __name__ == "__main__":

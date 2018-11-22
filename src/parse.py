@@ -1,9 +1,9 @@
-from nltk import Tree
-from nltk.parse.corenlp import CoreNLPDependencyParser
+from nltk import Tree, DependencyGraph
+from nltk.parse.corenlp import CoreNLPParser, CoreNLPDependencyParser
 
 
-# todo: try this out
-# from nltk.stem.wordnet import WordNetLemmatizer
+_constituency_parser = None
+_dependency_parser = None
     
     
 class DependencyNode(object):
@@ -201,16 +201,14 @@ def traverse_dep_tree(tree):
 #     return dependencies
 
 
-def get_sentence(sentence):
+def get_dependency_parse(sentence):
     """
     Get a full Sentence object from a raw text sentence
     :param sentence: the sentence (in raw text)
     :return: a Sentence object representing the syntactic dependencies in the sentence
     """
     # find all syntactic dependencies for the question
-    dependency_graph = next(CoreNLPDependencyParser().raw_parse(sentence))
-    from nltk import DependencyGraph
-    assert isinstance(dependency_graph, DependencyGraph)
+    dependency_graph = next(_dependency_parser.raw_parse(sentence))
     # # nodes = [None] + [Node(dependency_graph.get_by_address(i)) for i in range(1, len(dependency_graph.nodes))]
     # nodes = [None] + [
     #     Node(dependency_graph.get_by_address(i), dependency_graph.nodes) for i in range(1, len(dependency_graph.nodes))
@@ -237,6 +235,16 @@ def get_sentence(sentence):
     # return Sentence(heads)
 
 
-# a = get_sentence("Why does Carole Mills think it is more of a health risk not to eat country food than to eat it?")
-# b = a['nsubj'].get_nodes
-# print()
+def get_constituency_parse(raw_sentence):
+    """
+    Get a full constituency Tree structure from raw text sentence
+    :param raw_sentence: the sentence (in raw text)
+    :return: a Tree structure representing the sentence's constituents
+    """
+    return next(_constituency_parser.raw_parse(raw_sentence))
+
+
+if _dependency_parser is None:
+    _dependency_parser = CoreNLPDependencyParser()
+if _constituency_parser is None:
+    _constituency_parser = CoreNLPParser()
