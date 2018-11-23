@@ -4,10 +4,9 @@ import os
 from sys import argv
 from requests.exceptions import ConnectionError
 from text_analyzer import *
-from src.question_classifier import formulate_question
+from question_classifier import formulate_question
 from answer_identification import get_answer_phrase
 from corpus_io import Corpus
-from test_answer_id import get_all_ids, get_random_items
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -92,7 +91,7 @@ def main(random_seed, num_stories):
     corpus = Corpus()
     output = ''
     key = ''
-    for story in corpus.get_random_stories(num_stories, random_seed):
+    for story in corpus.random_stories(num_stories, random_seed):
         story_text = story['text']
         for question_id in story:
             if question_id not in ['text', 'answer_key']:

@@ -16,6 +16,9 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*Diff
 
 
 def get_sentence_with_answer(story, answer):
+    if isinstance(answer, list):
+        answer = max(answer, key=lambda x: len(x.split()))
+
     sentences = sent_tokenize(story)
     answer = lemmatize(answer)
     has_answer = []
@@ -122,7 +125,7 @@ def main(random_seed, num_stories):
     corpus = Corpus()
     output = ''
     key = ''
-    for story in corpus.get_random_stories(num_stories, random_seed):
+    for story in corpus.random_stories(num_stories, random_seed):
         story_text = story['text']
         for question_id in story:
             if question_id not in ['text', 'answer_key']:
