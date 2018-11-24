@@ -20,7 +20,7 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
 def form_output(story, inquiry, question_id):
     q_inquiry = formulate_question(inquiry)
     qword = q_inquiry['qword'][0].lower()
-    if qword == 'who':
+    if qword in ['who', 'whom', 'whose']:
         feedback = get_prospects_for_who_ner(story, inquiry)
     elif qword == 'how':
         feedback = get_prospects_for_how_regex(story, inquiry)
