@@ -90,7 +90,7 @@ class Corpus(object):
             (story[qid][0], get_sentence_with_answer(story['text'], story[qid][1]), story[qid][1]) for story in
             self.all for qid in story
             if qid not in ['text', 'answer_key']
-        ] if formulate_question(s[0])['qword'][0].lower() == q_type]
+        ] if formulate_question(s[0])['qword'][0].lower() == q_type.lower()]
 
         return tuples
 
@@ -99,3 +99,38 @@ class Corpus(object):
         #         print(question)
         #         print(answer_sentence)
         #         print(answer)
+
+
+c = Corpus(['developset', 'testset1'])
+for question, answer_sentence, answer in c.all_questions_of_type('who'):
+    print(question)
+    print(answer_sentence)
+    print(answer)
+    print()
+for question, answer_sentence, answer in c.all_questions_of_type('what'):
+    print(question)
+    print(answer_sentence)
+    print(answer)
+    print()
+for question, answer_sentence, answer in c.all_questions_of_type('when'):
+    print(question)
+    print(answer_sentence)
+    print(answer)
+    print()
+for question, answer_sentence, answer in c.all_questions_of_type('where'):
+    print(question)
+    print(answer_sentence)
+    print(answer)
+    print()
+for question, answer_sentence, answer in c.all_questions_of_type('why'):
+    print(question)
+    print(answer_sentence)
+    print(answer)
+    print()
+for question, answer_sentence, answer in c.all_questions_of_type('how'):
+    print(question)
+    print(answer_sentence)
+    print(answer)
+    print()
+# for t in c.all_questions_of_type('where'):
+#     print(t)

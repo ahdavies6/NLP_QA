@@ -1,564 +1,847 @@
-golden ticket:
-
-from corpus_io import Corpus
-from question_classifier import formulate_question
-from test_answer_id import get_sentence_with_answer
-
-c = Corpus()
-tuples = [s for s in
-    [(story[qid][0], get_sentence_with_answer(story['text'], story[qid][1]), story[qid][1]) for story in c.all for qid in story
-    if qid not in ['text', 'answer_key']
-] if formulate_question(s[0])['qword'][0].lower() == 'what']
-for question, answer_sentence, answer in tuples:
-    if answer_sentence:
-        print(question)
-        print(answer_sentence)
-        print(answer)
-
-
-** NOTE: only 180/212 (~.85%) have answer sentences per 'get_sentence_with_answer'
-
-
-
-results:
+What has South Queens Junior High School done with its old metal shop?
+None
+['turned it into a fitness club']
 
 What team did Babe play for?
 Her team was known as the Edmonton Grads.
 ['Edmonton Grads']
+
 What position did Babe play?
 She was a forward and she stood only 5 feet, 2 inches tall.
 ['forward']
+
+What happened to him two days before Groundhog day?
+None
+['he died', 'he died in his sleep', 'he died in his sleep of natural causes']
+
+Under the code, what could happen to a student who swears at a teacher?
+None
+['suspension', 'they might get suspended']
+
 What three countries will the Canadians cross through on their desert trek?
 The adventurers expect to travel for up to 55 days through the scorching heat and towering dunes of Oman, Saudi Arabia and the United Arab Emirates.
 ['Oman, Saudi Arabia, the United Arab Emirates']
+
+What is "Arabian Sands" about?
+None
+["Sir Wilfred Thesiger's 1947 trek"]
+
 What advice did Mr. Thesiger give to the Canadians?
 Among Mr. Thesiger's words of advice for the trio was to take great care of the camels because their lives depend on the very stubborn animals as transportation for themselves and their provisions.
 ['take great care of the camels']
+
 At what point did the group have to return to replace broken camel saddles?
 The group was forced to return briefly to replace some broken equipment, notably camel saddles, 40 kilometres into the odyssey.
 ['40 kilometres into the odyssey']
+
+What type of clothing are the Canadians wearing on their journey across the desert?
+None
+['the traditional clothing of the Bedouin people', 'traditional Bedouin clothing']
+
 What does McFarlane want in return for making the "McFarlane Collection" available to places like the National Baseball Hall of Fame?
 "I d like to be able to take 20 swings in every major league ball park," he says.
 ['to take 20 swings in every major league ball park']
+
 What type of sports facility does Maple Leaf Gardens function as?
 More than a hockey rink, it's a cultural institution.
 ['a hockey rink']
+
 What happened in Europe and England when Geoffrey was nine years old?
 In 1939, the Second World War began in Europe and England.
 ['the Second World War began']
+
 What do the Kurdish separatists want?
 Turkey considers Ocalan an enemy because he's been fighting an ongoing battle for a separate Kurdish homeland.
 ['an independent Kurdistan', 'a separate Kurdish homeland']
+
 What triggered some Kurds to try to occupy the Israeli consulate in Berlin?
 On Wednesday, after rumours that Israel helped Turkish securities forces capture Ocalan, angry Kurds tried to occupy the Israeli consulate in Berlin.
 ['rumours that Israel helped Turkish securities forces capture Ocalan']
+
 What did Chancellor Schroeder tell the Kurds in Germany?
 In Germany, Chancellor Gerhard Schroeder told the Kurds they must obey German laws and stop violent protests -- or they will be thrown out of the country.
 ['they must obey German laws and stop violent protests -- or they will be thrown out of the country']
+
 What happened when the Teamsters tried to unionize a McDonald's in Montreal?
 Workers at a McDonald's restaurant in Montreal, Quebec have voted against becoming members of a trade union.
 ['workers voted against becoming members of a trade union', '55 workers voted against unionizing', 'workers voted against unionizing']
+
 What type of music does Lauryn Hill make?
 But American hip-hop artist Lauryn Hill, beat them all.
 ['hip-hop', 'rap', 'R']
+
 What movie was the song "My Heart Will Go On" in?
 "Titanic" sailed on as the ballad "My Heart Will Go On" won four Grammys, including best female pop vocal for Celine Dion and best song written for a motion picture or television.
 ['Titanic']
+
+What other form of show business does Will Smith participate in besides music?
+None
+['acting', 'actor']
+
+What did it cost Meadowvale secondary to have a satellite dish, televisions, and audio-visual equipment installed?
+None
+['nothing', 'it was free', 'free of charge']
+
 What does CBC Newsworld provide to schools?
 While public broadcasters such as CBC Newsworld and TV Ontario provide programming free of charge to schools, none can come close to providing the wealth of televisions, VCRs, computers, and video cameras installed at Meadowvale under its pilot project with YNN's owner, Montreal-based Athena Educational Partners Inc.  Meadowvale principal Laurie Pedwell conceded that the technology was part of YNN's appeal.
 ['free TV programming', 'free television programming']
+
 What organization does Heather-Jane Robertson represent?
 "I happen to believe that it is completely unacceptable to sell off little bits of our kids," said Heather-Jane Robertson, director of professional development with the Canadian Teachers Federation.
 ['the Canadian Teachers Federation']
+
 What do we call groups of people who are experts at ringing bells?
 In Paris, France members of carillon associations - people who are experts at ringing bells - coordinated the ringing of cathedral bells across the city.
 ['carillon associations']
+
 What is the name of the Portuguese anti-landmine film?
 In Brasilia, the capital city of Brazil, anti-landmine pamphlets were distributed and there were screenings of "Spotlight on a Massacre", an anti-landmines film in Portuguese.
 ['"Spotlight on a Massacre"']
+
 What is the name of Wang's documentary?
 Wang Shui-Bo is nominated for an Oscar for Best Short Documentary for his half-hour film "Sunrise over Tiananmen Square."
 ['"Sunrise over Tiananmen Square"']
+
 What is the scientific name for marijuana?
 Marijuana is the common name of Cannabis sativa, a plant which contains more than 400 chemicals.
 ['Cannabis sativa']
+
 What is the Health Department's study going to examine about marijuana?
 The study would examine how the drug should be administered, and how a safe supply could be distributed to patients.
 ['how the drug should be administered and how a safe supply could be distributed to patients']
+
 What are POPs?
 "POPS" are persistent organic pollutants.
 ['persistent organic pollutants']
+
 What is muktuk?
 She says concentrations are bound to be higher in muktuk, a dish made from seal, walrus or whale fat.
 ['a dish made from seal, walrus or whale fat']
+
 What is the estimated size of the seal herd?
 Mr. Efford says the seal herd, which is estimated at six million, needs to be cut in half.
 ['six million']
+
 What is Bill 101?
 The Quebec politician known as the father of Bill 101 -- the province's very controversial language law -- has died.
 ["Quebec's very controversial language law"]
+
 What does Bill 101 require?
 Bill 101 required signs in Quebec to be in French.
 ['signs in Quebec to be in French', 'immigrant children to attend French schools']
+
 What was one of the things that motivated Clarke during the journey?
 "The kids were a great motivation, I felt they were cheering us on.
 ['the kids']
+
 What kind of treatments do the doctors want to give thirteen-year-old Tyrell Dueck for his cancer?
 Doctors say that Tyrell Dueck, 13, will die from cancer in less than a year if he doesn t have part of his thigh bone removed and undergo chemotherapy treatments.
 ['have part of his thigh bone removed and undergo chemotherapy treatments']
+
 What is Rod Bushie's role in the Assembly of Manitoba Chiefs?
 "It s not the first incident," said Rod Bushie, grand chief of the Assembly of Manitoba Chiefs.
 ['grand chief']
+
 According to Bushie, what should the schools do to combat racism?
 He suggested more aboriginal education in schools.
 ['more aboriginal education']
+
+What did doctors discover when Tyrell returned to them for treatment?
+None
+['the cancer had spread from his leg to his lungs']
+
 What is the name of the Duecks' lawyer?
 The matter is most certainly in the hands of God, if it ever were in the hands of mortals," the Duecks' lawyer Owe Girths told a stunned crowd of supporters on Sunday.
 ['Owe Girths']
+
 What do the nations of the North Atlantic Treaty Organization want to stop the Yugoslavians from doing?
 This is happening because the coalition of countries that are members of the North Atlantic Treaty Organizatoin (NATO) want to stop the Yugoslavians from invading the neighbouring region of Kosovo.
 ['invading neighbouring Kosovo', 'invading the neighbouring region of Kosovo']
+
 What are the ethnic Albanians in Kosovo pushing for?
 Ninety per cent of Kosovo's population are ethnic Albanians, who have been pushing for independence from Serbia.
 ['independence from Serbia']
+
 What does Milosevic refuse to do?
 He refuses to allow any outside force into Kosovo to monitor any peace agreement.
 ['he refuses to allow any outside force into Kosovo to monitor any peace agreement']
+
 What do Yugoslav officials feel they can do in a war against NATO?
 Yugoslav officials say they might not be able to win a war against NATO, but they feel they can inflict serious damage.
 ['inflict serious damage']
+
 What is the goal of the NATO bombing in Yugoslavia?
 Foreign Affairs Minister Lloyd Axworthy has said the goal is to force Yugoslavia to accept a peace agreement proposed by the United States.
 ['force Yugoslavia to accept a peace agreement proposed by the United States']
+
 What three companies have had files affected by the virus?
 The New York Times newspaper reported yesterday that files at Charles Schwab and Co., Lucent Technologies and the Intel Corporation had all been affected.
 ['Charles Schwab and Co., Lucent Technologies, the Intel Corporation']
+
 What do "patches" from antivirus software makers do?
 Several antivirus software makers have posted patches on their Web sites to detect and reject the virus.
 ['detect and reject the virus']
+
 What can you do to protect yourself against "Melissa" and similar viruses?
 REMEMBER, NEVER OPEN A DOCUMENT ATTACHMENT FROM SOMEONE YOU DON'T KNOW.
 ["NEVER OPEN A DOCUMENT ATTACHMENT FROM SOMEONE YOU DON'T KNOW", 'by not opening the attachments']
+
 What factor divided the population of Newfoundland in the 1800s?
 The population was also strongly divided by religion -- half were Protestant, half Roman Catholic.
 ['religion', 'half were Protestant, half Roman Catholic']
+
 What date was the vote that made Newfoundland part of Canada?
 A vote was held on July 22, 1948.
 ['July 22, 1948']
+
 What were the pro-union Newfoundlanders called?
 Mr. Crosbie says a number of federal government programs like unemployment insurance and aid packages to fishers who are out of work are just a few of the reasons Newfoundlanders should count their blessings.
 ['people have a basic level of security', 'unemployment insurance and aid packages to fishers who are out of work']
+
 What did Ms. Finlay ask Mr. Corley?
 Mary Lou Finlay of CBC Radio's weeknight program As It Happens asked Mr. Corley how he first heard about the idea.
 ['how he first heard about the idea']
+
+What did the Hollywood movie crew do to transform a Calgary street into a wintry scene for the movie "Snow Day"?
+None
+['unloaded 450 truckloads of snow']
+
 In the movie "Snow Day," what are the kids in Syracuse trying to do?
 Snow Day, a family comedy, centres on a group of Syracuse kids who try to extend a magical day off school into a longer vacation.
 ['extend a magical day off school into a longer vacation']
+
 What did Hudon do in jail to protest his arrest?
 Pascal, who is 20, was released yesterday from the Chiapas state penitentiary of Cerro Hueco -- where he had staged a hunger strike to protest his arrest last September 28th.
 ['staged a hunger strike']
+
 What did ombudsman Dulcie McCallum's investigation into the treatment of the Doukhobor children find?
 Ombudsman Dulcie McCallum said an investigation found the 170 Doukhobor children were subjected to abuse and suffered "loss of love, nurturing guidance and childhood" while they were detained from 1953 to 1959.
 ['the children were subjected to abuse and suffered "loss of love, nurturing guidance and childhood"', 'children "continue to suffer from the long-term ill-effects of this trauma"']
+
 What did the government force the children to build while they were interned in the camp?
 The report said one example of the mistreatment was that children could only visit with their parents through a chain-link fence that the children themselves had been forced to construct.
 ['a chain-link fence', 'a fence']
+
 What is Rubella?
 Rubella, commonly referred to as German measles, is a different disease with similar symptoms.
 ['German measles', 'a different disease with similar symptoms']
+
 What does the white cowboy hat symbolize in Calgary?
 He also said Calgary, Alberta Mayor Al Duerr's decision to present a white cowboy hat, Calgary's symbol of hospitality, to Zhu was "shameful" and "unacceptable."
 ['hospitality']
+
 What are the fertile soils of the Fraser River good for?
 Early settlers recognized the potential of the fertile soils along the Fraser for growing food.
 ['growing food']
+
 What did Gretzky do when he saw a youngster's hand extended from the crowd?
 Whenever he noticed a youngster's extended hand from the crowd, he touched it.
 ['he touched it']
+
 What did the two students who did the shootings do as they moved through the school?
 Witnesses said the boys laughed as they methodically moved through the school shooting people at random.
 ['laughed']
+
 What did President Clinton say is the challenge facing America?
 He said the challenge facing America is to teach its young people to resolve their problems with "words not weapons."
 ['teach its young people to resolve their problems with "words not weapons"']
+
+What would the bill sponsored by Representative Doug Dean do for gun owners?
+None
+['help them carry concealed weapons']
+
 What is the biggest stumbling block in the dispute between the teachers and the school board?
 Class size is the biggest stumbling block in the dispute between the board and the teachers' union.
 ['class size']
+
 What will a teachers' strike force parents to do?
 While a strike will leave more than 95,000 students in academic limbo and parents scrambling to make alternate arrangements, Grade 12 diploma exams will go on.
 ['make alternate arrangements']
+
 What effect will the present school board plans have on teachers?
 The present school board plans would mean that 200 teachers would lose their jobs.
 ['200 teachers would lose their jobs']
+
+What happens to Grade 12 diploma exams if teachers strike?
+None
+['they will go on']
+
 What type of animal did Nexia Biotechnologies clone?
 A Montreal biotechnology firm has successfully cloned triplet goats.
 ['goats']
+
 Besides being very strong, what are the advantages of BioSteel?
 BioSteel is an artificial spider silk that is environmentally friendly, extremely strong and light, and compatible with the human body, says Mr. Turner.
 ['environmentally friendly, extremely light, and compatible with the human body']
+
 What is the population of Taber?
 Eight thousand people live in Taber, which is 300 kilometres southeast of Calgary.
 ['eight thousand']
+
+What happened to the money and supplies Esat tried to send to his brother's family?
+None
+['they were regularly intercepted by Serb forces who kept the money and goods for themselves', 'intercepted by Serb forces']
+
 What is the name of the UN organization responsible for refugees?
 The United Nations High Commission for Refugees says those camps are almost full.
 ['The United Nations High Commission for Refugees']
+
 What did archeologists find in the Bluefish Caves?
 Archeologists found in the caves a mammoth bone that was probably flaked and shaped by human hands roughly 23,500 years ago.
 ['a mammoth bone that was probably flaked and shaped by human hands roughly 23,500 years ago', 'a mammoth bone']
+
+What does author Heather Pringle think archeology is about?
+None
+['"uncovering the lives of ancient people"']
+
 What is the recognizable shape of a tornado?
 The recognizable shape of the tornado is the swirling funnel cloud that extends from the base of a storm cloud to the ground.
 ['the swirling funnel cloud that extends from the base of a storm cloud to the ground']
+
 What is the wind speed range of an F-4 tornado?
 An F-4 tornado has a wind speed of 333-419 kilometres per hour.
 ['333-419 kilometres per hour']
+
 What is giving firefighters a hand in battling several large forest fires across Northern Ontario?
 Light rain and cooler temperatures are giving crews a hand in battling several large forest fires across Northern Ontario.
 ['light rain and cooler temperatures']
+
 What has triggered most of the fires in Ontario that have occurred since April 1?
 Since April 1, almost all of the province's 200 fires were triggered by human causes.
 ['human causes']
+
 What kinds of health problems do diabetics potentially face?
 Diabetics are at risk of blindness, circulatory problems, heart disease and kidney failure, but with proper diet, exercise and insulin, it can be controlled.
 ['blindness, circulatory problems, heart disease and kidney failure']
+
+What does insulin do for our bodies?
+None
+['helps the body properly use sugers']
+
+What do Type 1 diabetics' immune systems do to insulin-producing cells?
+None
+['attacks them', 'destroys them']
+
 What does Stephen Cole of the National Post say is missing in the Phantom Menace?
 In the National Post, Stephen Cole says, "...it's a piece that's missing, specifically the presence of a larger-than-life villain, that prevents Lucas's new film from truly succeeding as epic entertainment."
 ['"the presence of a larger-than-life villain"', 'a larger-than-life villain']
+
 What do Ottawa and the provinces want to negotiate?
 For months Ottawa and the provinces have been trying to negotiate an agreement banning bulk water exports.
 ['an agreement banning bulk water exports']
+
+If the water export plan goes ahead, what is triggered?
+None
+['NAFTA', 'the North American Free Trade Agreement']
+
 What does Maude Barlow think American firms will do?
 NAFTA then applies to the whole country and there'll be no way for us to stop American corporations from coming in and helping themselves to Canadian water all over the country."
 ['come in and help themselves to Canadian water all over the country']
+
 What will Thordis Gutnick do for the refugees?
 One member of the church, Thordis Gutnick, will be spending the next couple of months teaching English to the refugees.
 ['teach English', 'teach English to the refugees', 'teach them English']
+
 What is the average age of people who watch TSN's professional wrestling shows?
 The average viewer is 18 to 49, with the 34 to 49 age group being very dominant."
 ['18 to 49']
+
 What will Julie use to document the mission progress?
 Her tasks will include unloading and arranging the 2,200 kilograms of equipment being carried to the station for future astronauts; working the remote-control Canadarm while supervising crew members constructing parts of the station, and documenting the mission's progress with video cameras.
 ['video cameras']
+
 What did Valery Tokarev and Julie Payette change inside the Russian-built Zarya control module?
 Inside the Russian-built Zarya control module, Valery Tokarev and Canadian astronaut Julie Payette pulled up the floor and began changing electrical meters on batteries that aren't charging properly.
 ["electrical meters on batteries that aren't charging properly", 'electrical meters', 'electrical meters on batteries']
+
 What is the noise level in an office?
 Station officials hoped the mufflers would reduce the noise level to about 60 decibels -- about the same as an office environment.
 ['about 60 decibels']
+
 What are ridings?
 That means representatives of their party won in 59 "ridings" -- small political regions across the province.
 ['small political regions across the province']
+
 What are returning officers?
 Several returning officers (the people in charge of a  polling station) called in sick.
 ['the people in charge of a polling station']
+
 What does a litre of milk cost in northern Canada?
 Northerners are used to paying more than two dollars for a can of pop,  more than a dollar for an apple and three dollars for a litre of milk.
 ['three dollars']
+
 Before getting her new position, what was Judge Arbour's job?
 In 1996, she was appointed to her position as chief prosecutor at the war-crimes tribunal.
 ['chief prosecutor at the war-crimes tribunal']
+
 What was the president of Yugoslavia indicted for?
 Judge Arbour's last major act as chief prosecutor was to indict Slobodan Milosevic for crimes against humanity two weeks ago -- the first time an international court has charged a sitting head of state with war crimes.
 ['crimes against humanity']
+
 As the NATO troops enter Kosovo, what do many of the residents of Kosovo feel they must do?
 The NATO troops are there to make sure that Yugoslavian soldiers leave the area.
 ['leave the area']
+
 What would a stay of execution have allowed?
 A "stay of execution" delays the execution, and would have allowed Mr. Faulder's lawyer to continue her quest to allow him to live.
 ["Faulder's lawyer to continue her quest to allow him to live"]
+
+What has Charlene Gingera been working with the Faulder family to do since 1997
+None
+['to try to get human rights groups interested in his case']
+
 In the last few days before the execution, what were Faulder's relatives hoping for?
 Texas Governor and presidential candidate George W. Bush refused to grant a stay of the execution, saying there was no new evidence that questioned the jury's verdict in the death of Inez Phillips, who Faulder was convicted of killing in 1977.
 ['a stay of execution']
+
 What is a "resident"?
 Now, doctors learning surgery at a Toronto hospital are being trying a new method of learning.
 ['a new doctor']
+
 What do doctors at Mt. Sinai hospital learn on?
 Students practise stitches and cutting on latex intestines, rather than live patients.
 ['latex intestines', 'latex simulations', 'surgical dummies']
+
 In the future, what might doctors use to perfect their techniques?
 Soon residents might be learning through 3-D animation programs and virtual patients.
 ['3-D animation programs and virtual patients', '3-D animation programs', 'virtual patients']
+
 Through what are the whales breathing?
 An unexpected freeze has left dozens of the whales trapped in a sea of ice, with one small hole as their only window for air.
 ['one small hole in the ice', 'one small hole']
+
 What is Quebec Premier Lucien Bouchard's special legislation intended to do?
 He plans to introduce special legislation to force the province's 47,000 striking nurses back to work.
 ["force the province's 47,000 striking nurses back to work"]
+
 Under Bouchard's legislation, what could be imposed on the leaders of the nurses' union if they do not call off the strike immediately?
 The legislation could impose jail sentences on the leaders of the nurses' union if they do not call off the strike immediately.
 ['jail sentences']
+
 What are many drivers doing to show their support for the nurses on strike?
 Many drivers are honking their horns to show their support.
 ['honking their horns']
+
 What does this new discovery of dinosaur bones tell us about the Antarctic?
 The mosasaur discovery shows the Antarctic was once much warmer than it is now.
 ['it was once much warmer than it is now']
+
 What is personal income?
 These statistics include life expectancy (how long a person lives), quality of education, and personal income (how much money a person earns).
 ['how much money a person earns']
+
 In what year did Canadians earn an average of $16,525 US?
 Canadians earned $16,525 US a year in 1997.
 ['1997']
+
 What does it mean when a "search and rescue" mission becomes a "search and recovery" mission?
 This type of change means there is little hope of finding any survivors.
 ['there is little hope of finding any survivors']
+
 What party is Glen Clark the leader of in B.C.?
 government think if Clark keeps his job as Premier, he will lead the New Democratic Party to a big loss in the next election.
 ['the New Democratic Party']
+
 What type of illness is shellfish asthma?
 The illness, which appears unique to this kind of work, is an allergy that gives a person flu-like symptoms.
 ['an allergy', 'an allergy that gives a person flu-like symptoms']
+
 What modern animals do wooly mammoths look most like?
 Mammoths are most similar to modern-day Asian elephants.
 ['modern-day Asian elephants', 'Asian elephants', 'elephants']
+
 What is the name of the Labrador Inuit homeland?
 The Labrador Inuit have voted yes on a deal that would allow them to create their own Inuit homeland called Nunasiavut.
 ['Nunasiavut']
+
 What are native claims?
 Native land claims are modern agreements that provide an aboriginal group with land, resources and some power to govern themselves.
 ['modern agreements that provide an aboriginal group with land, resources and some power to govern themselves']
+
 What birthday is the Queen Mum celebrating?
 People from all over Britain lined up to catch a glimpse of their favourite royal grandmother, and help the Queen Mother celebrate her 99th birthday on Wednesday.
 ['99th', 'her 99th']
+
 What injury did the Queen Mum suffer last winter
 Even though she broke her hip last winter, she put aside her walking stick and did the twist at Prince Edward's wedding in June.
 ['broken hip', 'broke her hip']
+
 What do anti-smoking organizations think about the cigarette packaging plan?
 The Non-Smokers Rights Association says the labels  will give people a graphic reminder of the harmful effects of smoking a cigarette.
 ['They have applauded the strategy', 'The Non-Smokers Rights Association says the labels will give people a graphic reminder of the harmful effects of smoking a cigarette.']
+
 What do Jerry's glasses have on them?
 The blind patient wears glasses with a tiny camera mounted on one lens and  an ultrasonic rangefinder on the other.
 ['a tiny camera and an ultrasonic rangefinder']
+
 What is the "holy kiss" still a part of?
 The ancient Greeks and Romans Early Christians greeted one another with a kiss, and this "holy kiss" is still a part of Roman Catholic rituals, such as when a bishop kisses a newly ordained priest.
 ['Roman Catholic rituals']
+
 What did they use to dig the snow cave?
 Using their hands, the two dug into the snow hollow around the base of a tree, covered the floor with pine boughs and settled in for a long, cold night.
 ['their hands']
+
+What are the boys' parents' names?
+None
+['Michael and Carol']
+
 What does "perjury" mean?
 President Clinton was acquitted of the charge of perjury (lying in court) and of obstructing justice (hiding evidence, or getting others to lie in court).
 ['lying in court']
+
+What happened to Clinton's approval ratings during the impeachment trial?
+None
+['they climbed']
+
 What kind of animal do the inmates hunt in the summertime?
 In the summer they go after seals.
 ['seals']
+
 What kinds of laws have governments passed that limit the freedom of expression?
 For example, laws against pornography and hate propaganda are reasonable limits on freedom of expression because they prevent harm to individuals and groups.
 ['laws against pornography and hate propaganda', 'laws against pornography', 'laws against hate propaganda', 'anti-panhandling laws']
+
 As part of the peace deal with the KLA, what have KLA members agreed to do?
 The deal says that KLA members will hand over their large weapons to NATO forces and stop wearing military uniforms.
 ['hand over their large weapons to NATO forces and stop wearing military uniforms']
+
 What does Neudorf claim about the eight songs on Sarah McLachlan's first album?
 Daryl Neudorf claims he co-wrote four of those songs, including Sad Clown.
 ['he co-wrote four of those songs', 'that he co-wrote four of those songs', 'he co-wrote four of those songs, including Sad Clown']
+
 What is Canada's copyright law largely based on?
 Canada's copyright act came into effect in 1924, and is based largely on the law in the United Kingdom.
 ['the law in the United Kingdom']
+
 What was wrong with Tyrell before he died?
 Tyrell's tumour started bleeding and he needed blood transfusions.
 ['cancer', 'a tumour', 'Tyrell had a cancerous tumour in his leg', "cancer had spread to Tyrell's lungs", "Tyrell's tumour started bleeding", "Tyrell's tumour started bleeding and he needed blood transfusions"]
+
 What kind of treatment did Tyrell and his parents want to try for his condition?
 Instead they decided to use herbal, and alternative treatments that included large doses of vitamins and a special diet.
 ['herbal, and alternative treatments that included large doses of vitamins and a special diet']
+
 What is Rasmussen's disease?
 Rasmussen's disease is a very rare form of brain disease that can occur at any time in childhood.
 ['a very rare form of brain disease', 'a very rare form of brain disease that can occur at any time in childhood']
+
+What happens to cells in one half of the brain as a result of Rasmussen's disease?
+None
+['they become inflamed or puffy when infected']
+
 What might happen to Amber as a result of the surgery?
 The left side of the brain controls speech and some body movements, so the surgery could leave Amber without the ability to talk.
 ['she might be unable to talk', 'the surgery could leave Amber without the ability to talk']
+
 What does the round goby eat?
 It eats the eggs and young of the sport fish and chases larger fish away from food sources, leaving little for them to eat.
 ['the eggs and young of the sport fish']
+
 What should be people clean off their boats to keep the round goby from moving into new waters?
 Also, if they have a boat to make sure they clean off plants that might have small goby in them.
 ['plants', 'plants that might have small goby in them']
+
 What does it mean to have a minority government?
 That means that no one party had more than half the seats in the legislature.
 ['no one party had more than half the seats in the legislature', 'no one party has more than half the seats in the legislature']
+
 What does it mean when the government is defeated on a major bill?
 When the government is defeated on a major bill, like one that is about money, it means the legislature has lost confidence in them.
 ['the legislature has lost confidence in them']
+
 What must a premier do when there is a vote of non-confidence?
 This vote of non-confidence means the premier must either quit, or call a new election.
 ['either quit or call a new election']
+
 What was Eugene Shoemaker's lifelong wish?
 Eugene Shoemaker may finally fulfill his lifelong wish to go to the moon.
 ['to go to the moon']
+
 What is NASA hoping the Lunar Prospector will create when it crash-lands?
 NASA is hopeful that the impact of Prospector's crash into the moon will create a plume of water which will be visible from Earth with a telescope.
 ['a plume of water which will be visible from Earth with a telescope', 'a plume of water']
+
 On what was Shoemaker considered an authority?
 He was considered an authority on craters and the collisions that cause them.
 ['craters and the collisions that cause them']
+
 What did Shoemaker-Levy 9 slam into?
 The comet slammed into Jupiter in 1994.
 ['Jupiter']
+
 What was Eugene Shoemaker's biggest disappointment in his life?
 Shoemaker said shortly before his death the biggest disappointment in his life was "not going to the moon and banging on it with my own hammer."
 ['"not going to the moon and banging on it with my own hammer"']
+
 What do the robots signal to each other?
 They are programmed to send signals to each other on how to play during the game.
 ['how to play during the game']
+
+What caused the mudslides?
+None
+['heavy rains', 'heavy rains near the B.C.-Alberta border']
+
 What usually causes mudslides?
 They are usually caused by weakened land on hills and mountains.
 ['weakened land on hills and mountains']
+
 What can mudslides do when they start moving quickly?
 Mudslides can move quickly and powerfully, picking up rocks, trees, houses and cars.
 ['pick up rocks, trees, houses and cars']
+
 What causes a solar eclipse?
 It is caused when the moon passes between the Earth and the sun, blocking our view of the sun for a few minutes.
 ['the moon passes between the Earth and the sun']
+
 What is a total eclipse?
 What made this eclipse special is that it was a total eclipse, where the moon totally blocks the sun.
 ['the moon totally blocks the sun']
+
 What is a partial eclipse?
 A partial eclipse {where the moon covers part, but not all of the sun} could be seen in Eastern Canada.
 ['the moon covers part, but not all of the sun']
+
 What is the Bluenose II?
 The Bluenose II is a replica of the original Bluenose.
 ['a replica of the original Bluenose']
+
 What is the capital of Turkey?
 The centre of the earthquake hit Izmit, the region just south of Istanbul, the country's capital.
 ['Istanbul']
+
 What was the magnitude of the earthquake, according to the National Earthquake Information Centre in Colorado?
 The earthquake had a magnitude of 7.8, according to the National Earthquake Information Centre in Colorado.
 ['7.8']
+
 What does earthquake magnitude measure?
 Magnitude measures the amount of energy released by an earthquake.
 ['the amount of energy released by an earthquake']
+
 What are aftershocks?
 Aftershocks are vibrations that follow an earthquake.
 ['vibrations that follow an earthquake']
+
 What are Canada's disaster assistance troops trained in?
 The group is trained in communication and providing medical assistance.
 ['communication and providing medical assistance']
+
 What new question are Canadian pediatricians considering asking parents during a child's checkup?
 A group representing Canadian pediatricians - doctors who specialize in treating children - may have a new question for parents when they take their children for a checkup: How much television do your kids watch?
 ['How much television do your kids watch?']
+
 According to pediatricians, there is a relationship between watching television and an increase in what kind of behaviour?
 But there is a relationship between watching television and an increase in violent behaviour.
 ['violent', 'violent behaviour']
+
 What does Nunavut mean in the Inuktitut language of Canada's Inuit?
 Nunavut means "our land" in the Inuktitut language of Canada's Inuit.
 ['our land']
+
 What are the Inuit in Nunavuk perfecting, according to French President Chirac?
 "Here is a vast country, the land of the aboriginal people, the land of the Inuit, at once English and French speaking, that is perfecting the art of living together in a spirit of peace and tolerance."
 ['"the art of living together in a spirit of peace and tolerance"', '"the art of living together"']
+
 What site in Nunavut did President Chirat visit?
 Chirac visited a community hall run by the Nunavut Francophone Association, where he opened a virtual museum of Inuit art on the Internet, a project financed by the French government.
 ['a community hall run by the Nunavut Francophone Association', 'a community hall']
+
 What did President Chirac open while he was in Nunavuk?
 Chirac visited a community hall run by the Nunavut Francophone Association, where he opened a virtual museum of Inuit art on the Internet, a project financed by the French government.
 ['a virtual museum of Inuit art on the Internet']
+
 What does Adrienne Clarkson call her appointment as Canada's governor general?
 Adrienne Clarkson calls it a sign of Canadian evolution.
 ['a sign of Canadian evolution']
+
 What kind of role does Clarkson plan to play in Canadian unity?
 She says she plans to play an active, yet sensible role in Canadian unity.
 ['active yet sensible']
+
 What did Adrienne Clarkson do during her career on CBC-TV?
 Clarkson, who lives in Toronto, is best known for her career with CBC-TV, where she was a high-profile interviewer and host for three decades.
 ['she was a high-profile interviewer and host']
+
 What is the capital city of East Timor?
 The East Timor capitol city of Dili has been turned into a burning, looted ghost town.
 ['Dili']
+
 What are U.N. peacekeeping troops doing in war-torn Kosovo?
 The peacekeeping troops are making sure that the people living in war-torn Kosovo are protected from violence.
 ['making sure that the people are protected from violence']
+
 What do francophones say their territorial government is not respecting?
 They say the territorial government isn't respecting its own language law.
 ['its own language law']
+
 What percentage of documents requested from the territorial government in French were unavailable, according to a one-day survey?
 The federation found that 75 per cent of the documents it had requested from the territorial government in French were unavailable.
 ['75 per cent']
+
 What has Conservative party leader Gary Filmon announced?
 Filmon has announced that he will now retire from politics.
 ['he will now retire from politics']
+
 What has Doer promised to get rid of?
 He promised to get rid of what has become known as "hallway medicine."
 ['hallway medicine']
+
 What per cent of the popular vote did the NDP take?
 The NDP took about 45 per cent of the popular vote last night, the largest share the party has won since Howard Pawley swept Conservative leader Sterling Lyon out of power in 1981.
 ['45']
+
 What did police get pelted with during the demonstrations?
 "Windows of stores were broken, car windows were also broken," says Montreal police spokesman Michel Fontaine, who added that police were also pelted with rocks and garbage.
 ['rocks and garbage']
+
+At what time did the trains collide?
+None
+['8:11 a.m.']
+
 What companies operate the trains involved in the crash?
 Great Western and Thames Trains are the companies that operate the two trains involved in the crash.
 ['Great Western and Thames Trains']
+
 What is a way of daily life for many people in London and the surrounding communities?
 Rail travel is a way of daily life for many people in London and its surrounding communities.
 ['rail travel']
+
 While in office, what title does Ms. Clarkson assume?
 The Governor General formally takes office once the oaths have been sworn and assumes the title "Excellency" while in office, and the lifetime title of "Right Honourable".
 ['Excellency']
+
 As Governor General, Ms. Clarkson presides over the swearing-in of what Canadian officials?
 Many of Canada's political leaders, including Prime Minister Jean Chretien, Supreme Court Chief Justice Antonio Lamer, the cabinet, and Opposition Leader Preston Manning attended the ceremony.
 ['the Prime Minister, the Chief Justice of Canada and cabinet ministers']
+
 What is the Youth News Network?
 The Youth News Network, a news show that airs in some Canadian schools, is in trouble in Manitoba.
 ['a news show that airs in some Canadian schools']
+
 What company runs YNN?
 As of the end of June, schools in Alberta, Saskatchewan, Manitoba, Ontario, Quebec and Newfoundland had agreed to show the news program run by Montreal-based Athena Educational Partners.
 ['Montreal-based Athena Educational Partners', 'Athena Educational Partners']
+
 On what basis did eight schools in Manitoba agree to show the YNN program?
 Eight schools in Manitoba agreed to show the program on a six-month trial basis.
 ['on a six-month trial basis']
+
 What proportion of the school's population is enrolled in music classes at Inuksuk?
 About 90 students, or a quarter of the school's population, are enrolled in music classes at Inuksuk.
 ['about a quarter']
+
 What will happen to the Chinese people whose requests for refugee status fail?
 They will be sent back to China.
 ['they will be sent back to China']
+
+What will happen to the woman if she returns to China?
+None
+['she will be sterilized']
+
 What about Mars made skywatchers in ancient Greece and Rome think of their god of war?
 In ancient Greece and Rome, the planet's fiery red hue made skywatchers think of their god of war.
 ["the planet's fiery red hue"]
+
 What are scientists afraid the costly mission could do?
 There are fears that the costly mission could hit a rock or lose contact with NASA scientists back home.
 ['hit a rock or lose contact with NASA scientists back home']
+
 What can the Polar Lander's instruments not detect?
 Any answers from the probe would help focus future missions searching for past or present life, which is dependent on water, though the Lander's instruments cannot detect fossils or living organisms.
 ['fossils or living organisms']
+
+What kind of lawsuit was filed against Sarah McLachlan?
+None
+['copyight']
+
 What did Neudorf claim he did not receive from McLachlan?
 He said he did not receive proper royalties for producing "Touch," which sold more than 625,000 copies.
 ['proper royalties for producing "Touch"']
+
 What concert series did McLachlan mastermind?
 McLachlan's lawyer Jennifer Conkie said the performer - the mastermind of the popular Lilith Fair concert series that toured North America - is "very, very pleased and relieved."
 ['Lilith Fair']
+
 What did McLachlan occasionally do during the trial?
 During the trial, McLachlan occasionally sang and played a keyboard before court staff, reporters and teenaged fans to illustrate how songs are put together.
 ['sang and played keyboard', 'sang and played keyboard before the court staff']
+
+If water is left in an opened container for 24 hours, what happens to many of the chemicals?
+None
+['they evaporate', 'evaporate']
+
+What does charcoal do to chemicals in water?
+None
+['absorbs them']
+
 What is the Family Farm Tribute concert meant to do?
 The concert is meant to open people's eyes to the growing farm crisis in Canada.
 ["open people's eyes to the growing farm crisis in Canada"]
+
 What two things will the Family Farm Tribute concert achieve, according to organizer Dennis Mills?
 It will bring rural problems to the  attention of an urban audience, and it will show the country that Toronto cares.
 ['it will bring rural problems to the attention of an urban audience, and it will show the country that Toronto cares']
+
 What is hypothermia?
 Morris Green of Nova Scotia Emergency Health Services said one of the teenagers was being treated for hypothermia -- when one's body temperature drops abnormally low -- and the other two appeared to be OK.  John Morris Rankin played fiddle and piano with the popular musical family from Cape Breton.
 ["when one's body temperature drops abnormally low"]
+
 What musical instruments did John Morris Rankin play?
 Morris Green of Nova Scotia Emergency Health Services said one of the teenagers was being treated for hypothermia -- when one's body temperature drops abnormally low -- and the other two appeared to be OK.  John Morris Rankin played fiddle and piano with the popular musical family from Cape Breton.
 ['fiddle and piano', 'keyboard and fiddle']
+
+What did the Mars Global Surveyor do?
+None
+['took high-resolution images of the planned Polar Lander landing site', 'searched for signs of the lander']
+
+What was the mission of the Mars Polar Lander?
+None
+["study Mars' atmosphere and search for water"]
+
 What part of next year's mission might be cancelled?
 The Mars Polar Lander was on a mission to Mars to study its atmosphere and search for water, something that could help scientists determine whether life ever existed on Mars.
 ['the lander']
+
+What is Pavel Bure's occupation?
+None
+['hockey player']
+
+What is a subsidy?
+None
+['money given to help someone out']
+
 What is Glenroy Gilbert doing in Texas?
 "I've been doing this for 13 or 14 years, running on the national team and we've been forced to live on from $450 a month to $810 a month," Gilbert said from Austin, Texas, where he is training for the Sydney Olympics.
 ['training for the Sydney Olympics']
+
+What does Frank Gilbert think about giving money to NHL teams?
+None
+["It's fine, as long as the poor are taken care of first."]
+
 What are the other two films in Mehta's trilogy?
 Her other two films were entitled Earth and Fire.
 ['Earth and Fire']
+
 What are fundamentalists?
 But after the attack by fundamentalists (strongly religious people who refuse anything that disagrees with their faith), Indian government authorities withdrew their permission to shoot the film in Varanasi.
 ['strongly religious people who refuse anything that disagrees with their faith']
+
 What was Mehta's film, Fire, about?
 That film was about the relationship of two women caught in unhappy marriages.
 ['the relationship of two women caught in unhappy marriages']
+
 What does Watson say is more of a challenge in climbing than his blindness?
 The 49-year-old Watson, who lost his vision from a pellet gun at the age of  12, says his lack of technical climbing ability is more of a challenge than his  blindness.
 ['his lack of technical climbing ability']
+
+What other mountain would Watson like to climb after Mt. Logan?
+None
+['Mt. Everest']
+
 What party does Joerg Haider lead in Austria?
 The leader of Austria's Freedom Party flew out of Montreal, Quebec's Dorval airport last night.
 ['Freedom Party']
+
 What is Haider accused of being?
 Haider is accused of being a Nazi sympathizer.
 ['a Nazi sympathizer']
