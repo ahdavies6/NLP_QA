@@ -1,4 +1,6 @@
 import spacy
+from spacy.lemmatizer import Lemmatizer
+import sys
 
 
 def get_all_dependents(doc, dep):
@@ -26,6 +28,11 @@ def similarity(nlp):
     print(cat.similarity(apples))
 
 
+def word_similarity(nlp, word1, word2):
+    word1, word2 = nlp(' '.join([word1, word2]))
+    return word1.similarity(word2)
+
+
 def integrative(nlp):
     question = nlp(u"What did Bill buy?")
     answer1 = nlp(u"Bill purchased a new pair of shoes.")
@@ -41,16 +48,41 @@ def integrative(nlp):
         ), 'dobj'
     ))
 
+def entities(nlp, sent, word):
+    sent = nlp(sent)
+
+    root = get_dependency(sent, 'ROOT')[0]
+    ents = []
+    for ent in sent.ents:
+        ents.append((ent.text, ent.label_))
+    print(sent)
+    print(ents)
+    print(root)
+    for w in sent:
+        print(w, end=': ')
+        print(word_similarity(nlp, w, word))
+    print()
+
 
 def main():
-    nlp = spacy.load('en_core_web_sm')      # alt: en_core_web_md, en_core_web_lg
-    dependency(nlp)
+    # nlp = spacy.load('en_core_web_sm')      # alt: en_core_web_md, en_core_web_lg
+    # dependency(nlp)
+    #
+    # nlp = spacy.load('en_vectors_web_lg')   # identical to en_core_web_lg, but only looks at vectors (no parse)
+    # similarity(nlp)
+    #
+    # nlp = spacy.load('en_core_web_lg')
+    # integrative(nlp)
 
-    nlp = spacy.load('en_vectors_web_lg')   # identical to en_core_web_lg, but only looks at vectors (no parse)
-    similarity(nlp)
-
-    nlp = spacy.load('en_core_web_lg')
-    integrative(nlp)
+    nlp = spacy.load('en_core_web_sm')
+    while(True):
+        sent = input("Enter sentence: ")
+        if sent is None or sent.lower() == 'quit':
+            break
+        word = input("Enter word: ")
+        if word is None:
+            break
+        entities(nlp, sent, word)
 
 
 if __name__ == '__main__':

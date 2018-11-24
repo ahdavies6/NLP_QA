@@ -21,13 +21,13 @@ def form_output(story, inquiry, question_id):
     q_inquiry = formulate_question(inquiry)
     qword = q_inquiry['qword'][0].lower()
     if qword == 'who':
-        feedback = get_prospects_for_who_ner(story, inquiry)
+        feedback = get_prospects_for_who_sp_ner(story, inquiry)
     elif qword == 'how':
         feedback = get_prospects_for_how_regex(story, inquiry)
     elif qword == 'when':
         feedback = get_prospects_for_when_regex(story, inquiry)
     elif qword == 'where':
-        feedback = get_prospects_for_where_ner(story, inquiry)
+        feedback = get_prospects_for_where_sp_ner(story, inquiry)
     elif qword == 'why':
         feedback = get_prospects_for_why(story, inquiry)
     elif qword == 'what':
@@ -51,8 +51,8 @@ def form_output(story, inquiry, question_id):
 
 
 def main(random_seed, num_tests):
-    # story_ids = get_random_items(get_all_ids(), num_tests, random_seed)
-    story_ids = get_all_ids()
+    story_ids = get_random_items(get_all_ids(), num_tests, random_seed)
+    # story_ids = get_all_ids()
     story_files = {}
 
     for story_id in story_ids:

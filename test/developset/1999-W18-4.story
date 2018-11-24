@@ -8,8 +8,8 @@ Pastor Ken Gartly provided comfort and prayer to people in Taber,
 Alberta yesterday after two students were shot at the town's high
 school.
 
-Students at W.R. Myers high school had just settled down after lunch
-when a 14-year-old boy walked in and shot two students, killing one. The
+Students at W.R. Myers high school had just settled down after lunch when a 14-year-old boy walked in and shot two students, killing one. 
+The
 shooting comes a week after the shooting tragedy at Columbine high
 school in Littleton, Colorado.
 

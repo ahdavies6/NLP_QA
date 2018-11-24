@@ -1,8 +1,14 @@
 from nltk.corpus import wordnet
 import nltk
 import re
+import spacy
+import en_core_web_lg
+from spacy.vocab import Vocab
+from spacy.pipeline import EntityRecognizer
 
 _wnl = None
+
+model = None
 
 
 # Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
@@ -197,6 +203,12 @@ def sentence_similarity(sentence1, sentence2):
     else:
         score = 0
     return score
+
+
+def word_similarity(word1, word2):
+    result = model(' '.join([word1, word2]))
+    word1, word2 = result[0], result[1]
+    return word1.similarity(word2)
 
 
 def get_prospects_simple(text, sigwords):
@@ -405,6 +417,64 @@ def get_prospects_for_who_ner(text, inquiry):
     return get_prospects_with_wordnet(sub_story, inquiry)
 
 
+def get_dependency(doc, dep):
+    return [token for token in doc if token.dep_ == dep]
+
+
+def get_prospects_for_who_sp_ner(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    ne_check_list = []
+    #
+    # inquiry_ents = model(inquiry).ents
+    #
+    # if len(inquiry_ents) > 0:
+    #     for ent in inquiry_ents:
+    #         for sentence in sentences:
+    #             sentence_ents = model(sentence).ents
+    #             print(sentence_ents, end=' ')
+    #             print(ent)
+    #             if ent in sentence_ents:
+    #                 ne_check_list.append(sentence)
+    #
+    #     final_check_list = []
+    #
+    #     for sentence in loc_check_list:
+    #         ps_sentence = model(sentence)
+    #         for word in ps_sentence.ents:
+    #             if word.label_ in ['GPE', 'LOC', 'ORG']:
+    #                 final_check_list.append(sentence)
+    #                 break
+    #
+    #     sub_story = ' '.join(final_check_list)
+    #     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+    # else:
+    for sentence in sentences:
+        ps_sentence = model(sentence)
+        for word in ps_sentence.ents:
+            if word.label_ == 'PERSON' or word.label_ == 'ORG':
+                ne_check_list.append(sentence)
+                break
+
+    # root = get_dependency(model(inquiry), 'ROOT')[0]
+    # root = lemmatize(root.text)[0]
+    #
+    # root_check_list = []
+
+    # for sentence in ne_check_list:
+    #     ps_sentence = lemmatize(sentence)
+    #     if root in ps_sentence:
+    #         root_check_list.append(sentence)
+    #     else:
+    #         score = sentence_similarity(root, sentence)
+    #         print(score)
+    #         if score >= 0.5:
+    #             root_check_list.append(sentence)
+
+    sub_story = ' '.join(ne_check_list)
+    return get_prospects_with_wordnet(sub_story, inquiry)
+
+
 def get_prospects_for_how_regex(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
@@ -560,6 +630,42 @@ def get_prospects_for_where_ner(text, inquiry):
     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
 
 
+def get_prospects_for_where_sp_ner(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    loc_check_list = []
+
+    inquiry_ents = model(inquiry).ents
+
+    if len(inquiry_ents) > 0:
+        for ent in inquiry_ents:
+            for sentence in sentences:
+                sentence_ents = model(sentence).ents
+                if ent in sentence_ents:
+                    loc_check_list.append(sentence)
+
+        final_check_list = []
+
+        for sentence in loc_check_list:
+            ps_sentence = model(sentence)
+            for word in ps_sentence.ents:
+                if word.label_ in ['GPE', 'LOC']:
+                    final_check_list.append(sentence)
+                    break
+
+        sub_story = ' '.join(final_check_list)
+        return get_prospects_with_wordnet(sub_story, inquiry)
+    else:
+        for sentence in sentences:
+            ps_sentence = model(sentence)
+            for word in ps_sentence.ents:
+                if word.label_ in ['GPE', 'LOC']:
+                    loc_check_list.append(sentence)
+                    break
+        sub_story = ' '.join(loc_check_list)
+        return get_prospects_with_wordnet(sub_story, inquiry)
+
+
 def get_prospects_for_why(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
@@ -582,13 +688,9 @@ def get_prospects_for_why(text, inquiry):
     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
 
 
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
-
-
 if _wnl is None:
     _wnl = nltk.stem.WordNetLemmatizer()
+
+
+if model is None:
+    model = en_core_web_lg.load()
