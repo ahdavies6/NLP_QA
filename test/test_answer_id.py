@@ -3,9 +3,8 @@ import subprocess
 import os
 import random
 from sys import argv
-from nltk import sent_tokenize
-from answer_identification import calculate_overlap, get_answer_phrase
-from text_analyzer import lemmatize
+from test_utils import get_sentence_with_answer
+from answer_identification import get_answer_phrase
 from corpus_io import Corpus
 
 
@@ -13,24 +12,6 @@ headline_pattern = r'HEADLINE:\s*(.*)\n'
 date_pattern = r'DATE:\s*(.*)\n'
 text_pattern = r'TEXT:\s*([\s\w\d\S\W\D]*)'
 answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*Difficulty:\s*(.*)\s*'
-
-
-def get_sentence_with_answer(story, answer):
-    if isinstance(answer, list):
-        answer = max(answer, key=lambda x: len(x.split()))
-
-    sentences = sent_tokenize(story)
-    answer = lemmatize(answer)
-    has_answer = []
-    for sentence in sentences:
-        sentence_lemmas = lemmatize(sentence)
-        if set([a.lower() for a in answer]) <= set([s.lower() for s in sentence_lemmas]):
-            has_answer.append(sentence)
-
-    if len(has_answer) == 1:
-        return has_answer[0]
-    elif len(has_answer) > 1:
-        return max(has_answer, key=lambda x: calculate_overlap(x, answer))
 
 
 def form_output(story, inquiry, answer, question_id):
@@ -122,7 +103,7 @@ def main(random_seed, num_stories):
     # os.remove('output')
     # os.remove('key')
 
-    corpus = Corpus()
+    corpus = Corpus(['developset', 'testset1'])
     output = ''
     key = ''
     for story in corpus.random_stories(num_stories, random_seed):
