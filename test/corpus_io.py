@@ -1,7 +1,9 @@
-import os
 import re
+import os
 import random
 from copy import deepcopy
+from question_classifier import formulate_question
+from test_utils import get_sentence_with_answer
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -13,14 +15,17 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*Diff
 
 class Corpus(object):
 
-    def __init__(self):
+    def __init__(self, directories):
+        if isinstance(directories, str):
+            directories = [directories]
+
         all_filenames = []
-        for path, dirs, filenames in os.walk(os.getcwd() + '/developset/'):
-            all_filenames += ['./developset/' + filename for filename in filenames]
-            break
-        for path, dirs, filenames in os.walk(os.getcwd() + '/testset1/'):
-            all_filenames += ['./testset1/' + filename for filename in filenames]
-            break
+        for directory in directories:
+            # for path, dirs, filenames in os.walk(os.getcwd() + '/developset/'):
+            for path, dirs, filenames in os.walk('{}/{}/'.format(os.getcwd(), directory)):
+                # all_filenames += ['./developset/' + filename for filename in filenames]
+                all_filenames += ['./{}/{}'.format(directory, filename) for filename in filenames]
+                break
 
         all_filenames = sorted(all_filenames)
         self.id_list = []
@@ -79,3 +84,18 @@ class Corpus(object):
             result.append(self._get_story(story_id))
 
         return result
+
+    def all_questions_of_type(self, q_type):
+        tuples = [s for s in [
+            (story[qid][0], get_sentence_with_answer(story['text'], story[qid][1]), story[qid][1]) for story in
+            self.all for qid in story
+            if qid not in ['text', 'answer_key']
+        ] if formulate_question(s[0])['qword'][0].lower() == q_type]
+
+        return tuples
+
+        # for question, answer_sentence, answer in tuples:
+        #     if answer_sentence:
+        #         print(question)
+        #         print(answer_sentence)
+        #         print(answer)
