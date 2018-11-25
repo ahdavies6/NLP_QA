@@ -392,6 +392,27 @@ def get_prospects_for_how_with_pos_check(text, inquiry):
     return sorted(in_list)
 
 
+def get_prospects_for_what(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+
+
+def get_prospects_with_sp_similarity(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    sp_inquiry = model(inquiry)
+
+    sentences_with_similarity = []
+
+    for sentence in sentences:
+        sp_sentence = model(sentence)
+        similarity = sp_inquiry.similarity(sp_sentence)
+        if similarity:
+            sentences_with_similarity.append((-similarity, sentence))
+
+    return sentences_with_similarity
+
+
 def get_prospects_for_who_ner(text, inquiry):
     occupation_pattern = r'(?:teacher|fighter|leader|father|minister|lawyer|officer|mother|member|chef|politician|' \
                          r'salesperson|cashier|person|worker|janitor|engineer|accountant|manager|woman|man|boy|girl|' \
