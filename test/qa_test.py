@@ -1,4 +1,4 @@
-dimport heapq
+import heapq
 import subprocess
 import os
 from sys import argv
