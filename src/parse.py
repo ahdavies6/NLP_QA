@@ -275,6 +275,76 @@ def get_subtree_dependent_of_type(root, dep_label):
             return [subtree for subtree in child.subtree]
 
 
+def get_all_verbs_from_sentence(document):
+    return [token for token in document if token.pos_ == 'VERB']
+
+
+# def get_all_subjs_of_verb():
+#     pass
+#
+#
+# def get_all_iobjs_of_verb():
+#     pass
+
+
+def best_dep_of_type(head, dep_label_list):
+    best = max(
+        [token for token in head.subtree if token.dep_ in dep_label_list],
+        key=lambda x: len(list(x.subtree))
+    )
+    if best:
+        return best
+
+
+# todo: distinguish more in answers?
+def useful_arguments(head):
+    # best_subj = max(
+    #     [token for token in verb.subtree if token.dep_ in ['nsubj', 'nsubjpass', 'csubj', 'csubjpass', 'agent']],
+    #     key=lambda x: len(list(x.subtree))
+    # )
+    # best_obj = max(
+    #     [token for token in verb.subtree if token.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative', 'obl']],
+    #     key=lambda x: len(list(x.subtree))
+    # )
+    # # if best_subj and best_obj:
+    # #     return [best_subj, best_obj]
+    # # elif best_subj:
+    # #     return [best_subj]
+    # # elif best_obj:
+    # #     return [best_obj]
+    best_subj = best_dep_of_type(head, ['nsubj', 'nsubjpass', 'csubj', 'csubjpass', 'agent'])
+    best_obj = best_dep_of_type(head, ['obj', 'dobj', 'iobj', 'pobj', 'dative', 'obl'])
+    return [arg for arg in [best_subj, best_obj] if arg]
+
+
+def extras(head):
+    # best_adjs = max(
+    #     [token for token in verb.subtree if token.dep_ in [
+    #         'acl', 'amod', 'appos', 'nn', 'nounmod', 'nummod', 'poss', 'quantmod', 'relcl'
+    #     ]],
+    #     key=lambda x: len(list(x.subtree))
+    # )
+    # best_advs = max(
+    #     [token for token in verb.subtree if token.dep_ in [
+    #         'advcl', 'advmod', 'npmod'
+    #     ]],
+    #     key=lambda x: len(list(x.subtree))
+    # )
+    # best_prep = max(
+    #     [token for token in verb.subtree if token.dep_ in [
+    #         'prep'
+    #     ]],
+    #     key=lambda x: len(list(x.subtree))
+    # )
+    best_adjs = best_dep_of_type(
+        head,
+        ['acl', 'amod', 'appos', 'nn', 'nounmod', 'nummod', 'poss', 'quantmod', 'relcl']
+    )
+    best_advs = best_dep_of_type(head, ['advcl', 'advmod', 'npmod'])
+    best_prep = best_dep_of_type(head, ['prep'])
+    return [mod for mod in [best_adjs, best_advs, best_prep] if mod]
+
+
 if _dependency_parser is None:
     _dependency_parser = CoreNLPDependencyParser()
 if _constituency_parser is None:

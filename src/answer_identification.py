@@ -181,7 +181,7 @@ def get_phrase_for_what_do(raw_question, raw_sentence):
         stuff += l
     obj_heads = []
     for h in stuff:
-        obj_heads += [t for t in h.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+        obj_heads += [t for t in h.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
     # to_sentence(max([r for r in s_verb.rights], key=lambda x: len(list(x.subtree))))
     if obj_heads:
         return to_sentence(max(
