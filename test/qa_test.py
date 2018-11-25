@@ -20,7 +20,7 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
 def form_output(story, inquiry, question_id):
     q_inquiry = formulate_question(inquiry)
     qword = q_inquiry['qword'][0].lower()
-    if qword in ['who', 'whom', 'whose']:
+    if qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
     elif qword == 'how':
         feedback = get_prospects_for_how_regex(story, inquiry)
@@ -40,9 +40,12 @@ def form_output(story, inquiry, question_id):
     if len(feedback) > 0:
         best_sentence = heapq.heappop(feedback)[1]
         if qword == 'what':
-            answer = best_sentence
+            answer = get_answer_phrase(inquiry, best_sentence)
+            if not answer:
+                answer = best_sentence
         else:
             answer = get_answer_phrase(inquiry, best_sentence)
+
         if answer:
             output += answer
     output += '\n\n'
@@ -88,8 +91,8 @@ def main(random_seed, num_stories):
     # os.remove('output')
     # os.remove('key')
 
-    corpus = Corpus(['developset', 'testset1'])
     # corpus = Corpus(['testset1'])
+    corpus = Corpus(['developset', 'testset1'])
     output = ''
     key = ''
     # for story in corpus.all:

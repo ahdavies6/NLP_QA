@@ -1,10 +1,13 @@
-from parse import get_constituency_parse, get_dependency_parse
-from question_classifier import formulate_question
-from nltk.corpus import stopwords
 import nltk
 import text_analyzer
 import re
 import string
+from nltk.corpus import stopwords
+from spacy.tokens import Token
+from text_analyzer import lemmatize
+from parse import get_constituency_parse, get_dependency_parse, get_token_dependent_of_type, \
+    get_subtree_dependent_of_type, get_spacy_dep_parse
+from question_classifier import formulate_question
 
 
 def num_occurrences_time_regex(tokens):
@@ -103,11 +106,13 @@ def to_sentence(tokens, index=0):
         return tokens
     elif isinstance(tokens, list):
         if isinstance(tokens[index], tuple):
-            return " ".join([
+            return ' '.join([
                 token[index] for token in tokens
             ])
         else:
-            return " ".join(tokens)
+            return ' '.join(tokens)
+    elif isinstance(tokens, Token):
+        return ' '.join([token.text for token in tokens.subtree])
 
 
 def remove_punctuation(s):
@@ -153,8 +158,44 @@ def get_phrase_for_who2(raw_question, raw_sentence):
         )
 
 
-def get_phrase_for_what(raw_question, raw_sentence):
-    pass
+# todo: figure out whether to continue rejecting left or not
+def get_phrase_for_what_do(raw_question, raw_sentence):
+    q_dep = get_spacy_dep_parse(raw_question)
+    s_dep = get_spacy_dep_parse(raw_sentence)
+
+    q_verb = [t for t in q_dep if t.dep_ == 'ROOT']
+    assert len(q_verb) == 1
+    q_verb = q_verb[0]
+
+    s_verb = max(
+        [t for t in s_dep if t.pos_ == 'VERB'],
+        key=lambda x: x.similarity(q_verb)
+    )
+    assert isinstance(s_verb, Token)
+
+    # objs = [t for t in s_verb.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+    # obj_heads = [r for r in s_verb.rights if r.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+    # stuff = [t for t in [list(r.subtree) for r in s_verb.rights] if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+    stuff = []
+    for l in [list(r.subtree) for r in s_verb.rights]:
+        stuff += l
+    obj_heads = []
+    for h in stuff:
+        obj_heads += [t for t in h.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+    # to_sentence(max([r for r in s_verb.rights], key=lambda x: len(list(x.subtree))))
+    if obj_heads:
+        return to_sentence(max(
+            obj_heads,
+            key=lambda x: len(list(x.subtree))
+        ))
+        # longest_obj = max(
+        #     objs,
+        #     key=lambda x: len([y for y in x.subtree])
+        # )
+        # return to_sentence(longest_obj)
+    else:
+        pass
+    # return raw_sentence
 
 
 def get_phrase_for_when(raw_question, raw_sentence):
@@ -216,7 +257,7 @@ def get_phrase_for_why(raw_question, raw_sentence):
             return to_sentence(raw_sentence.split()[:i])
 
 
-def get_phrase_for_how(raw_question, raw_sentence):
+def get_phrase_for_how_adj(raw_question, raw_sentence):
     if any([
         get_parse_trees_with_tag(raw_question, "WHADJP"),
         re.search(r"much|many|tall|long", raw_question)
@@ -249,11 +290,11 @@ def get_answer_phrase(raw_question, raw_sentence):
         'whose': get_phrase_for_who2,
         'whom': get_phrase_for_who2,
 
-        'what': get_phrase_for_what,
+        'what': get_phrase_for_what_do,
         'when': get_phrase_for_when,
         'where': get_phrase_for_where,
         'why': get_phrase_for_why,
-        'how': get_phrase_for_how,
+        'how': get_phrase_for_how_adj,
         # TODO: put in 'which'? look for other qwords not included?
     }
 
