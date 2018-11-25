@@ -3,8 +3,6 @@ import nltk
 import re
 import spacy
 import en_core_web_lg
-from spacy.vocab import Vocab
-from spacy.pipeline import EntityRecognizer
 
 _wnl = None
 
@@ -108,23 +106,28 @@ def get_contiguous_x_phrases(tagged_sentence, tag):
     return x_phrases
 
 
-def get_prep_phrases(tagged_sentence):
-    prep_tags = ['GP', 'NN', 'OR', 'JJ']
+def get_prep_phrases(tokenized_sentence):
+    grammar = r"""
+    PP: {<IN><DT>?<JJ>*<NN>+}
+    {<IN><DT>?<JJ>*<NNP>+}"""
+    # prep_tags = ['GP', 'NN', 'OR', 'JJ']
     x_phrases = []
     x_words = []
-    for word in tagged_sentence:
-        if len(x_words) == 0:
-            if word[1] == 'IN':
-                x_words.append(word)
-        elif word[1] in prep_tags:
-            x_words.append(word)
-        else:
-            if len(x_words) > 1:
-                x_phrases.append(restring(x_words))
-            x_words.clear()
-    if len(x_words) > 1:
-        x_phrases.append(restring(x_words))
-        x_words.clear()
+    prepParser = nltk.RegexpParser(grammar)
+    sent = prepParser.parse(tokenized_sentence)
+    for sub_form in sent:
+        if type(sub_form) == nltk.tree.Tree:
+            x_phrases.append(restring(sub_form))
+
+    return x_phrases
+
+
+def getGrammarPhrases(tagged_sentence, grammar):
+    x_phrases = []
+    parser = nltk.RegexpParser(grammar)
+    for sub_form in parser.parse(tagged_sentence):
+        if type(sub_form) == nltk.tree.Tree:
+            x_phrases.append(restring(sub_form))
 
     return x_phrases
 
@@ -394,24 +397,62 @@ def get_prospects_for_who_ner(text, inquiry):
                          r'salesperson|cashier|person|worker|janitor|engineer|accountant|manager|woman|man|boy|girl|' \
                          r'driver|captain|marshall|doctor|nurse|chairman)'
 
+    whoIsName = r"""
+        XX: {<WP><VBZ|VBD><JJ>*<NNP>+<.>}
+        """
+    name_phrase_grammar = r"""
+        XX: {<NNP>+<,><DT>?<JJ>*<NN>+}
+        {<,>?<NN|NNP>+<IN><DT>?<NN|NNP>+}
+        {<NN|NNP>+<NNP>+}
+        """
     sentences = nltk.sent_tokenize(text)
 
     ne_check_list = []
 
-    for sentence in sentences:
-        ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
-        ne_phrases = []
-        # ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'NE'))
-        ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'PE'))
-        ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'OR'))
-        if len(ne_phrases) > 0:
-            ne_check_list.append(sentence)
+    tagged_inquiry = nltk.pos_tag(nltk.word_tokenize(inquiry))
 
-        l_sentence = sentence.lower()
-        occupations = re.search(occupation_pattern, l_sentence)
-        if occupations is not None:
-            if sentence not in ne_check_list:
-                ne_check_list.append(sentence)
+    who_is_name = getGrammarPhrases(tagged_inquiry, whoIsName)
+
+    if len(who_is_name) > 0:
+        name = getGrammarPhrases(tagged_inquiry, r"XX: {<NNP>+}")[0]
+        name = nltk.word_tokenize(name)
+        for sub_name in name:
+            for sentence in sentences:
+                if sub_name in sentence:
+                    tagged_sentence = nltk.pos_tag(nltk.word_tokenize(sentence))
+                    name_phrase = getGrammarPhrases(tagged_sentence, name_phrase_grammar)
+                    if len(name_phrase) > 0:
+                        ne_check_list.append(sentence)
+    else:
+        who_is_title = getGrammarPhrases(tagged_inquiry, r"XX: {<WP><VBZ|VBD><DT><JJ>*<NN|NNP>+<JJ>*}")
+
+        if len(who_is_title) > 0:
+            title = getGrammarPhrases(tagged_inquiry, r"XX: {<NN|NNP>+}")
+            for sub_title in title:
+                for sentence in sentences:
+                    if sub_title in sentence:
+                        ne_check_list.append(sentence)
+
+        else:
+            for sentence in sentences:
+                # ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
+                # ne_phrases = []
+                # ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'NE'))
+                # ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'PE'))
+                # ne_phrases.extend(get_contiguous_x_phrases(ps_sentence, 'OR'))
+                # if len(ne_phrases) > 0:
+                #     ne_check_list.append(sentence)
+                ps_sentence = model(sentence)
+                for word in ps_sentence.ents:
+                    if word.label_ == 'PERSON' or word.label_ == 'ORG':
+                        ne_check_list.append(sentence)
+                        break
+
+                l_sentence = sentence.lower()
+                occupations = re.search(occupation_pattern, l_sentence)
+                if occupations is not None:
+                    if sentence not in ne_check_list:
+                        ne_check_list.append(sentence)
 
     sub_story = ' '.join(ne_check_list)
     return get_prospects_with_wordnet(sub_story, inquiry)
@@ -481,22 +522,14 @@ def get_prospects_for_how_regex(text, inquiry):
     s_inquiry = inquiry.lower().split()
 
     if 'much' in s_inquiry:
-        much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
-        much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
-        much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
-
         regex_check_list = []
 
         for sentence in sentences:
-            l_sentence = sentence.lower()
-            monies = re.search(much_pattern, l_sentence)
-            monies2 = re.search(much_pattern2, l_sentence)
-            monies3 = re.search(much_pattern3, l_sentence)
-            if monies is not None or monies2 is not None or monies3 is not None:
-                regex_check_list.append(sentence)
+            for ent in model(sentence).ents:
+                if ent.label_ in ['MONEY', 'QUANTITY']:
+                    regex_check_list.append(sentence)
 
         sub_text = ' '.join(regex_check_list)
-
         return get_prospects_with_wordnet(sub_text, inquiry)
 
     elif 'long' in s_inquiry:
@@ -622,7 +655,7 @@ def get_prospects_for_where_ner(text, inquiry):
         ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
         loc_phrases = []
         loc_phrases.append(get_contiguous_x_phrases(ps_sentence, 'GP'))
-        loc_phrases.append(get_prep_phrases(ps_sentence))
+        loc_phrases.append(get_prep_phrases(nltk.pos_tag(nltk.word_tokenize(sentence))))
         if len(loc_phrases) > 0:
             loc_check_list.append(sentence)
 
