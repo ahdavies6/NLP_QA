@@ -1,8 +1,13 @@
 from nltk.corpus import wordnet
 import nltk
 import re
+# import en_core_web_lg
+
 
 _wnl = None
+
+#
+# _model = None
 
 
 # Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
@@ -377,6 +382,22 @@ def get_prospects_for_how_with_pos_check(text, inquiry):
     return sorted(in_list)
 
 
+# def get_prospects_for_who_sp_ner(text, inquiry):
+#     sentences = nltk.sent_tokenize(text)
+#
+#     ne_check_list = []
+#
+#     for sentence in sentences:
+#         ps_sentence = model(sentence)
+#         for word in ps_sentence.ents:
+#             if word.label_ == 'PERSON' or word.label_ == 'ORG':
+#                 ne_check_list.append(sentence)
+#                 break
+#
+#     sub_story = ' '.join(ne_check_list)
+#     return get_prospects_with_wordnet(sub_story, inquiry)
+
+
 def get_prospects_for_who_ner(text, inquiry):
     occupation_pattern = r'(?:teacher|fighter|leader|father|minister|lawyer|officer|mother|member|chef|politician|' \
                          r'salesperson|cashier|person|worker|janitor|engineer|accountant|manager|woman|man|boy|girl|' \
@@ -445,6 +466,21 @@ def get_prospects_for_how_regex(text, inquiry):
         sub_text = ' '.join(regex_check_list)
 
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+
+    elif 'many' in s_inquiry:
+        cd_check_list = []
+
+        for sentence in sentences:
+            ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+            cd_phrases = get_contiguous_x_phrases(ps_sentence, 'CD')
+            if len(cd_phrases) > 0:
+                cd_check_list.append(sentence)
+                continue
+
+        sub_story = ' '.join(cd_check_list)
+
+        return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+
     else:
         return get_prospects_for_how_with_pos_check(text, inquiry)
 
@@ -592,3 +628,6 @@ if __name__ == "__main__":
 
 if _wnl is None:
     _wnl = nltk.stem.WordNetLemmatizer()
+#
+# if _model is None:
+#     model = en_core_web_lg.load()
