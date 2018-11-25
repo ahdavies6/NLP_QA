@@ -1,6 +1,7 @@
 from text_analyzer import *
 import nltk
 # import spacy
+from parse import *
 import en_core_web_lg
 
 #
@@ -49,9 +50,19 @@ while(True):
         break
     else:
         sent = model(sent)
-        for word in sent:
-            print(word, end=': ')
-            print(word.dep_)
-        print()
-        x=10
+        for verb in get_all_verbs_from_sentence(sent):
+            print(verb)
+            try:
+                if useful_arguments(verb):
+                    print(useful_arguments(verb))
+            except:
+                print("useful failed.")
+                pass
+            try:
+                if extras(verb):
+                    print(extras(verb))
+            except:
+                print("extras failed.")
+                pass
+            print()
 x=10

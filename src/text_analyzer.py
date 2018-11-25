@@ -3,10 +3,26 @@ import nltk
 import re
 import spacy
 import en_core_web_lg
+import parse
 
 _wnl = None
 
 model = None
+
+
+def overlap(word_list_one, word_list_two):
+    if not word_list_two or not word_list_two:
+        return 0
+    max_len = len(word_list_one) if len(word_list_one) > len(word_list_two) else len(word_list_two)
+    if max_len == 0:
+        return 0
+
+    else:
+        count = 0
+        for word in word_list_one:
+            if word in word_list_two:
+                count += 1
+        return count/max_len
 
 
 # Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
@@ -227,7 +243,7 @@ def get_prospects_simple(text, sigwords):
         if count > 0:
             in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_with_stemmer(text, inquiry):
@@ -253,7 +269,7 @@ def get_prospects_with_stemmer(text, inquiry):
         if count > 0:
             in_list.append((-count / len(sentence), sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_with_lemmatizer(text, sigwords):
@@ -271,7 +287,7 @@ def get_prospects_with_lemmatizer(text, sigwords):
         if count > 0:
             in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_with_lemmatizer2(text, inquiry):
@@ -295,7 +311,7 @@ def get_prospects_with_lemmatizer2(text, inquiry):
         if count > 0:
             in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_with_lemmatizer_all(text, inquiry):
@@ -317,7 +333,7 @@ def get_prospects_with_lemmatizer_all(text, inquiry):
         ps_sentences.append((ps_sentence, in_word))  # For debugging purposes
         in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_with_phrase_matching(text, inquiry):
@@ -345,7 +361,7 @@ def get_prospects_with_phrase_matching(text, inquiry):
         if count > 0:
             in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_with_wordnet(text, inquiry):
@@ -353,7 +369,7 @@ def get_prospects_with_wordnet(text, inquiry):
 
     in_list = [(-sentence_similarity(sentence, inquiry), sentence) for sentence in sentences]
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_for_how_with_pos_check(text, inquiry):
@@ -389,11 +405,13 @@ def get_prospects_for_how_with_pos_check(text, inquiry):
 
         in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_for_what(text, inquiry):
     sentences = nltk.sent_tokenize(text)
+
+    sp_inquiry = model(inquiry)
 
 
 
@@ -553,7 +571,7 @@ def get_prospects_for_how_regex(text, inquiry):
         sub_text = ' '.join(regex_check_list)
         return get_prospects_with_wordnet(sub_text, inquiry)
 
-    elif 'long' in s_inquiry:
+    elif 'long' in s_inquiry or 'often' in s_inquiry or 'far' in s_inquiry:
         long_time_pattern = r'\d*\s*(?:minute[s]?|second[s]?|year[s]?|century|centuries|decade[s]?|day[s]?|hour[s]?|lifetime[s]?)'
         long_size_pattern = r'(?:meter[s]?|metre[s]?|kilometer[s]?|kilometre[s]?|mile[s]?feet|inche?s?|centimeter[s]?|centimetre[s]?|yard[s]?|light-year[s]?)'
 
@@ -569,6 +587,31 @@ def get_prospects_for_how_regex(text, inquiry):
         sub_text = ' '.join(regex_check_list)
 
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+    # elif 'many' in s_inquiry:
+    #     regex_check_list = []
+    #
+    #     for sentence in sentences:
+    #         for ent in model(sentence).ents:
+    #             if ent.label_ in ['QUANTITY', 'CARDINAL', 'ORDINAL']:
+    #                 regex_check_list.append(sentence)
+    #
+    #     sub_text = ' '.join(regex_check_list)
+    #     return get_prospects_with_wordnet(sub_text, inquiry)
+
+    elif 'many' in s_inquiry:
+        cd_check_list = []
+
+        for sentence in sentences:
+            ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+            cd_phrases = get_contiguous_x_phrases(ps_sentence, 'CD')
+            if len(cd_phrases) > 0:
+                cd_check_list.append(sentence)
+                continue
+
+        sub_story = ' '.join(cd_check_list)
+
+        return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+
     else:
         return get_prospects_for_how_with_pos_check(text, inquiry)
 
@@ -664,7 +707,7 @@ def get_prospects_for_when_ner(text, inquiry):
 
         in_list.append((-count, sentence))
 
-    return sorted(in_list)
+    return in_list
 
 
 def get_prospects_for_where_ner(text, inquiry):

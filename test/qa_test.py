@@ -17,6 +17,23 @@ question_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Difficulty:\s*(.*)\
 answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
 
 
+def top_answer(sentence_list, inquiry):
+    answer = None
+    heapq.heapify(sentence_list)
+    # while not answer and len(sentence_list) > 0:
+    #     best_sentence = heapq.heappop(sentence_list)[1]
+    #     answer = get_answer_phrase(inquiry, best_sentence)
+    #
+    if len(sentence_list) > 0:
+        best_sentence = heapq.heappop(sentence_list)[1]
+        if best_sentence:
+            answer = get_answer_phrase(inquiry, best_sentence)
+    if answer:
+        return answer
+    else:
+        return ''
+
+
 def form_output(story, inquiry, question_id):
     q_inquiry = formulate_question(inquiry)
     qword = q_inquiry['qword'][0].lower()
@@ -37,17 +54,17 @@ def form_output(story, inquiry, question_id):
 
     output = 'QuestionID: ' + question_id + '\n'
     output += 'Answer: '
-    if len(feedback) > 0:
+    if qword != 'what':
+        answer = top_answer(feedback, inquiry)
+    else:
+        heapq.heapify(feedback)
         best_sentence = heapq.heappop(feedback)[1]
-        if qword == 'what':
+        if best_sentence:
             answer = get_answer_phrase(inquiry, best_sentence)
             if not answer:
                 answer = best_sentence
-        else:
-            answer = get_answer_phrase(inquiry, best_sentence)
-
-        if answer:
-            output += answer
+    if answer:
+        output += answer
     output += '\n\n'
 
     return output
