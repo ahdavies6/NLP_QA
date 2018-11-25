@@ -525,7 +525,7 @@ def get_prospects_for_what(text, inquiry):
             if 'is' == s_inquiry[index+1]:
                 in_list = []
                 tagged_inquiry = nltk.pos_tag(nltk.word_tokenize(inquiry))[index:]
-                g_phrase = get_grammar_phrases(tagged_inquiry, r"XX: {<DT>?<``>?<NN|NNP>+<''>?}")
+                g_phrase = get_grammar_phrases(tagged_inquiry, r"XX: {<DT>?<NN|NNP>+}")
                 if len(g_phrase) > 0:
                     g_phrase = g_phrase[0]
                     for sentence in sentences:
