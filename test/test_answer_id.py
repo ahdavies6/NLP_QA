@@ -4,6 +4,7 @@ import os
 import random
 from sys import argv
 from test_utils import get_sentence_with_answer
+from question_classifier import formulate_question
 from answer_identification import get_answer_phrase
 from corpus_io import Corpus
 
@@ -25,6 +26,15 @@ def form_output(story, inquiry, answer, question_id):
         answer = get_answer_phrase(inquiry, best_sentence)
         if answer:
             output += answer
+    output += '\n\n'
+
+    return output
+
+
+def right_answer(exact_answer, question_id):
+    output = 'QuestionID: ' + question_id + '\n'
+    output += 'Answer: '
+    output += exact_answer
     output += '\n\n'
 
     return output
@@ -103,19 +113,26 @@ def main(random_seed, num_stories):
     # os.remove('output')
     # os.remove('key')
 
-    # corpus = Corpus(['testset1'])
-    corpus = Corpus(['developset', 'testset1'])
+    corpus = Corpus(['testset1'])
+    # corpus = Corpus(['developset', 'testset1'])
     output = ''
     key = ''
     # todo: test out every single type of question, and see what the precision looks like for each
-    # for story in corpus.all:
-    for story in corpus.random_stories(num_stories, random_seed):
+    for story in corpus.all:
+    # for story in corpus.random_stories(num_stories, random_seed):
         story_text = story['text']
         for question_id in story:
             if question_id not in ['text', 'answer_key']:
                 question = story[question_id][0]
                 answers = story[question_id][1]
-                output += form_output(story_text, question, answers, question_id)
+                # output += form_output(story_text, question, answers, question_id)
+                if formulate_question(question)['qword'][0].lower() == 'what':
+                    output += form_output(story_text, question, answers, question_id)
+                    # output += 'QuestionID: ' + question_id + '\n'
+                    # output += 'Answer: '
+                    # output += '\n\n'
+                else:
+                    output += right_answer(answers[0], question_id)
         key += story['answer_key']
 
     with open('output', 'w') as output_file:

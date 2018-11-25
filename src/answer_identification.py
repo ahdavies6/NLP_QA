@@ -2,12 +2,14 @@ import nltk
 import text_analyzer
 import re
 import string
-from nltk.corpus import stopwords
+from nltk.corpus import stopwords, wordnet as wn
 from spacy.tokens import Token
 from text_analyzer import lemmatize
 from parse import get_constituency_parse, get_dependency_parse, get_token_dependent_of_type, \
     get_subtree_dependent_of_type, get_spacy_dep_parse
 from question_classifier import formulate_question
+from wordnet_experiments import deps_which_are_hyponym_of, get_lexname
+from sentence_similarity import sentence_similarity
 
 
 def num_occurrences_time_regex(tokens):
@@ -158,17 +160,67 @@ def get_phrase_for_who2(raw_question, raw_sentence):
         )
 
 
+# todo: 'have' (lemma) option as well
+def get_phrase_for_what(raw_question, raw_sentence):
+    q_root = get_spacy_dep_parse(raw_question)
+    aux = lemmatize(
+        [to_sentence(token) for token in q_root if token.dep_ in ['aux', 'auxpass']]
+    )
+    do_result = -1
+    be_result = -1
+    result = None
+    if aux:
+        if len(aux) == 1:
+            if aux[0] == 'do':
+                result = get_phrase_for_what_do(raw_question, raw_sentence)
+            elif aux[0] == 'be':
+                result = get_phrase_for_what_be(raw_question, raw_sentence)
+        else:
+            big_aux = max(aux, key=lambda x: len(x))
+            if 'do' in big_aux:
+                result = get_phrase_for_what_do(raw_question, raw_sentence)
+            elif 'be' in big_aux:
+                result = get_phrase_for_what_be(raw_question, raw_sentence)
+
+        # if isinstance(do_result, str):
+        #     return do_result
+        # elif isinstance(be_result, str):
+        #     return be_result
+        if result:
+            return result
+
+    lemmatized = lemmatize(raw_question)
+    if 'do' in lemmatized:
+        result = get_phrase_for_what_do(raw_question, raw_sentence)
+    elif 'be' in lemmatized:
+        result = get_phrase_for_what_be(raw_question, raw_sentence)
+
+    if result:
+        return result
+
+    return get_phrase_for_what_do(raw_question, raw_sentence)
+
+    # if isinstance(do_result, str):
+    #     return do_result
+    # elif isinstance(be_result, str):
+    #     return be_result
+    # elif isinstance(be_result, int) or be_result is None:
+    #     return get_phrase_for_what_be(raw_question, raw_sentence)
+    # else:
+    #     return get_phrase_for_what_do(raw_question, raw_sentence)
+
+
 # todo: figure out whether to continue rejecting left or not
 def get_phrase_for_what_do(raw_question, raw_sentence):
-    q_dep = get_spacy_dep_parse(raw_question)
-    s_dep = get_spacy_dep_parse(raw_sentence)
+    q_doc = get_spacy_dep_parse(raw_question)
+    s_doc = get_spacy_dep_parse(raw_sentence)
 
-    q_verb = [t for t in q_dep if t.dep_ == 'ROOT']
+    q_verb = [t for t in q_doc if t.dep_ == 'ROOT']
     assert len(q_verb) == 1
     q_verb = q_verb[0]
 
     s_verb = max(
-        [t for t in s_dep if t.pos_ == 'VERB'],
+        [t for t in s_doc if t.pos_ == 'VERB'],
         key=lambda x: x.similarity(q_verb)
     )
     assert isinstance(s_verb, Token)
@@ -176,16 +228,16 @@ def get_phrase_for_what_do(raw_question, raw_sentence):
     # objs = [t for t in s_verb.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
     # obj_heads = [r for r in s_verb.rights if r.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
     # stuff = [t for t in [list(r.subtree) for r in s_verb.rights] if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
-    stuff = []
-    for l in [list(r.subtree) for r in s_verb.rights]:
-        stuff += l
-    obj_heads = []
-    for h in stuff:
-        obj_heads += [t for t in h.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
+    rights = []
+    for sublist in [list(r.subtree) for r in s_verb.rights]:
+        rights += sublist
+    r_obj_heads = []
+    for head in rights:
+        r_obj_heads += [t for t in head.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
     # to_sentence(max([r for r in s_verb.rights], key=lambda x: len(list(x.subtree))))
-    if obj_heads:
+    if r_obj_heads:
         return to_sentence(max(
-            obj_heads,
+            r_obj_heads,
             key=lambda x: len(list(x.subtree))
         ))
         # longest_obj = max(
@@ -193,9 +245,79 @@ def get_phrase_for_what_do(raw_question, raw_sentence):
         #     key=lambda x: len([y for y in x.subtree])
         # )
         # return to_sentence(longest_obj)
-    else:
-        pass
-    # return raw_sentence
+
+    all_object_heads = [t for t in s_verb.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
+    if all_object_heads:
+        return to_sentence(max(
+            all_object_heads,
+            key=lambda x: len(list(x.subtree))
+        ))
+
+
+def get_phrase_for_what_be(raw_question, raw_sentence):
+    q_doc = get_spacy_dep_parse(raw_question)
+    s_doc = get_spacy_dep_parse(raw_sentence)
+
+    # are both Span objects
+    q_noun_chunks = [np for np in q_doc.noun_chunks]
+    s_noun_chunks = [np for np in s_doc.noun_chunks]
+
+    pairs = []
+    for q_np in q_noun_chunks:
+        q_head = q_np.root
+        q_ln = get_lexname(q_head.text, q_head.pos_)
+        for s_np in s_noun_chunks:
+            s_head = s_np.root
+            s_ln = get_lexname(s_head.text, s_head.pos_)
+
+            if q_ln == s_ln:
+                pairs += [(q_head, s_head)]
+
+    if len(pairs) == 1:
+        return to_sentence(pairs[0][1])
+    elif len(pairs) > 1:
+        s_obj_heads = [pair[1] for pair in pairs if pair[1].dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
+        if s_obj_heads:
+            return to_sentence(max(
+                s_obj_heads,
+                key=lambda x: len(list(x.subtree))
+            ))
+        else:
+            return to_sentence(max(
+                [pair[1] for pair in pairs],
+                key=lambda x: len(list(x.subtree))
+            ))
+
+    if len(s_noun_chunks) > 0:
+        return to_sentence(max(
+            [span.root for span in s_noun_chunks],
+            key=lambda x: len(list(x.subtree))
+        ))
+
+    # todo: show to Carlos; use in extraction?
+    # todo: if you wanna use this, look more at OBJECTS!
+    # q_root = list(q_doc.sents)[0].root
+    # s_root = list(s_doc.sents)[0].root
+    #
+    # q_entities = deps_which_are_hyponym_of(q_root, wn.synset('entity.n.01'))
+    # s_entities = deps_which_are_hyponym_of(s_root, wn.synset('entity.n.01'))
+    #
+    # if q_entities and s_entities:
+    #     best_sim = -1
+    #     best_q_entity = None
+    #     for q_e in q_entities:
+    #         for s_e in s_entities:
+    #             sim = sentence_similarity(
+    #                 to_sentence(q_e),
+    #                 to_sentence(s_e)
+    #             )
+    #             if sim > best_sim:
+    #                 best_sim = sim
+    #                 best_q_entity = s_e
+    #     if best_q_entity:
+    #         return to_sentence(best_q_entity)
+    # elif s_entities:
+    #     return to_sentence(max(s_entities, key=lambda s: len(to_sentence(s))))
 
 
 def get_phrase_for_when(raw_question, raw_sentence):
@@ -290,7 +412,7 @@ def get_answer_phrase(raw_question, raw_sentence):
         'whose': get_phrase_for_who2,
         'whom': get_phrase_for_who2,
 
-        'what': get_phrase_for_what_do,
+        'what': get_phrase_for_what,
         'when': get_phrase_for_when,
         'where': get_phrase_for_where,
         'why': get_phrase_for_why,

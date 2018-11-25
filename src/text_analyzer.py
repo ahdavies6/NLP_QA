@@ -1,6 +1,8 @@
-from nltk.corpus import wordnet
 import nltk
 import re
+from sentence_similarity import sentence_similarity
+from parse import compare_q_and_a, get_spacy_dep_parse
+
 
 _wnl = None
 
@@ -141,62 +143,6 @@ def get_to_phrases(tagged_sentence):
         x_words.clear()
 
     return x_phrases
-
-
-# Convert between a Penn Treebank tag to a simplified Wordnet tag
-def get_wordnet_tag(tag):
-    if tag.startswith('N'):
-        return 'n'
-    if tag.startswith('V'):
-        return 'v'
-    if tag.startswith('J'):
-        return 'a'
-    if tag.startswith('R'):
-        return 'r'
-
-    return None
-
-
-# Takes a wordnet pos tagged word, and converts to synset
-def get_synset(word, tag):
-    wn_tag = get_wordnet_tag(tag)
-    if wn_tag is None:
-        return None
-    try:
-        return wordnet.synsets(word, wn_tag)[0]
-    except:
-        return None
-
-
-def sentence_similarity(sentence1, sentence2):
-    sentence1 = nltk.pos_tag(nltk.word_tokenize(sentence1))
-    sentence2 = nltk.pos_tag(nltk.word_tokenize(sentence2))
-
-    synsets1 = [get_synset(*tagged_word) for tagged_word in sentence1]
-    synsets2 = [get_synset(*tagged_word) for tagged_word in sentence2]
-
-    synsets1 = [ss for ss in synsets1 if ss]
-    synsets2 = [ss for ss in synsets2 if ss]
-
-    score, count = 0.0, 0
-
-    for synset_one in synsets1:
-        score_list = [synset_one.path_similarity(ss) for ss in synsets2]
-        verify_scores = [0]
-        for s in score_list:
-            if type(s) is float:
-                verify_scores.append(s)
-
-        best_score = max(verify_scores)
-
-        if best_score is not None:
-            score += best_score
-            count += 1
-    if count != 0:
-        score /= count
-    else:
-        score = 0
-    return score
 
 
 def get_prospects_simple(text, sigwords):
@@ -580,6 +526,33 @@ def get_prospects_for_why(text, inquiry):
 
     sub_story = ' '.join(why_check_list)
     return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+
+
+def get_prospects_for_adam_is_genius(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+    question = get_spacy_dep_parse(inquiry)
+
+    similarities = {}
+    for sentence in sentences:
+        pair = compare_q_and_a(
+            question,
+            get_spacy_dep_parse(sentence)
+        )
+        if pair:
+            arg_similarity, extra_similarity = pair
+            if arg_similarity in similarities:
+                similarities[arg_similarity] += [(extra_similarity, sentence)]
+            else:
+                similarities[arg_similarity] = [(extra_similarity, sentence)]
+
+    # todo: if we end up wanting to look at multiple options, then consider a different return statement
+    for arg_similarity in sorted(similarities.keys(), reverse=True):
+        return max(
+            similarities[arg_similarity],
+            key=lambda t: t[0]
+        )
+    #
+    # return get_prospects_with_wordnet(text, inquiry)
 
 
 def main():

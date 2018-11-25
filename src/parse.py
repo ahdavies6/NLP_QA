@@ -1,7 +1,9 @@
+import nltk
 import en_core_web_lg
 from nltk import Tree
-from spacy.tokens import Doc
+from spacy.tokens import Doc, Token
 from nltk.parse.corenlp import CoreNLPParser, CoreNLPDependencyParser
+from text_analyzer import sentence_similarity
 
 
 _constituency_parser = None
@@ -204,6 +206,20 @@ def traverse_dep_tree(tree):
 #     return dependencies
 
 
+def to_sentence(tokens, index=0):
+    if isinstance(tokens, str):
+        return tokens
+    elif isinstance(tokens, list):
+        if isinstance(tokens[index], tuple):
+            return ' '.join([
+                token[index] for token in tokens
+            ])
+        else:
+            return ' '.join(tokens)
+    elif isinstance(tokens, Token):
+        return ' '.join([token.text for token in tokens.subtree])
+
+
 def get_dependency_parse(sentence):
     """
     Get a full Sentence object from a raw text sentence
@@ -275,6 +291,12 @@ def get_subtree_dependent_of_type(root, dep_label):
             return [subtree for subtree in child.subtree]
 
 
+def best_dep_of_type(head, dep_label_list):
+    deps = [token for token in head.subtree if token.dep_ in dep_label_list]
+    if deps:
+        return max(deps, key=lambda x: len(list(x.subtree)))
+
+
 def get_all_verbs_from_sentence(document):
     return [token for token in document if token.pos_ == 'VERB']
 
@@ -285,15 +307,6 @@ def get_all_verbs_from_sentence(document):
 #
 # def get_all_iobjs_of_verb():
 #     pass
-
-
-def best_dep_of_type(head, dep_label_list):
-    best = max(
-        [token for token in head.subtree if token.dep_ in dep_label_list],
-        key=lambda x: len(list(x.subtree))
-    )
-    if best:
-        return best
 
 
 # todo: distinguish more in answers?
@@ -345,9 +358,83 @@ def extras(head):
     return [mod for mod in [best_adjs, best_advs, best_prep] if mod]
 
 
+def compare_q_and_a(q_sent_doc, a_sent_doc):
+    q_verb = [t for t in q_sent_doc if t.dep_ == 'ROOT']
+    assert len(q_verb) == 1
+    q_verb = q_verb[0]
+
+    q_extras = extras(q_verb)
+    q_args = useful_arguments(q_verb)
+
+    # a_verb = max(get_all_verbs_from_sentence(a_doc), key=lambda x: len(useful_arguments(x)))
+    num_args_to_verb = {}
+    for verb in get_all_verbs_from_sentence(a_sent_doc):
+        a_args = useful_arguments(verb)
+        if q_args and a_args:
+            best_score, q_arg, a_arg = max(
+                [(
+                    sentence_similarity(
+                        to_sentence(q_arg),
+                        to_sentence(a_arg)
+                    ),
+                    q_arg,
+                    a_arg
+                ) for q_arg in q_args for a_arg in a_args],
+                key=lambda pair: sentence_similarity(to_sentence(pair[1]), to_sentence(pair[2]))
+            )
+        else:
+            best_score = -1
+            q_arg = a_arg = None
+        if best_score in num_args_to_verb:
+            # num_args_to_verb[len(args)].append(verb)
+            num_args_to_verb[best_score] += [(verb, q_arg, a_arg)]
+        else:
+            # num_args_to_verb[len(a_args)] = [(verb, best_score, q_arg, a_arg)]
+            num_args_to_verb[best_score] = [(verb, q_arg, a_arg)]
+
+    for val in sorted(num_args_to_verb.keys(), reverse=True):
+        if val > -1:
+            best = (val, -1, None, None, None)
+            # e.g. ( .7, .5, verb, arg1, arg2)
+            for verb, q_arg, a_arg in num_args_to_verb[val]:
+                if extras(verb) and q_extras:
+                    extra_sim = max([
+                        sentence_similarity(
+                            to_sentence(a_extra),
+                            to_sentence(q_extra)
+                        ) for a_extra in extras(verb) for q_extra in q_extras
+                    ])
+                else:
+                    extra_sim = -1
+                if extra_sim > best[1]:
+                    best = (val, extra_sim, verb, q_arg, a_arg)
+            if best != (val, -1, None, None, None):
+                return best[0], best[1]
+
+            # return max(
+            #     (
+            #         val,
+            #         sentence_similarity(
+            #             to_sentence(extras(num_args_to_verb[val])), to_sentence(extras(q_verb))
+            #         ),
+            #         num_args_to_verb[val]
+            #     ),
+            #     key=lambda a_verb: sentence_similarity(
+            #         to_sentence(extras(a_verb)), to_sentence(extras(q_verb))
+            #     )
+            # )
+
+
 if _dependency_parser is None:
     _dependency_parser = CoreNLPDependencyParser()
 if _constituency_parser is None:
     _constituency_parser = CoreNLPParser()
 if _spacy_parser is None:
     _spacy_parser = en_core_web_lg.load()
+
+
+# n = compare_q_and_a(
+#     get_spacy_dep_parse("What are returning officers?"),
+#     get_spacy_dep_parse("Several returning officers (the people in charge of a polling station) called in sick.")
+# )
+# print(n)

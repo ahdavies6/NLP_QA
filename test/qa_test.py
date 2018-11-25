@@ -3,6 +3,7 @@ import subprocess
 import os
 from sys import argv
 from requests.exceptions import ConnectionError
+from nltk import word_tokenize
 from text_analyzer import *
 from question_classifier import formulate_question
 from answer_identification import get_answer_phrase
@@ -32,6 +33,11 @@ def form_output(story, inquiry, question_id):
         feedback = get_prospects_for_why(story, inquiry)
     elif qword == 'what':
         feedback = get_prospects_with_wordnet(story, inquiry)
+        # feedback = get_prospects_for_adam_is_genius(story, inquiry)
+        # if feedback:
+        #     feedback = [(0, feedback[1])]
+        # else:
+        #     feedback = get_prospects_with_wordnet(story, inquiry)
     else:
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
 
@@ -43,6 +49,8 @@ def form_output(story, inquiry, question_id):
             answer = get_answer_phrase(inquiry, best_sentence)
             if not answer:
                 answer = best_sentence
+            # if 'the' not in word_tokenize(answer):
+            #     answer += ' the'
         else:
             answer = get_answer_phrase(inquiry, best_sentence)
 
@@ -91,12 +99,12 @@ def main(random_seed, num_stories):
     # os.remove('output')
     # os.remove('key')
 
-    # corpus = Corpus(['testset1'])
-    corpus = Corpus(['developset', 'testset1'])
+    corpus = Corpus(['testset1'])
+    # corpus = Corpus(['developset', 'testset1'])
     output = ''
     key = ''
-    # for story in corpus.all:
-    for story in corpus.random_stories(num_stories, random_seed):
+    for story in corpus.all:
+    # for story in corpus.random_stories(num_stories, random_seed):
         story_text = story['text']
         for question_id in story:
             if question_id not in ['text', 'answer_key']:
