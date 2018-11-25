@@ -37,6 +37,7 @@ def form_output(story, inquiry, question_id):
 
     output = 'QuestionID: ' + question_id + '\n'
     output += 'Answer: '
+    heapq.heapify(feedback)
     if len(feedback) > 0:
         best_sentence = heapq.heappop(feedback)[1]
         if qword == 'what':
@@ -91,12 +92,12 @@ def main(random_seed, num_stories):
     # os.remove('output')
     # os.remove('key')
 
-    # corpus = Corpus(['testset1'])
-    corpus = Corpus(['developset', 'testset1'])
+    corpus = Corpus(['testset1'])
+    # corpus = Corpus(['developset', 'testset1'])
     output = ''
     key = ''
-    # for story in corpus.all:
-    for story in corpus.random_stories(num_stories, random_seed):
+    for story in corpus.all:
+    # for story in corpus.random_stories(num_stories, random_seed):
         story_text = story['text']
         for question_id in story:
             if question_id not in ['text', 'answer_key']:
