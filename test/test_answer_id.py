@@ -103,9 +103,12 @@ def main(random_seed, num_stories):
     # os.remove('output')
     # os.remove('key')
 
+    # corpus = Corpus(['testset1'])
     corpus = Corpus(['developset', 'testset1'])
     output = ''
     key = ''
+    # todo: test out every single type of question, and see what the precision looks like for each
+    # for story in corpus.all:
     for story in corpus.random_stories(num_stories, random_seed):
         story_text = story['text']
         for question_id in story:
