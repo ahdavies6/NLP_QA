@@ -90,12 +90,6 @@ class Corpus(object):
             (story[qid][0], get_sentence_with_answer(story['text'], story[qid][1]), story[qid][1]) for story in
             self.all for qid in story
             if qid not in ['text', 'answer_key']
-        ] if formulate_question(s[0])['qword'][0].lower() == q_type]
+        ] if formulate_question(s[0])['qword'][0].lower() == q_type.lower()]
 
         return tuples
-
-        # for question, answer_sentence, answer in tuples:
-        #     if answer_sentence:
-        #         print(question)
-        #         print(answer_sentence)
-        #         print(answer)
