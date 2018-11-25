@@ -5,6 +5,22 @@ import re
 _wnl = None
 
 
+def overlap(word_list_one, word_list_two):
+    if not word_list_two or not word_list_two:
+        return 0
+    word_list_one = set(word_list_one)
+    word_list_two = set(word_list_two)
+    max_len = len(word_list_one) if len(word_list_one) > len(word_list_two) else len(word_list_two)
+    if max_len == 0:
+        return 0
+    else:
+        count = 0
+        for word in word_list_one:
+            if word in word_list_two:
+                count += 1
+        return count/max_len
+
+
 # Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
 def lemmatize(text, pos: str = 'v'):
     if type(text) is not list:
@@ -75,6 +91,16 @@ def normalize_forms(tagged_sentence):
         elif len(sub_form[1]) > 2:
             final_form.append((sub_form[0], sub_form[1][:2]))
     return final_form
+
+
+def get_grammar_phrases(tagged_sentence, grammar):
+    x_phrases = []
+    parser = nltk.RegexpParser(grammar)
+    for sub_form in parser.parse(tagged_sentence):
+        if type(sub_form) == nltk.tree.Tree:
+            x_phrases.append(restring(sub_form))
+
+    return x_phrases
 
 
 def get_words_with_tag_x(tagged_sentence, tag):
@@ -265,12 +291,14 @@ def get_prospects_with_lemmatizer2(text, inquiry):
     in_list = []
 
     sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(inquiry)), binary=True)))
+    sigwords = restring(sigwords).split()
     ps_sentences = []
 
     for sentence in sentences:
         count = 0
         in_word = []
         ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+        ps_sentence = restring(ps_sentence).split()
         for word in ps_sentence:
             if word in sigwords:
                 count += 1
@@ -410,27 +438,8 @@ def get_prospects_for_how_regex(text, inquiry):
 
     s_inquiry = inquiry.lower().split()
 
-    if 'much' in s_inquiry:
-        much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
-        much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
-        much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
-
-        regex_check_list = []
-
-        for sentence in sentences:
-            l_sentence = sentence.lower()
-            monies = re.search(much_pattern, l_sentence)
-            monies2 = re.search(much_pattern2, l_sentence)
-            monies3 = re.search(much_pattern3, l_sentence)
-            if monies is not None or monies2 is not None or monies3 is not None:
-                regex_check_list.append(sentence)
-
-        sub_text = ' '.join(regex_check_list)
-
-        return get_prospects_with_wordnet(sub_text, inquiry)
-
-    elif 'long' in s_inquiry:
-        long_time_pattern = r'\d*\s*(?:minute[s]?|second[s]?|year[s]?|century|centuries|decade[s]?|day[s]?|hour[s]?|lifetime[s]?)'
+    if 'long' in s_inquiry or 'time' in s_inquiry:
+        long_time_pattern = r'\d*\s(?:minute[s]?|second[s]?|year[s]?|century|centuries|decade[s]?|day[s]?|hour[s]?|lifetime[s]?)'
         long_size_pattern = r'(?:meter[s]?|metre[s]?|kilometer[s]?|kilometre[s]?|mile[s]?feet|inche?s?|centimeter[s]?|centimetre[s]?|yard[s]?|light-year[s]?)'
 
         regex_check_list = []
@@ -446,6 +455,25 @@ def get_prospects_for_how_regex(text, inquiry):
 
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
+    elif 'much' in s_inquiry:
+        much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
+        much_pattern2 = r'\d+[,]?\d*\s(?:dollars|cents|crowns|pounds|euros|pesos|yen|yuan|usd|eur|gbp|cad|aud)'
+        much_pattern3 = r'(?:dollar|cent|penny|pennies|euro|peso)[s]?'
+
+        regex_check_list = []
+
+        for sentence in sentences:
+            l_sentence = sentence.lower()
+            monies = re.search(much_pattern, l_sentence)
+            monies2 = re.search(much_pattern2, l_sentence)
+            monies3 = re.search(much_pattern3, l_sentence)
+            if monies or monies2 or monies3:
+                regex_check_list.append(sentence)
+
+        sub_text = ' '.join(regex_check_list)
+
+        return get_prospects_with_lemmatizer2(sub_text, inquiry)
+
     elif 'many' in s_inquiry:
         cd_check_list = []
 
@@ -459,9 +487,56 @@ def get_prospects_for_how_regex(text, inquiry):
         sub_story = ' '.join(cd_check_list)
 
         return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+    elif 'old' in s_inquiry:
+        age_pattern = r'\d*\s(?:year[s]?|century|centuries|decade[s]?)'
+        age_pattern2 = r'(?:baby|toddler|teen|teenager|twent|thirt|fourt|fift|sixt|sevent|eight|ninet|old)'
+        age_grammar = r"""
+        XX: {<NNP>+<,>?<CD>+}
+        """
 
+        check_list = []
+
+        for sentence in sentences:
+            l_sentence = sentence.lower()
+            age = re.search(age_pattern, l_sentence)
+            age2 = re.search(age_pattern2, l_sentence)
+            age3 = get_grammar_phrases(nltk.pos_tag(nltk.word_tokenize(sentence)), age_grammar)
+            if age or age2 or len(age3) > 0:
+                check_list.append(sentence)
+
+        sub_text = ' '.join(check_list)
+
+        return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+
+    elif 'did' in s_inquiry or 'does' in s_inquiry or 'are' in s_inquiry or 'is' in s_inquiry:
+        return get_prospects_with_lemmatizer2(text, inquiry)
     else:
-        return get_prospects_for_how_with_pos_check(text, inquiry)
+        return get_prospects_with_lemmatizer2(text, inquiry)
+
+
+def get_prospects_for_what(text, inquiry):
+    sentences = nltk.sent_tokenize(text)
+
+    s_inquiry = inquiry.lower().split()
+
+    if 'what' in s_inquiry:
+        index = s_inquiry.index('what')
+        if len(s_inquiry) > index+1:
+            if 'is' == s_inquiry[index+1]:
+                in_list = []
+                tagged_inquiry = nltk.pos_tag(nltk.word_tokenize(inquiry))[index:]
+                g_phrase = get_grammar_phrases(tagged_inquiry, r"XX: {<DT>?<``>?<NN|NNP>+<''>?}")
+                if len(g_phrase) > 0:
+                    g_phrase = g_phrase[0]
+                    for sentence in sentences:
+                        ps_sentence = restring(squash(nltk.pos_tag(lemmatize(sentence))))
+                        if g_phrase in ps_sentence:
+                            in_list.append(sentence)
+
+                    sub_text = ' '.join(in_list)
+                    return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+
+    return get_prospects_with_lemmatizer2(text, inquiry)
 
 
 # Most promising for when.
@@ -563,11 +638,16 @@ def get_prospects_for_where_ner(text, inquiry):
 
     loc_check_list = []
 
+    prep_grammar = r"""
+        XX: {<IN><DT>?<JJ>*<NN|NNP>+}
+        {<IN><GP|NN|OR|JJ>+}
+    """
+
     for sentence in sentences:
         ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
         loc_phrases = []
         loc_phrases.append(get_contiguous_x_phrases(ps_sentence, 'GP'))
-        loc_phrases.append(get_prep_phrases(ps_sentence))
+        loc_phrases.append(get_grammar_phrases(ps_sentence, prep_grammar))
         if len(loc_phrases) > 0:
             loc_check_list.append(sentence)
 
