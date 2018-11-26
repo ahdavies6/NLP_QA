@@ -1,15 +1,9 @@
-import nltk
-import text_analyzer
-import re
-import string
-from enum import Enum
+from queue import Queue
 from spacy.tokens import Doc, Span, Token
 from nltk.corpus import wordnet as wn
 from nltk.corpus.reader.wordnet import WordNetError, Synset
 from text_analyzer import lemmatize
-from parse import get_constituency_parse, get_dependency_parse, get_token_dependent_of_type, \
-    get_subtree_dependent_of_type, get_spacy_dep_parse
-from question_classifier import formulate_question
+from parse import get_spacy_dep_parse
 from sentence_similarity import sentence_similarity
 
 
@@ -21,10 +15,10 @@ class LSAnalyzer(object):
                       'what', 'which',
                       'when', 'where', 'why', 'how']
     SUBJECTS = ['agent', 'expl', 'nsubj', 'nsubjpass', 'csubj', 'csubjpass']
-    OBJECTS = ['attr', 'dative', 'dobj', 'iobj', 'obj', 'oprd']
-    COMPLEMENTS = ['acomp', 'ccomp', 'pcomp', 'xcomp', 'mark']
+    OBJECTS = ['attr', 'dative', 'dobj', 'iobj', 'obj', 'oprd', 'pobj']
+    CONJUNCTIONS = ['acomp', 'ccomp', 'conj', 'cc', 'pcomp', 'preconj', 'xcomp', 'mark']
     AUXILIARIES = ['aux', 'auxpass', 'cop', 'prt']
-    PREPOSITIONS = ['conj', 'cc', 'preconj', 'mark', 'prep']
+    PREPOSITIONS = ['prep']
     NOUN_MODIFIERS = ['acl', 'acomp', 'amod', 'appos', 'case', 'ccomp', 'compound',
                       'det', 'nn', 'nounmod', 'nummod', 'poss',
                       'predet', 'quantmod', 'relcl']
@@ -42,51 +36,78 @@ class LSAnalyzer(object):
 
         self.doc = get_spacy_dep_parse(raw_question)
         self.root = list(self.doc.sents)[0].root
+        self.root_synset = best_synset(self.root.text, 'v')
 
         self.qword = ''
         self.subjects = []
         self.objects = []
-        self.complements = []
+        # self.conjunctions = []
         self.auxiliaries = []
         self.prepositions = []
 
+        # for child in self.root.children:
+        #     if child.text.lower() in self.QUESTION_WORDS:
+        #         if self.qword == '':
+        #             self.qword = child.text.lower()
+        #         continue
+        #
+        #     dependency = child.dep_
+        #     if dependency in self.SUBJECTS:
+        #         self.subjects.append(child)
+        #     elif dependency in self.OBJECTS:
+        #         self.objects.append(child)
+        #     elif dependency in self.CONJUNCTIONS:
+        #         self.conjunctions.append(child)
+        #     elif dependency in self.AUXILIARIES:
+        #         self.auxiliaries.append(child)
+        #     elif dependency in self.PREPOSITIONS:
+        #         self.prepositions.append(child)
+        #
+        # if self.conjunctions:
+        #     for complement in self.conjunctions:
+        #         for child in complement.children:
+        #             if child.text.lower() in self.QUESTION_WORDS:
+        #                 if self.qword == '':
+        #                     self.qword = child.text.lower()
+        #                 continue
+        #
+        #             dependency = child.dep_
+        #             if dependency in self.SUBJECTS:
+        #                 self.subjects.append(child)
+        #             elif dependency in self.OBJECTS:
+        #                 self.objects.append(child)
+        #             elif dependency in self.CONJUNCTIONS:
+        #                 self.objects.append(child)
+        #             elif dependency in self.AUXILIARIES:
+        #                 self.auxiliaries.append(child)
+        #             elif dependency in self.PREPOSITIONS:
+        #                 self.prepositions.append(child)
+
+        pool = Queue()
         for child in self.root.children:
-            if child.text.lower() in self.QUESTION_WORDS:
+            pool.put(child)
+
+        while not pool.empty():
+            head = pool.get()
+
+            if head.text.lower() in self.QUESTION_WORDS:
                 if self.qword == '':
-                    self.qword = child.text.lower()
+                    self.qword = head.text.lower()
                 continue
 
-            dependency = child.dep_
+            dependency = head.dep_
             if dependency in self.SUBJECTS:
-                self.subjects.append(child)
+                self.subjects.append(head)
             elif dependency in self.OBJECTS:
-                self.objects.append(child)
-            elif dependency in self.COMPLEMENTS:
-                self.complements.append(child)
+                self.objects.append(head)
             elif dependency in self.AUXILIARIES:
-                self.auxiliaries.append(child)
+                self.auxiliaries.append(head)
             elif dependency in self.PREPOSITIONS:
-                self.prepositions.append(child)
+                self.prepositions.append(head)
 
-        if self.complements:
-            for complement in self.complements:
-                for child in complement.children:
-                    if child.text.lower() in self.QUESTION_WORDS:
-                        if self.qword == '':
-                            self.qword = child.text.lower()
-                        continue
-
-                    dependency = child.dep_
-                    if dependency in self.SUBJECTS:
-                        self.subjects.append(child)
-                    elif dependency in self.OBJECTS:
-                        self.objects.append(child)
-                    elif dependency in self.COMPLEMENTS:
-                        self.objects.append(child)
-                    elif dependency in self.AUXILIARIES:
-                        self.auxiliaries.append(child)
-                    elif dependency in self.PREPOSITIONS:
-                        self.prepositions.append(child)
+            if dependency in self.CONJUNCTIONS:
+                for child in head.children:
+                    pool.put(child)
 
         self._wants_dep = None
         self._wants_pos = None
@@ -132,11 +153,11 @@ class LSAnalyzer(object):
             if self.qword == 'who':
                 self._wants_pos = self.POS_NOUN
             elif self.qword == 'what':
-                if 'do' in self._aux_lemmas and 'be' not in self._aux_lemmas:           # 'do' case
+                if 'do' in self._aux_lemmas and 'be' not in self._aux_lemmas:       # 'do' case
                     self._wants_pos = self.POS_NOUN + self.POS_VERB
                 elif 'be' in self._aux_lemmas and 'do' not in self._aux_lemmas:     # 'be'/general case
                     self._wants_pos = self.POS_NOUN + self.POS_ADJ
-                else:  # both cases
+                else:                                                               # both cases
                     self._wants_pos = self.POS_NOUN + self.POS_VERB + self.POS_ADJ
             elif self.qword == 'when':
                 pass
@@ -168,11 +189,14 @@ class LSAnalyzer(object):
                 #     ]
                 # ]
                 arg_synsets = []
+                # TODO: consider switching this to just objects? test it out!
                 for head in self.subjects + self.objects:
                     for branch in head.subtree:
                         arg_synset = best_synset(branch.text, branch.pos_)
                         if arg_synset:
-                            arg_synsets.append(arg_synset)
+                            root_synset = root_hypernyms(arg_synset)
+                            if root_synset:
+                                arg_synsets.extend(root_synset)
                 if arg_synsets:
                     self._wants_wordnet = arg_synsets
                 else:
@@ -199,6 +223,7 @@ class LSAnalyzer(object):
         return self._wants_wordnet
 
     # todo: also consider auxiliaries, modifiers, etc.
+    # todo: move over useful/relevant code from produce_answer_phrase
     def sentence_match(self, sentence):
         root = None
         if isinstance(sentence, str):
@@ -271,20 +296,9 @@ class LSAnalyzer(object):
             root = sentence
         assert isinstance(root, Token)
 
-        args = []
-        auxiliaries = []
-        prepositions = []
-
         matches = {}        # key: number of matches (i.e. 0 to 3), value: list of matching heads ('children')
         for child in root.subtree:
             if child.i > root.i:    # only want tokens to the right of the verb
-                if child.dep_ in self.SUBJECTS or child.dep_ in self.OBJECTS:
-                    args.append(child)
-                elif child.dep_ in self.AUXILIARIES:
-                    auxiliaries.append(child)
-                elif child.dep_ in self.PREPOSITIONS:
-                    prepositions.append(child)
-
                 score = 0
                 if child.dep_ in self.wants_dep:
                     score += 1
@@ -309,7 +323,120 @@ class LSAnalyzer(object):
             else:
                 # TODO: something more sophisticated here...?
                 return to_sentence(max(match_list, key=lambda x: len(list(x.subtree))))
-                # return to_sentence(match_list[0])
+            
+    def produce_answer_phrase_2(self, sentence):
+        root = None
+        if isinstance(sentence, str):
+            root = list(get_spacy_dep_parse(sentence).sents)[0].root
+        elif isinstance(sentence, Doc):
+            root = list(sentence.sents)[0].root
+        elif isinstance(sentence, Span):
+            root = sentence.root
+        elif isinstance(sentence, Token):
+            root = sentence
+        assert isinstance(root, Token)
+
+        matches = {}        # key: number of matches (i.e. 0 to 5), value: list of matching heads
+        
+        pool = Queue()
+        for child in root.children:
+            pool.put(child)
+        
+        while not pool.empty():
+            head = pool.get()
+
+            # todo: this
+            # left_score = 0
+            # best_left_head = None
+            # for l in head.sent[head.left_edge.i:head.i]:
+            #     score = self.score_left(l)
+            #     if score > left_score:
+            #         left_score = score
+            #         best_left_head = l
+
+            root_score = self.score_root(head)
+
+            right_score = 0
+            best_right_head = None
+            for token in head.sent[head.i+1:head.right_edge.i+1]:
+                score = self.score_right(token)
+                if score > right_score:
+                    right_score = score
+                    best_right_head = token
+
+            score = root_score + right_score
+            if score:
+                if score in matches:
+                    matches[score] += [best_right_head]
+                else:
+                    matches[score] = [best_right_head]
+
+            # if head.i > root.i:  # only want tokens to the right of the verb
+            #     score = 0
+            #     if head.dep_ in self.wants_dep:
+            #         score += 1
+            #     if head.pos_ in self.wants_pos:
+            #         score += 1
+            #     if self.wants_wordnet:
+            #         hypernyms = root_hypernyms(best_synset(head.text, head.pos_))
+            #         if hypernyms:
+            #             for synset_want in self.wants_wordnet:
+            #                 if synset_want in hypernyms:
+            #                     score += 1
+            #                     break
+            #     if score in matches.keys():
+            #         matches[score] += [head]
+            #     else:
+            #         matches[score] = [head]
+
+        for score in sorted(matches.keys(), reverse=True):
+            match_list = [match for match in matches[score] if match]
+            if len(match_list) == 1:
+                return to_sentence(match_list[0])
+            elif len(match_list) > 1:
+                # TODO: something more sophisticated here...?
+                return to_sentence(max(
+                    [match for match in match_list if match],
+                    key=lambda x: len(list(x.subtree))
+                ))
+                # if best:
+                #     return best
+                # else:
+                #     return self.produce_answer_phrase(sentence)
+
+    # todo: this
+    def score_left(self, head):
+        assert isinstance(head, Token)
+
+    def score_root(self, root):
+        assert isinstance(root, Token)
+
+        tag = to_wordnet_tag(root.pos_)
+        if tag == 'v':
+            synset = best_synset(root.text, tag)
+            if synset and self.root_synset:
+                similarity = synset.path_similarity(self.root_synset)
+                if similarity:
+                    return synset.path_similarity(self.root_synset) * 2
+
+        return root.similarity(self.root)
+
+    def score_right(self, head):
+        assert isinstance(head, Token)
+
+        score = 0
+        if head.dep_ in self.wants_dep:
+            score += 1
+        if head.pos_ in self.wants_pos:
+            score += 1
+        if self.wants_wordnet:
+            hypernyms = root_hypernyms(best_synset(head.text, head.pos_))
+            if hypernyms:
+                for synset_want in self.wants_wordnet:
+                    if synset_want in hypernyms:
+                        score += 1
+                        break
+        return score
 
     def verb_similarity(self, verb):
         return best_synset(verb, 'v').path_similarity(best_synset(self.root.text, 'v'))
@@ -444,21 +571,32 @@ if __name__ == '__main__':
     # assert d in wn.synsets('MD', 'n') and d in wn.synsets('Dr.', 'n')
     # assert d.shortest_path_distance(p) < d.shortest_path_distance(c)
     
-    test = LSAnalyzer('What is Haider accused of being?')
-    response = test.produce_answer_phrase('Haider is accused of being a Nazi sympathizer.')
+    # test = LSAnalyzer('What is Haider accused of being?')
+    # response = test.produce_answer_phrase('Haider is accused of being a Nazi sympathizer.')
+    # print(response)
+    #
+    # test = LSAnalyzer('On what was Shoemaker considered an authority?')
+    # response = test.produce_answer_phrase(
+    #     'He was considered an authority on craters and the collisions that cause them.')
+    # print(response)
+    #
+    # test = LSAnalyzer('What usually causes mudslides?')
+    # response = test.produce_answer_phrase(
+    #     'They are usually caused by weakened land on hills and mountains.')
+    # print(response)
+    #
+    # test = LSAnalyzer('What can mudslides do when they start moving quickly?')
+    # response = test.produce_answer_phrase(
+    #     'Mudslides can move quickly and powerfully, picking up rocks, trees, houses and cars.')
+    # print(response)
+
+    test = LSAnalyzer("What is Canada's copyright law largely based on?")
+    response = test.produce_answer_phrase_2(
+        "Canada's copyright act came into effect in 1924, and is based largely on the law in the United Kingdom.")
     print(response)
 
-    test = LSAnalyzer('On what was Shoemaker considered an authority?')
-    response = test.produce_answer_phrase(
-        'He was considered an authority on craters and the collisions that cause them.')
-    print(response)
-
-    test = LSAnalyzer('What usually causes mudslides?')
-    response = test.produce_answer_phrase(
-        'They are usually caused by weakened land on hills and mountains.')
-    print(response)
-
-    test = LSAnalyzer('What can mudslides do when they start moving quickly?')
-    response = test.produce_answer_phrase(
-        'Mudslides can move quickly and powerfully, picking up rocks, trees, houses and cars.')
+    test = LSAnalyzer("What happens to cells in one half of the brain as a result of Rasmussen's disease?")
+    response = test.produce_answer_phrase_2(
+        "It is not known what causes the disease, "
+        "but it is known that cells in one half of the brain become inflamed, or puffy when infected.")
     print(response)

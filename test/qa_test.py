@@ -117,7 +117,6 @@ def main(random_seed, num_stories):
     subprocess.run(['perl', 'score_answers.pl', 'output', 'key'])
     os.remove('output')
     os.remove('key')
-    os.system('say "done."')
 
 
 if __name__ == '__main__':

@@ -212,7 +212,8 @@ def get_phrase_for_what(raw_question, raw_sentence):
 
 def get_phrase_for_what_wn(raw_question, raw_sentence):
     analyzer = LSAnalyzer(raw_question)
-    return analyzer.produce_answer_phrase(raw_sentence)
+    # return analyzer.produce_answer_phrase(raw_sentence)
+    return analyzer.produce_answer_phrase_2(raw_sentence)
 
 
 # todo: figure out whether to continue rejecting left or not
@@ -422,6 +423,7 @@ def get_answer_phrase(raw_question, raw_sentence):
         'whom': get_phrase_for_who2,
 
         # 'what': get_phrase_for_what,
+        # 'what': get_phrase_for_what_do,
         'what': get_phrase_for_what_wn,
         'when': get_phrase_for_when,
         'where': get_phrase_for_where,

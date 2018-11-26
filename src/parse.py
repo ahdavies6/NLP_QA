@@ -3,7 +3,7 @@ import en_core_web_lg
 from nltk import Tree
 from spacy.tokens import Doc, Token
 from nltk.parse.corenlp import CoreNLPParser, CoreNLPDependencyParser
-from text_analyzer import sentence_similarity
+from sentence_similarity import sentence_similarity
 
 
 _constituency_parser = None
