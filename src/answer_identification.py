@@ -379,9 +379,13 @@ def get_phrase_for_why(raw_question, raw_sentence):
                 elif subtree.label() == "TO":
                     prev_was_to = True
 
-    for i, word in enumerate(raw_sentence.split()):
-        if word in ["to", "so", "because"]:
-            return to_sentence(raw_sentence.split()[:i])
+    for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
+        if word in ["to", "so", "because", "for"]:
+            result = to_sentence(raw_sentence.split()[i:])
+            if 'because' not in result:
+                result = 'because ' + result
+            return result
+            # return "because" + to_sentence(raw_sentence.split()[i:])
 
 
 def get_phrase_for_how_adj(raw_question, raw_sentence):

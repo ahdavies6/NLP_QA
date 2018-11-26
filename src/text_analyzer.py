@@ -1,4 +1,5 @@
 import nltk
+from parse import get_constituency_parse
 import re
 from sentence_similarity import sentence_similarity
 from parse import compare_q_and_a, get_spacy_dep_parse
@@ -12,15 +13,16 @@ def overlap(word_list_one, word_list_two):
         return 0
     word_list_one = set(word_list_one)
     word_list_two = set(word_list_two)
-    max_len = len(word_list_one) if len(word_list_one) > len(word_list_two) else len(word_list_two)
-    if max_len == 0:
+    # max_len = len(word_list_one) if len(word_list_one) > len(word_list_two) else len(word_list_two)
+    min_len = len(word_list_one) if len(word_list_one) < len(word_list_two) else len(word_list_two)
+    if min_len == 0:
         return 0
     else:
         count = 0
         for word in word_list_one:
             if word in word_list_two:
                 count += 1
-        return count/max_len
+        return count/min_len
 
 
 # Lemmatizes either a string-word, a string-sentence, or a word-tokenized sentence.
@@ -108,7 +110,7 @@ def get_grammar_phrases(tagged_sentence, grammar):
 def get_words_with_tag_x(tagged_sentence, tag):
     x_words = []
     for word in tagged_sentence:
-        if word[1] is tag:
+        if word[1] == tag:
             x_words.append(word)
 
     return x_words
@@ -356,7 +358,82 @@ def get_prospects_for_who_ner(text, inquiry):
                          r'salesperson|cashier|person|worker|janitor|engineer|accountant|manager|woman|man|boy|girl|' \
                          r'driver|captain|marshall|doctor|nurse|chairman)'
 
+    who_is_pattern = r'[Ww]ho\sis\s([A-Z][a-z]+\s?[[A-Za-z]+]?)'
+    who_is_title = r'[Ww]ho is the ((\w|\s)+) of'
+    who_is_title2 = r'[Ww]ho is the ((.)+)'
+
     sentences = nltk.sent_tokenize(text)
+    in_list = []
+
+    person = re.search(who_is_pattern, inquiry)
+
+    if person:
+
+        person = person.group(1)
+        person_pattern = r'(?:{0}, |, {0}|[A-Z][\w]+\s{0})'.format(person)
+        for sentence in sentences:
+            sentence_match = re.search(person_pattern, sentence)
+            if sentence_match:
+                in_list.append(sentence)
+        sub_text = ' '.join(in_list)
+        return get_prospects_with_wordnet(sub_text, inquiry)
+
+    title = re.search(who_is_title2, inquiry)
+
+    if title:
+        title = title.group(1)
+        for sentence in sentences:
+            score = overlap(nltk.word_tokenize(title), nltk.word_tokenize(sentence))
+            if score >= 0.5:
+                in_list.append((-score, sentence))
+        return in_list
+
+    # Experimental.
+######################################################################################################
+    # s_inquiry = lemmatize(inquiry)
+    # if 'be' in s_inquiry:
+    #     parse_tree = get_constituency_parse(inquiry)
+    #     results = []
+    #     for tree in parse_tree.subtrees():
+    #         if tree.label() == "NP":
+    #             results.append(tree)
+    #     if results:
+    #         in_list = []
+    #
+    #         best_phrase = max(results, key=lambda x: len(list(x.subtrees())))
+    #         best_phrase = [w.lower() for w in (lemmatize(' '.join(flatten(best_phrase))))]
+    #         for sentence in sentences:
+    #             tagged_sentence = [w.lower() for w in (lemmatize(sentence))]
+    #             score = overlap(best_phrase, tagged_sentence)
+    #             if score >= 0.5:
+    #                 in_list.append(sentence)
+    #
+    #         if len(in_list) > 0:
+    #             sub_story = ' '.join(in_list)
+    #             get_prospects_with_lemmatizer2(sub_story, inquiry)
+    #             return in_list
+
+    # parse_tree = get_constituency_parse(inquiry)
+    # results = []
+    # for tree in parse_tree.subtrees():
+    #     if tree.label() == "NP":
+    #         results.append(tree)
+    # if results:
+    #     in_list = []
+    #
+    #     best_phrase = max(results, key=lambda x: len(list(x.subtrees())))
+    #     best_phrase = [w.lower() for w in (lemmatize(' '.join(flatten(best_phrase))))]
+    #     for sentence in sentences:
+    #         tagged_sentence = [w.lower() for w in (lemmatize(sentence))]
+    #         score = overlap(best_phrase, tagged_sentence)
+    #         if score == 1.0:
+    #             in_list.append(sentence)
+    #
+    #     # if len(in_list) > 0:
+    #     sub_story = ' '.join(in_list)
+    #     return get_prospects_with_lemmatizer2(sub_story, inquiry)
+    #     # return in_list
+##########################################################################################################
 
     ne_check_list = []
 
@@ -462,27 +539,69 @@ def get_prospects_for_how_regex(text, inquiry):
 
 def get_prospects_for_what(text, inquiry):
     sentences = nltk.sent_tokenize(text)
+    in_list = []
+    # ps_inquiry = squash_with_ne(nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(inquiry)), binary=True))
+    # ne_words = get_words_with_tag_x(ps_inquiry, 'NE')
+    # if len(ne_words) > 0:
+    #
+    #     ne_words.extend([('he', 'PRP'), ('she', 'PRP')])
+    #
+    #     for sentence in sentences:
+    #         ps_sentence = squash_with_ne(nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(sentence)), binary=True))
+    #         for word in ne_words:
+    #             if word in ps_sentence:
+    #                 in_list.append(sentence)
+    #
+    #     sub_text = ' '.join(in_list)
+    #     return get_prospects_with_wordnet(sub_text, inquiry)
 
-    s_inquiry = inquiry.lower().split()
-
-    if 'what' in s_inquiry:
-        index = s_inquiry.index('what')
-        if len(s_inquiry) > index+1:
-            if 'is' == s_inquiry[index+1]:
-                in_list = []
-                tagged_inquiry = nltk.pos_tag(nltk.word_tokenize(inquiry))[index:]
-                g_phrase = get_grammar_phrases(tagged_inquiry, r"XX: {<DT>?<NN|NNP>+}")
-                if len(g_phrase) > 0:
-                    g_phrase = g_phrase[0]
-                    for sentence in sentences:
-                        ps_sentence = restring(squash(nltk.pos_tag(lemmatize(sentence))))
-                        if g_phrase in ps_sentence:
-                            in_list.append(sentence)
-
-                    sub_text = ' '.join(in_list)
-                    return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+    if 'will' in inquiry:
+        for sentence in sentences:
+            if 'will' in sentence:
+                in_list.append(sentence)
+        sub_text = ' '.join(in_list)
+        return get_prospects_with_lemmatizer2(sub_text, inquiry)
 
     return get_prospects_with_lemmatizer2(text, inquiry)
+    # s_inquiry = lemmatize(inquiry)
+    # if 'be' in s_inquiry:
+    #     parse_tree = get_constituency_parse(inquiry)
+    #     results = []
+    #     for tree in parse_tree.subtrees():
+    #         if tree.label() == "NP":
+    #             results.append(tree)
+    #     if results:
+    #         in_list = []
+    #
+    #         best_phrase = max(results, key=lambda x: len(list(x.subtrees())))
+    #         best_phrase = nltk.pos_tag(nltk.word_tokenize(' '.join(flatten(best_phrase))))
+    #         for sentence in sentences:
+    #             tagged_sentence = nltk.pos_tag(nltk.word_tokenize(sentence))
+    #             score = overlap(best_phrase, tagged_sentence)
+    #             if score > 0:
+    #                 in_list.append((-score, sentence))
+    #
+    #         if len(in_list) > 0:
+    #             return in_list
+
+    # s_inquiry = inquiry.lower().split()
+    #
+    # if 'what' in s_inquiry:
+    #     index = s_inquiry.index('what')
+    #     if len(s_inquiry) > index+1:
+    #         if 'is' == s_inquiry[index+1]:
+    #             in_list = []
+    #             tagged_inquiry = nltk.pos_tag(nltk.word_tokenize(inquiry))[index:]
+    #             g_phrase = get_grammar_phrases(tagged_inquiry, r"XX: {<DT>?<NN|NNP>+}")
+    #             if len(g_phrase) > 0:
+    #                 g_phrase = g_phrase[0]
+    #                 for sentence in sentences:
+    #                     ps_sentence = restring(squash(nltk.pos_tag(lemmatize(sentence))))
+    #                     if g_phrase in ps_sentence:
+    #                         in_list.append(sentence)
+    #
+    #                 sub_text = ' '.join(in_list)
+    #                 return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
 
 # Most promising for when.
