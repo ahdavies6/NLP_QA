@@ -147,6 +147,40 @@ def get_phrase_for_who(raw_question, raw_sentence):
 
 # todo: either delete this or the other get_p_4_who
 def get_phrase_for_who2(raw_question, raw_sentence):
+
+    who_is_pattern = r'[Ww]ho\sis\s([A-Z][a-z]+\s?[[A-Za-z]+]?)'
+
+    person = re.search(who_is_pattern, raw_question)
+
+    if person:
+        person = person.group(1)
+        person_pattern = r'(?:{0},\s(.+)|(.+),\s{0}\s|([A-Z][\w]+)\s{0})'.format(person)
+        title = re.search(person_pattern, raw_sentence)
+        if title.group(1):
+            title = title.group(1)
+            print(title)
+            ps_title = text_analyzer.normalize_forms(text_analyzer.squash(nltk.pos_tag(lemmatize(title))))
+            nn_phrases = text_analyzer.get_contiguous_x_phrases(ps_title, 'NN')
+            if len(nn_phrases) > 0:
+                print(nn_phrases[0])
+                return nn_phrases[0]
+        elif title.group(2):
+            title = title.group(2)
+            print(title)
+            ps_title = text_analyzer.normalize_forms(text_analyzer.squash(nltk.pos_tag(lemmatize(title))))
+            nn_phrases = text_analyzer.get_contiguous_x_phrases(ps_title, 'NN')
+            if len(nn_phrases) > 0:
+                print(nn_phrases[0])
+                return nn_phrases[0]
+        elif title.group(3):
+            title = title.group(3)
+            print(title)
+            ps_title = text_analyzer.normalize_forms(text_analyzer.squash(nltk.pos_tag(lemmatize(title))))
+            nn_phrases = text_analyzer.get_contiguous_x_phrases(ps_title, 'NN')
+            if len(nn_phrases) > 0:
+                print(nn_phrases[0])
+                return nn_phrases[0]
+
     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence)
 
     if answer_chunks:
