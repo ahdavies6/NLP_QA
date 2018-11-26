@@ -153,33 +153,20 @@ def get_phrase_for_who2(raw_question, raw_sentence):
     person = re.search(who_is_pattern, raw_question)
 
     if person:
-        person = person.group(1)
-        person_pattern = r'(?:{0},\s(.+)|(.+),\s{0}\s|([A-Z][\w]+)\s{0})'.format(person)
-        title = re.search(person_pattern, raw_sentence)
-        if title.group(1):
-            title = title.group(1)
-            print(title)
-            ps_title = text_analyzer.normalize_forms(text_analyzer.squash(nltk.pos_tag(lemmatize(title))))
-            nn_phrases = text_analyzer.get_contiguous_x_phrases(ps_title, 'NN')
-            if len(nn_phrases) > 0:
-                print(nn_phrases[0])
-                return nn_phrases[0]
-        elif title.group(2):
-            title = title.group(2)
-            print(title)
-            ps_title = text_analyzer.normalize_forms(text_analyzer.squash(nltk.pos_tag(lemmatize(title))))
-            nn_phrases = text_analyzer.get_contiguous_x_phrases(ps_title, 'NN')
-            if len(nn_phrases) > 0:
-                print(nn_phrases[0])
-                return nn_phrases[0]
-        elif title.group(3):
-            title = title.group(3)
-            print(title)
-            ps_title = text_analyzer.normalize_forms(text_analyzer.squash(nltk.pos_tag(lemmatize(title))))
-            nn_phrases = text_analyzer.get_contiguous_x_phrases(ps_title, 'NN')
-            if len(nn_phrases) > 0:
-                print(nn_phrases[0])
-                return nn_phrases[0]
+        print()
+        print(raw_question)
+        print(raw_sentence)
+        full_name = person.group(1)
+        full_name = nltk.word_tokenize(full_name)
+        for name in full_name:
+            raw_sentence = raw_sentence.replace(name, '')
+
+        ps_sentence = text_analyzer.normalize_forms(text_analyzer.squash_with_ne(nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(raw_sentence)), binary=True)))
+        ne_phrases = []
+        print(ps_sentence)
+        ne_phrases.extend(text_analyzer.get_contiguous_x_phrases(ps_sentence, 'NE'))
+        if len(ne_phrases) > 0:
+            print(ne_phrases)
 
     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence)
 
