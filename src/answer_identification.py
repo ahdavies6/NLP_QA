@@ -8,7 +8,7 @@ from text_analyzer import lemmatize
 from parse import get_constituency_parse, get_dependency_parse, get_token_dependent_of_type, \
     get_subtree_dependent_of_type, get_spacy_dep_parse
 from question_classifier import formulate_question
-from wordnet_experiments import deps_which_are_hyponym_of, get_lexname
+from wordnet_experiments import deps_which_are_hyponym_of, get_lexname, LSAnalyzer
 from sentence_similarity import sentence_similarity
 
 
@@ -208,6 +208,11 @@ def get_phrase_for_what(raw_question, raw_sentence):
     #     return get_phrase_for_what_be(raw_question, raw_sentence)
     # else:
     #     return get_phrase_for_what_do(raw_question, raw_sentence)
+
+
+def get_phrase_for_what_wn(raw_question, raw_sentence):
+    analyzer = LSAnalyzer(raw_question)
+    return analyzer.produce_answer_phrase(raw_sentence)
 
 
 # todo: figure out whether to continue rejecting left or not
@@ -412,7 +417,8 @@ def get_answer_phrase(raw_question, raw_sentence):
         'whose': get_phrase_for_who2,
         'whom': get_phrase_for_who2,
 
-        'what': get_phrase_for_what,
+        # 'what': get_phrase_for_what,
+        'what': get_phrase_for_what_wn,
         'when': get_phrase_for_when,
         'where': get_phrase_for_where,
         'why': get_phrase_for_why,

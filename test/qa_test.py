@@ -47,7 +47,8 @@ def form_output(story, inquiry, question_id):
     elif qword == 'how':
         feedback = get_prospects_for_how_regex(story, inquiry)
     elif qword == 'what':
-        feedback = get_prospects_with_lemmatizer2(story, inquiry)
+        # feedback = get_prospects_with_lemmatizer2(story, inquiry)
+        feedback = get_prospects_for_what(story, inquiry)
     else:
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
 
