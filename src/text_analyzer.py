@@ -195,6 +195,35 @@ def get_synset(word, tag):
     except:
         return None
 
+def get_all_synsets(word, tag):
+    wn_tag = get_wordnet_tag(tag)
+    if wn_tag is None:
+        return None
+    try:
+        return wordnet.synsets(word, wn_tag)
+    except:
+        return None
+
+
+def maximum_similarity(sentence1, sentence2):
+    sentence1 = nltk.pos_tag(nltk.word_tokenize(sentence1))
+    sentence2 = nltk.pos_tag(nltk.word_tokenize(sentence2))
+
+    max_similarity = 0
+
+    for word1 in sentence1:
+        for word2 in sentence2:
+            ssets1 = get_all_synsets(*word1)
+            ssets2 = get_all_synsets(*word2)
+            if not ssets1 or not ssets2:
+                continue
+            for synset1 in ssets1:
+                for synset2 in ssets2:
+                    sim = synset1.path_similarity(synset2)
+                    if sim:
+                        if sim > max_similarity:
+                            max_similarity = sim
+    return max_similarity
 
 def sentence_similarity(sentence1, sentence2):
     sentence1 = nltk.pos_tag(nltk.word_tokenize(sentence1))
@@ -585,8 +614,8 @@ def get_prospects_for_how_regex(text, inquiry):
 
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
-    elif 'did' in s_inquiry or 'does' in s_inquiry or 'are' in s_inquiry or 'is' in s_inquiry:
-        return get_prospects_with_lemmatizer2(text, inquiry)
+    # elif 'did' in s_inquiry or 'does' in s_inquiry or 'are' in s_inquiry or 'is' in s_inquiry:
+    #     return get_prospects_with_lemmatizer2(text, inquiry)
     else:
         return get_prospects_with_lemmatizer2(text, inquiry)
 
@@ -616,7 +645,40 @@ def get_prospects_for_what(text, inquiry):
         sub_text = ' '.join(in_list)
         return get_prospects_with_lemmatizer2(sub_text, inquiry)
 
+    kind_of_pattern = r'[Ww]hat\skind[s]?\sof\s([\w\s]+)'
+
+    kind_of_match = re.search(kind_of_pattern, inquiry)
+
+    if kind_of_match:
+        kind_of_match = kind_of_match.group(1)
+        nn_phrases = get_grammar_phrases(nltk.pos_tag(nltk.word_tokenize(kind_of_match)), 'XX: {<DT|NN|NNS|NNP|NNPS|POS>+}')
+        if len(nn_phrases) > 0:
+            keyphrase = nn_phrases[0]
+            for sentence in sentences:
+                score = sentence_similarity(keyphrase, sentence)
+                if score > 0:
+                    in_list.append((-score, sentence))
+            return in_list
+
+    # what_is_are_pattern = "[Ww]hat\s(?:is|are)\s(.+)"
+    #
+    # what_is_match = re.search(what_is_are_pattern, inquiry)
+    #
+    # if what_is_match:
+    #     what_is_match = what_is_match.group(1).replace('"', '')
+    #     nn_phrases = get_grammar_phrases(nltk.pos_tag(nltk.word_tokenize(what_is_match)), 'XX: {<DT|NN|NNS|NNP|NNPS|POS|IN>+}')
+    #     if len(nn_phrases) > 0:
+    #         keyphrase = nn_phrases[0]
+    #         for sentence in sentences:
+    #             score = maximum_similarity(keyphrase, sentence)
+    #             if score > 0.5:
+    #                 in_list.append(sentence)
+    #         sub_text = ' '.join(in_list)
+    #         return get_prospects_with_wordnet(sub_text, inquiry)
+    #         return in_list
+
     return get_prospects_with_lemmatizer2(text, inquiry)
+
     # s_inquiry = lemmatize(inquiry)
     # if 'be' in s_inquiry:
     #     parse_tree = get_constituency_parse(inquiry)
@@ -806,3 +868,4 @@ if __name__ == "__main__":
 
 if _wnl is None:
     _wnl = nltk.stem.WordNetLemmatizer()
+

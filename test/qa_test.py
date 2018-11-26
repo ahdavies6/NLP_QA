@@ -118,9 +118,12 @@ def main(random_seed, num_stories):
 
 
 if __name__ == '__main__':
-    if len(argv) == 1:
-        main(None, 25)
-    elif len(argv) == 2:
-        main(argv[1], 25)
-    elif len(argv) == 3:
-        main(argv[1], int(argv[2]))
+    try:
+        if len(argv) == 1:
+            main(None, 25)
+        elif len(argv) == 2:
+            main(argv[1], 25)
+        elif len(argv) == 3:
+            main(argv[1], int(argv[2]))
+    except:
+        os.system('say "failed.')
