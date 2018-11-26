@@ -160,6 +160,7 @@ def get_phrase_for_who2(raw_question, raw_sentence):
 
 # todo: figure out whether to continue rejecting left or not
 def get_phrase_for_what_do(raw_question, raw_sentence):
+    return None
     q_dep = get_spacy_dep_parse(raw_question)
     s_dep = get_spacy_dep_parse(raw_sentence)
 

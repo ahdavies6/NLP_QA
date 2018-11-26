@@ -349,5 +349,5 @@ if _dependency_parser is None:
     _dependency_parser = CoreNLPDependencyParser()
 if _constituency_parser is None:
     _constituency_parser = CoreNLPParser()
-if _spacy_parser is None:
-    _spacy_parser = en_core_web_lg.load()
+# if _spacy_parser is None:
+#     _spacy_parser = en_core_web_lg.load()
