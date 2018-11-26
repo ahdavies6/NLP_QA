@@ -436,14 +436,11 @@ def get_prospects_for_who_ner(text, inquiry):
 
     if title:
         title = title.group(1)
-        ps_title = get_grammar_phrases(nltk.pos_tag(nltk.word_tokenize(title)), "XX: {<NN|NNS|NNP|NNPS|DT>+}")
-        if len(ps_title) > 0:
-            title = ps_title[0]
-            for sentence in sentences:
-                score = overlap(nltk.word_tokenize(title), nltk.word_tokenize(sentence))
-                if score >= 0.5:
-                    in_list.append((-score, sentence))
-            return in_list
+        for sentence in sentences:
+            score = overlap(nltk.word_tokenize(title), nltk.word_tokenize(sentence))
+            if score >= 0.5:
+                in_list.append((-score, sentence))
+        return in_list
 
     # Experimental.
 ######################################################################################################
