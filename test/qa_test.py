@@ -21,28 +21,39 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
 def form_output(story, inquiry, question_id):
     q_inquiry = formulate_question(inquiry)
     qword = q_inquiry['qword'][0].lower()
-    if qword == 'who':
+    # if qword == 'who':
+    #     feedback = get_prospects_for_who_ner(story, inquiry)
+    # elif qword == 'how':
+    #     feedback = get_prospects_for_how_regex(story, inquiry)
+    # elif qword == 'when':
+    #     feedback = get_prospects_for_when_regex(story, inquiry)
+    # elif qword == 'where':
+    #     feedback = get_prospects_for_where_ner(story, inquiry)
+    # elif qword == 'why':
+    #     feedback = get_prospects_for_why(story, inquiry)
+    # elif qword == 'what':
+    #     feedback = get_prospects_with_wordnet(story, inquiry)
+    # else:
+    #     feedback = get_prospects_with_lemmatizer2(story, inquiry)
+
+    if qword == 'where':
+        feedback = get_prospects_for_where_ner(story, inquiry)
+    elif qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
+    elif qword == 'why':
+        feedback = get_prospects_with_lemmatizer2(story, inquiry)
+    elif qword == 'when':
+        feedback = get_prospects_with_lemmatizer2(story, inquiry)
     elif qword == 'how':
         feedback = get_prospects_for_how_regex(story, inquiry)
-    elif qword == 'when':
-        feedback = get_prospects_for_when_regex(story, inquiry)
-    elif qword == 'where':
-        feedback = get_prospects_for_where_ner(story, inquiry)
-    elif qword == 'why':
-        feedback = get_prospects_for_why(story, inquiry)
     elif qword == 'what':
-        feedback = get_prospects_with_wordnet(story, inquiry)
-        # feedback = get_prospects_for_adam_is_genius(story, inquiry)
-        # if feedback:
-        #     feedback = [(0, feedback[1])]
-        # else:
-        #     feedback = get_prospects_with_wordnet(story, inquiry)
+        feedback = get_prospects_with_lemmatizer2(story, inquiry)
     else:
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
 
     output = 'QuestionID: ' + question_id + '\n'
     output += 'Answer: '
+    heapq.heapify(feedback)
     if len(feedback) > 0:
         best_sentence = heapq.heappop(feedback)[1]
         if qword == 'what':
