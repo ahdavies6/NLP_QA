@@ -17,7 +17,7 @@ stopwords = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you',
                 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where',
                 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no',
                 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just',
-                'don', 'should', 'now', '.', ',', '?', '-', '"', "'"]
+                'don', 'should', 'now', '.', ',', '?', '-', '"', "'", '(', ')', '[', ']']
 
 
 def overlap(word_list_one, word_list_two):
@@ -720,25 +720,54 @@ def get_prospects_for_what(text, inquiry):
     #                 return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
 
+
+time_words = ['fall', 'autumn', 'spring', 'winter', 'summer', 'when', 'january', 'jan', 'february', 'feb',
+              'april', 'apr', 'march', 'mar', 'may', 'june', 'jun', 'july', 'jul', 'august', 'aug', 'september',
+              'sep', 'october', 'oct', 'november', 'nov', 'december', 'dec', 'week', 'weeknight', 'weekend',
+              'weekday', 'monday', 'mon', 'tuesday', 'tue', 'wednesday', 'wed', 'thursday', 'thur', 'friday',
+              'fri', 'year', 'tomorrow', 'yesterday', 'today', 'afternoon', 'day', 'night', 'month', 'ago', 'since']
 # Most promising for when.
 def get_prospects_for_when_regex(text, inquiry):
     sentences = nltk.sent_tokenize(text)
+    year_pattern = r'(?:\b[\d]{2}\b|\b[\d]{4}\b)'
+    time_check_list = []
 
     s_inquiry = nltk.word_tokenize(inquiry.lower())
 
-    if 'last' in s_inquiry:
-        last_pattern = r'(?:first|last|since|ago)'
+    s_inquiry = set(s for s in s_inquiry if s not in stopwords)
 
-        regex_check_list = []
+    for sentence in sentences:
+        s_sentence = set(s for s in nltk.word_tokenize(sentence.lower()) if s not in stopwords)
+        if len(s_inquiry.intersection(s_sentence)) > 0:
+            match = re.search(year_pattern, sentence)
+            if match:
+                time_check_list.append(sentence)
+            else:
+                for s_word in nltk.word_tokenize(sentence.lower()):
+                    if s_word in time_words:
+                        time_check_list.append(sentence)
+        break
 
-        for sentence in sentences:
-            l_sentence = sentence.lower()
-            lasts = re.search(last_pattern, l_sentence)
-            if lasts is not None:
-                regex_check_list.append(sentence)
+    sub_story = ' '.join(time_check_list)
+    return get_prospects_with_wordnet(sub_story, inquiry)
 
-        sub_text = ' '.join(regex_check_list)
-        return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+    # sentences = nltk.sent_tokenize(text)
+    #
+    # s_inquiry = nltk.word_tokenize(inquiry.lower())
+
+    # if 'last' in s_inquiry:
+    #     last_pattern = r'(?:first|last|since|ago)'
+    #
+    #     regex_check_list = []
+    #
+    #     for sentence in sentences:
+    #         l_sentence = sentence.lower()
+    #         lasts = re.search(last_pattern, l_sentence)
+    #         if lasts is not None:
+    #             regex_check_list.append(sentence)
+    #
+    #     sub_text = ' '.join(regex_check_list)
+    #     return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
     # elif 'start' in s_inquiry or 'begin' in s_inquiry:
     #     start_pattern = r'(?:start[s]?|begin|since|year)'
@@ -775,8 +804,8 @@ def get_prospects_for_when_regex(text, inquiry):
     #     sub_text = ' '.join(regex_check_list)
     #
     #     return get_prospects_with_lemmatizer2(sub_text, inquiry)
-    else:
-        return get_prospects_with_lemmatizer2(text, inquiry)
+    # else:
+    #     return get_prospects_with_lemmatizer2(text, inquiry)
 
 def get_prospects_for_when_ner(text, inquiry):
     sentences = nltk.sent_tokenize(text)
@@ -819,32 +848,19 @@ def get_prospects_for_where_ner(text, inquiry):
 
     loc_check_list = []
 
-    # prep_grammar = r"""
-    #     XX: {<IN><DT>?<JJ>*<NN|NNP>+}
-    #     {<IN><GP|NN|OR|JJ>+}
-    # """
-
-    s_inquiry = nltk.word_tokenize(inquiry.lower())
+    s_inquiry = nltk.word_tokenize(inquiry)
 
     s_inquiry = [s for s in s_inquiry if s not in stopwords]
 
     for sentence in sentences:
         s_sentence = nltk.word_tokenize(sentence.lower())
-
-        s_sentence = [s for s in s_sentence if s not in stopwords]
+        # s_sentence = [s for s in s_sentence if s not in stopwords]
 
         for word in s_inquiry:
-            if word in sentence:
+            if word in s_sentence:
                 if 'in' in sentence or 'at' in sentence or 'near' in sentence:
                     loc_check_list.append(sentence)
                 break
-
-        # ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
-        # loc_phrases = []
-        # loc_phrases.append(get_contiguous_x_phrases(ps_sentence, 'GP'))
-        # loc_phrases.append(get_grammar_phrases(ps_sentence, prep_grammar))
-        # if len(loc_phrases) > 0:
-        #     loc_check_list.append(sentence)
 
     sub_story = ' '.join(loc_check_list)
     return get_prospects_with_wordnet(sub_story, inquiry)
