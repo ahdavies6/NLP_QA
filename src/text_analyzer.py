@@ -350,7 +350,8 @@ def normalize_squash_ne_chunk_and_lemmatize(raw_string, bin=True):
 
 def get_prospects_with_lemmatizer2(text, inquiry):
     sentences = nltk.sent_tokenize(text)
-
+    if inquiry.lower().startswith('w'):
+        inquiry = ' '.join(nltk.word_tokenize(inquiry)[1:])
     in_list = []
 
     sigwords = normalize_squash_ne_chunk_and_lemmatize(inquiry)
