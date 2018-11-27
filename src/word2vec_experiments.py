@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 from corpus_io import Corpus
 
 
-model = gensim.models.KeyedVectors.load_word2vec_format('../GoogleNews-vectors-negative300.bin.gz',
+model = gensim.models.KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin.gz',
                                                         binary=True, limit=100000)
 
 

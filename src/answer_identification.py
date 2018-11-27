@@ -678,7 +678,7 @@ def get_answer_phrase(raw_question, raw_sentence):
         'whose': get_phrase_for_who2,
         'whom': get_phrase_for_who2,
 
-        'what': get_phrase_for_what,
+        # 'what': get_phrase_for_what,
         # 'what': get_phrase_for_what_do,
         # 'what': get_phrase_for_what_wn,
         # 'what': get_phrase_for_what_np,
