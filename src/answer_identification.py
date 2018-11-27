@@ -7,7 +7,7 @@ from spacy.tokens import Doc, Span, Token
 from text_analyzer import lemmatize
 from parse import get_constituency_parse, get_dependency_parse, get_spacy_dep_parse
 from question_classifier import formulate_question
-from wordnet_experiments import get_lexname, LSAnalyzer
+from wordnet_experiments import get_lexname, LSAnalyzer, synset_sequence_similarity, best_synset
 
 
 def num_occurrences_time_regex(tokens):
@@ -107,7 +107,9 @@ def get_top_ner_chunk_of_each_tag(
 
 
 def to_sentence(tokens, index=0):
-    if isinstance(tokens, str):
+    if isinstance(tokens, nltk.Tree):
+        return ' '.join(tokens.leaves())
+    elif isinstance(tokens, str):
         return tokens
     elif isinstance(tokens, list):
         if len(tokens) > 1:
@@ -125,8 +127,6 @@ def to_sentence(tokens, index=0):
             #     )]
     elif isinstance(tokens, Token):
         return ' '.join([token.text for token in tokens.subtree])
-    # elif isinstance(tokens, nltk.Tree):
-    #     return ' '.join(tokens.leaves())
 
 
 def remove_punctuation(s):
@@ -151,12 +151,10 @@ def get_phrase_for_who(raw_question, raw_sentence):
     # either way, just return the longest NER chunk in the answer sentence, if the answer sentence
     # has any NER chunks to begin with
     if answer_chunks:
-        return to_sentence(
-            max(
-                [answer_chunks[tag] for tag in answer_chunks],
-                key=lambda x: len(x)
-            )
-        )
+        return to_sentence(max(
+            [answer_chunks[tag] for tag in answer_chunks],
+            key=lambda x: len(x)
+        ))
 
 
 # todo: either delete this or the other get_p_4_who
@@ -182,15 +180,39 @@ def get_phrase_for_who2(raw_question, raw_sentence):
         if title:
             return title.group(1)
 
+    # todo: try NER chunking only with person and organization?
     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence)
-
     if answer_chunks:
-        return to_sentence(
-            max(
-                [answer_chunks[tag] for tag in answer_chunks],
-                key=lambda x: len(x)
-            )
-        )
+        return to_sentence(max(
+            [answer_chunks[tag] for tag in answer_chunks],
+            key=lambda x: len(x)
+        ))
+
+    # noun_phrases = get_parse_trees_with_tag(raw_sentence, "NP")
+    # if noun_phrases:
+    #     matches = {}    # key: match score; value: NP
+    #     for noun_phrase in noun_phrases:
+    #         words = noun_phrase.flatten()
+    #         who_type_match = [
+    #             synset_sequence_similarity(
+    #                 [best_synset(word, nltk.pos_tag([word])[0][1])],
+    #                 LSAnalyzer.WHO_SYNSETS
+    #             ) for word in words
+    #         ]
+    #         if who_type_match:
+    #             best_match = max(who_type_match)
+    #             if best_match in matches:
+    #                 matches[best_match] += [words]
+    #             else:
+    #                 matches[best_match] = [words]
+    #
+    #     if matches:
+    #         for key in sorted(matches.keys(), reverse=True):
+    #             if key > 0:
+    #                 return to_sentence(max(
+    #                     matches[key],
+    #                     key=lambda x: len(x)
+    #                 ))
 
 
 # todo: 'have' (lemma) option as well
@@ -241,28 +263,6 @@ def get_phrase_for_what(raw_question, raw_sentence):
     #     return get_phrase_for_what_be(raw_question, raw_sentence)
     # else:
     #     return get_phrase_for_what_do(raw_question, raw_sentence)
-
-
-def get_phrase_for_what_wn(raw_question, raw_sentence):
-    return None
-    analyzer = LSAnalyzer(raw_question)
-    return analyzer.produce_answer_phrase(raw_sentence)
-    # return analyzer.produce_answer_phrase_2(raw_sentence)
-
-
-def get_phrase_for_what_np(raw_question, raw_sentence):
-    prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(raw_sentence, "PP")]
-    for prep_phrase in prep_phrases:
-        has_good_prep = False
-        for prep in ['in', 'at', 'near', 'into', 'between', 'around', 'within']:
-            if prep in prep_phrase:
-                has_good_prep = True
-        if not has_good_prep:
-            prep_phrases.remove(prep_phrase)
-    if prep_phrases:
-        return to_sentence(max(
-            prep_phrases, key=lambda x: num_occurrences_time_regex(x)
-        ))
 
 
 # todo: figure out whether to continue rejecting left or not
@@ -375,16 +375,32 @@ def get_phrase_for_what_be(raw_question, raw_sentence):
     #     return to_sentence(max(s_entities, key=lambda s: len(to_sentence(s))))
 
 
-def get_phrase_for_when(raw_question, raw_sentence):
-    # answer_sentence = get_dependency_parse(raw_sentence)
-    #
-    # get prepositional phrases
-    # prep_nodes = [d for d in answer_sentence.get_nodes if d['tag'] == "prep"]
-    # if prep_nodes:
-    #     top_prep_string = " ".join([x[0] for x in prep_nodes[0].get_pairs])
-    #     if num_occurrences_time_regex(top_prep_string) > 0:
-    #         return top_prep_string
+def get_phrase_for_what_wn(raw_question, raw_sentence):
+    return None
+    analyzer = LSAnalyzer(raw_question)
+    return analyzer.produce_answer_phrase(raw_sentence)
+    # return analyzer.produce_answer_phrase_2(raw_sentence)
 
+
+def get_phrase_for_what_np(raw_question, raw_sentence):
+    noun_phrases = get_parse_trees_with_tag(raw_sentence, "NP")
+    # tagged_sentence = nltk.pos_tag(nltk.word_tokenize(raw_sentence))
+    # right_chunk = None
+    # for i, word in enumerate(tagged_sentence):
+    #     if word[1] in LSAnalyzer.POS_VERB:
+    #         right_chunk = tagged_sentence[i:]
+    #         break
+    # for noun_phrase in noun_phrases:
+    #     flattened = noun_phrase.flatten()
+    #     for word in flattened:
+    #         if word not in right_chunk:
+    #             noun_phrases.remove(noun_phrase)
+    #             break
+    if noun_phrases:
+        return to_sentence(max(noun_phrases, key=lambda x: len(x)))
+
+
+def get_phrase_for_when(raw_question, raw_sentence):
     prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(raw_sentence, "PP")]
     for prep_phrase in prep_phrases:
         has_good_prep = False
@@ -395,21 +411,19 @@ def get_phrase_for_when(raw_question, raw_sentence):
             prep_phrases.remove(prep_phrase)
     if prep_phrases:
         return to_sentence(max(
-                prep_phrases, key=lambda x: num_occurrences_time_regex(x)
+            prep_phrases, key=lambda x: num_occurrences_time_regex(x)
         ))
 
 
 def get_phrase_for_where(raw_question, raw_sentence):
     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence, {"GPE"})
 
-    # todo: use this...?
     untagged = [
         tagged[0][1] for tagged in [
             answer_chunks[tag] for tag in answer_chunks
         ]
     ]
 
-    # TODO: put this in conditional block for "if untagged isn't empty"; else look @ overlap for... question sentence?
     prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(raw_sentence, "PP")]
     for prep_phrase in prep_phrases:
         has_good_prep = False
@@ -567,6 +581,7 @@ def get_answer_phrase(raw_question, raw_sentence):
         # 'what': get_phrase_for_what,
         # 'what': get_phrase_for_what_do,
         'what': get_phrase_for_what_wn,
+        # 'what': get_phrase_for_what_np,
 
         'when': get_phrase_for_when,
         'where': get_phrase_for_where,
@@ -576,7 +591,6 @@ def get_answer_phrase(raw_question, raw_sentence):
         'why': get_phrase_for_why_3,
 
         'how': get_phrase_for_how_adj,
-        # TODO: put in 'which'? look for other qwords not included?
     }
 
     qword = question['qword'][0].lower()

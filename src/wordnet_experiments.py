@@ -24,12 +24,14 @@ class LSAnalyzer(object):
                       'predet', 'quantmod', 'relcl']
     VERB_MODIFIERS = ['advcl', 'advmod', 'neg', 'npmod', 'xcomp', 'prt']
     PREP_MODIFIERS = ['pobj', 'pcomp']
+    # see: https://github.com/clir/clearnlp-guidelines/blob/master/md/specifications/dependency_labels.md
+    # for more details
 
     POS_NOUN = ['NN', 'NNS', 'NOUN', 'PRON', 'PROPN']
     POS_VERB = ['AUX', 'PART', 'VB', 'VBP', 'VBZ', 'VBD', 'VBG', 'VBN']
     POS_ADJ = ['ADJ', 'JJ', 'JJR', 'JJS']
-    # see: https://github.com/clir/clearnlp-guidelines/blob/master/md/specifications/dependency_labels.md
-    # for more details
+
+    WHO_SYNSETS = [wn.synset('entity.n.01'), wn.synset('group.n.01')]
 
     def __init__(self, raw_question):
         assert isinstance(raw_question, str)
@@ -185,10 +187,7 @@ class LSAnalyzer(object):
     def wants_wordnet(self):
         if self._wants_wordnet is None:
             if self.qword == 'who':
-                self._wants_wordnet = [
-                    wn.synset('entity.n.01'),
-                    wn.synset('group.n.01')
-                ]
+                self._wants_wordnet = self.WHO_SYNSETS
             elif self.qword == 'what':
                 arg_synsets = []
                 # TODO: consider switching this to just objects? test it out!
