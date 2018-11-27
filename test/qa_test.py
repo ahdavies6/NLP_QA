@@ -3,25 +3,13 @@ import subprocess
 import os
 from sys import argv
 from requests.exceptions import ConnectionError
-from nltk import word_tokenize
 from text_analyzer import *
-from question_classifier import formulate_question
 from wordnet_experiments import LSAnalyzer
 from answer_identification import get_answer_phrase
 from corpus_io import Corpus
 
 
-headline_pattern = r'HEADLINE:\s*(.*)\n'
-date_pattern = r'DATE:\s*(.*)\n'
-story_pattern = r'STORYID:\s*(.*)\n'
-text_pattern = r'TEXT:\s*([\s\w\d\S\W\D]*)'
-question_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Difficulty:\s*(.*)\s*'
-answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
-
-
 def form_output(story, inquiry, question_id):
-    # q_inquiry = formulate_question(inquiry)
-    # qword = q_inquiry['qword'][0].lower()
     question = LSAnalyzer(inquiry)
     qword = question.qword
     if qword == 'where':
@@ -65,55 +53,26 @@ def form_output(story, inquiry, question_id):
     return output
 
 
-def main(random_seed, num_stories):
-    # story_ids = get_random_items(get_all_ids(), num_stories, random_seed)
-    # story_files = {}
-    #
-    # for story_id in story_ids:
-    #     story_filename = story_id + '.story'
-    #     with open(story_filename, 'r+') as story_file:
-    #         story = story_file.read()
-    #     headline = re.search(headline_pattern, story).group(1)
-    #     date = re.search(date_pattern, story).group(1)
-    #     text = re.search(text_pattern, story).group(1)
-    #     story_files[story_id] = (headline, date, text.replace('\n', ' '))
-    #
-    # with open('output', 'w+') as output_file:
-    #     for story_id in story_ids:
-    #         question_filename = story_id + '.questions'
-    #         with open(question_filename, 'r+') as question_file:
-    #             text = question_file.read()
-    #         question_tuples = re.findall(question_pattern, text)
-    #         for question_id, question, _ in question_tuples:
-    #             try:
-    #                 output = form_output(story_files[story_id][2], question, question_id)
-    #             except ConnectionError:
-    #                 print('Server was inaccessible.')
-    #                 raise SystemExit
-    #             output_file.write(output)
-    #
-    # with open('key', 'w+') as answer_key_file:
-    #     for story_id in story_ids:
-    #         answers_filename = story_id + '.answers'
-    #         answer_text = open(answers_filename, 'r+')
-    #         text = answer_text.read()
-    #         answer_key_file.write(text)
-    #
-    # subprocess.run(['perl', 'score_answers.pl', 'output', 'key'])
-    # os.remove('output')
-    # os.remove('key')
+def main(random_seed=None, num_stories=None):
+    if random_seed or num_stories:
+        corpus = Corpus(['developset', 'testset1'])
+        stories = corpus.random_stories(num_stories, random_seed)
+    else:
+        corpus = Corpus(['testset1'])
+        stories = corpus.all
 
-    corpus = Corpus(['testset1'])
-    # corpus = Corpus(['developset', 'testset1'])
     output = ''
     key = ''
-    for story in corpus.all:
-    # for story in corpus.random_stories(num_stories, random_seed):
+    for story in stories:
         story_text = story['text']
         for question_id in story:
             if question_id not in ['text', 'answer_key']:
                 question = story[question_id][0]
-                output += form_output(story_text, question, question_id)
+                try:
+                    output += form_output(story_text, question, question_id)
+                except ConnectionError:
+                    print('Server was inaccessible.')
+                    raise SystemExit
         key += story['answer_key']
 
     with open('output', 'w') as output_file:
@@ -128,7 +87,7 @@ def main(random_seed, num_stories):
 
 if __name__ == '__main__':
     if len(argv) == 1:
-        main(None, 25)
+        main()
     elif len(argv) == 2:
         main(argv[1], 25)
     elif len(argv) == 3:
