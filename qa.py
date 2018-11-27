@@ -1,8 +1,9 @@
 import sys
 import heapq
 from text_analyzer import *
-from src.question_classifier import formulate_question
 from answer_identification import get_answer_phrase
+from wordnet_experiments import LSAnalyzer
+from word2vec_experiments import vector_sequence_similarity
 
 
 headline_pattern = r'HEADLINE:\s*(.*)\n'
@@ -14,19 +15,18 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
 
 
 def form_output(story, inquiry, question_id):
-    q_inquiry = formulate_question(inquiry)
-    qword = q_inquiry['qword'][0].lower()
-    if qword == 'where':
+    question = LSAnalyzer(inquiry)
+    if question.qword == 'where':
         feedback = get_prospects_for_where_ner(story, inquiry)
-    elif qword == 'who':
+    elif question.qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
-    elif qword == 'why':
+    elif question.qword == 'why':
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
-    elif qword == 'when':
+    elif question.qword == 'when':
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
-    elif qword == 'how':
+    elif question.qword == 'how':
         feedback = get_prospects_for_how_regex(story, inquiry)
-    elif qword == 'what':
+    elif question.qword == 'what':
         feedback = get_prospects_for_what(story, inquiry)
     else:
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
@@ -34,10 +34,17 @@ def form_output(story, inquiry, question_id):
     output = 'QuestionID: ' + question_id + '\n'
     output += 'Answer: '
     heapq.heapify(feedback)
-    if len(feedback) > 0:
-        best_sentence = heapq.heappop(feedback)[1]
-        answer = get_answer_phrase(inquiry, best_sentence)
 
+    alternatives = []
+    while len(feedback) > 0 and len(alternatives) < 11:
+        alternatives.append(heapq.heappop(feedback)[1])
+
+    if alternatives:
+        best_sentence = max(
+            alternatives,
+            key=lambda x: vector_sequence_similarity(inquiry, x)
+        )
+        answer = get_answer_phrase(inquiry, best_sentence)
         if answer:
             output += answer
         else:
@@ -50,14 +57,14 @@ def form_output(story, inquiry, question_id):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print('qa requires 1 argument, you provided ' + str(len(sys.argv) - 1))
+        print('QA requires one argument, but you provided ' + str(len(sys.argv) - 1))
         sys.exit()
 
     input_file = ''
     try:
         input_file = open(sys.argv[1], 'r+')
     except IOError:
-        print('Failed to open ' + str(sys.argv[1]))
+        print('Could not open ' + str(sys.argv[1]))
         sys.exit()
 
     stories_filename = input_file.readline().strip()
@@ -67,19 +74,19 @@ if __name__ == '__main__':
     for line in input_file.readlines():
         story_ids.append(line.strip())
 
-    for id in story_ids:
-        story_filename = stories_filename + id + '.story'
-        story = open(story_filename, 'r+')
-        story = story.read()
+    for story_id in story_ids:
+        story_filename = stories_filename + story_id + '.story'
+        with open(story_filename, 'r+') as story_file:
+            story = story_file.read()
         headline = re.search(headline_pattern, story).group(1)
         date = re.search(date_pattern, story).group(1)
         text = re.search(text_pattern, story).group(1)
-        story_files[id] = (headline, date, text.replace('\n', ' '))
+        story_files[story_id] = (headline, date, text.replace('\n', ' '))
 
-    for id in story_ids:
-        question_filename = stories_filename + id + '.questions'
-        questions = open(question_filename, 'r+')
-        text = questions.read()
+    for story_id in story_ids:
+        question_filename = stories_filename + story_id + '.questions'
+        with open(question_filename, 'r+') as questions_file:
+            text = questions_file.read()
         question = re.findall(question_pattern, text)
         for match in question:  # match[1] is question itself, match[0] is questionID
-            print(form_output(story_files[id][2], match[1], match[0]))
+            print(form_output(story_files[story_id][2], match[1], match[0]))

@@ -8,6 +8,7 @@ test/output
 test/key
 
 .DS_Store
+GoogleNews-vectors-negative300.bin.gz
 
 __pycache__/
 *.pyc

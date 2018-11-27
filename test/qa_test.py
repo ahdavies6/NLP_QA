@@ -45,19 +45,7 @@ def form_output(story, inquiry, question_id):
             output += answer
         else:
             output += best_sentence
-    # if len(feedback) > 0:
-    #     best_sentence = heapq.heappop(feedback)[1]
-    #     if len(feedback) > 0:
-    #         second_best_sentence = heapq.heappop(feedback)[1]
-    #         if vector_sequence_similarity(inquiry, best_sentence) < \
-    #                 vector_sequence_similarity(inquiry, second_best_sentence):
-    #             best_sentence = second_best_sentence
-    #
-    #     answer = get_answer_phrase(inquiry, best_sentence)
-    #     if answer:
-    #         output += answer
-    #     else:
-    #         output += best_sentence
+
     output += '\n\n'
     return output
 
