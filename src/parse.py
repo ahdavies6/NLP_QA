@@ -1,6 +1,6 @@
 # import en_core_web_lg
 from nltk import Tree
-from spacy.tokens import Doc, Token
+# from spacy.tokens import Doc, Token
 from nltk.parse.corenlp import CoreNLPParser, CoreNLPDependencyParser
 from sentence_similarity import sentence_similarity
 
@@ -215,8 +215,8 @@ def to_sentence(tokens, index=0):
             ])
         else:
             return ' '.join(tokens)
-    elif isinstance(tokens, Token):
-        return ' '.join([token.text for token in tokens.subtree])
+    # elif isinstance(tokens, Token):
+    #     return ' '.join([token.text for token in tokens.subtree])
 
 
 def get_dependency_parse(sentence):
@@ -262,32 +262,32 @@ def get_constituency_parse(raw_sentence):
     return next(_constituency_parser.raw_parse(raw_sentence))
 
 
-def get_spacy_dep_parse(raw_sentence):
-    return _spacy_parser(raw_sentence)
+# def get_spacy_dep_parse(raw_sentence):
+#     return _spacy_parser(raw_sentence)
+#
+#
+# def get_token_dependent_of_type(root, dep_label):
+#     if isinstance(root, Doc):
+#         for token in root:
+#             if token.dep_ == 'ROOT':
+#                 root = token
+#                 break
+#
+#     for child in root.children:
+#         if child.dep_ == dep_label:
+#             return child
 
 
-def get_token_dependent_of_type(root, dep_label):
-    if isinstance(root, Doc):
-        for token in root:
-            if token.dep_ == 'ROOT':
-                root = token
-                break
-
-    for child in root.children:
-        if child.dep_ == dep_label:
-            return child
-
-
-def get_subtree_dependent_of_type(root, dep_label):
-    if isinstance(root, Doc):
-        for token in root:
-            if token.dep_ == 'ROOT':
-                root = token
-                break
-
-    for child in root.children:
-        if child.dep_ == dep_label:
-            return [subtree for subtree in child.subtree]
+# def get_subtree_dependent_of_type(root, dep_label):
+#     if isinstance(root, Doc):
+#         for token in root:
+#             if token.dep_ == 'ROOT':
+#                 root = token
+#                 break
+#
+#     for child in root.children:
+#         if child.dep_ == dep_label:
+#             return [subtree for subtree in child.subtree]
 
 
 def best_dep_of_type(head, dep_label_list):
