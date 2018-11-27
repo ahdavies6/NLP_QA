@@ -31,13 +31,17 @@ def form_output(story, inquiry, question_id):
     heapq.heapify(feedback)
     if len(feedback) > 0:
         best_sentence = heapq.heappop(feedback)[1]
-        answer = get_answer_phrase(inquiry, best_sentence)
 
-        if len(feedback) > 0:
-            second_best_sentence = heapq.heappop(feedback)[1]
-            if question.sentence_match(best_sentence) < question.sentence_match(second_best_sentence):
-                best_sentence = second_best_sentence
-                answer = get_answer_phrase(inquiry, best_sentence)
+        if question.qword != 'fheuiwfheui':
+            answer = get_answer_phrase(inquiry, best_sentence)
+
+            # if len(feedback) > 0:
+            #     second_best_sentence = heapq.heappop(feedback)[1]
+            #     if question.sentence_match(best_sentence) < question.sentence_match(second_best_sentence):
+            #         best_sentence = second_best_sentence
+            #         answer = get_answer_phrase(inquiry, best_sentence)
+        else:
+            answer = best_sentence
 
         if answer:
             output += answer

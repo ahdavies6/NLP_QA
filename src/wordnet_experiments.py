@@ -109,6 +109,12 @@ class LSAnalyzer(object):
                 for child in head.children:
                     pool.put(child)
 
+        # qword may not have been an immediate dependent of head
+        if not self.qword:
+            for child in self.root.subtree:
+                if child.text.lower() in self.QUESTION_WORDS:
+                    self.qword = child.text.lower()
+
         self._wants_dep = None
         self._wants_pos = None
         self._wants_wordnet = None
