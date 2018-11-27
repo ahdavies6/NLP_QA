@@ -212,7 +212,7 @@ class LSAnalyzer(object):
             elif self.qword == 'when':
                 pass
             elif self.qword == 'where':
-                self._wants_wordnet = [wn.synset('entity.n.01')]
+                pass
             elif self.qword == 'why':
                 pass
             elif self.qword == 'how':

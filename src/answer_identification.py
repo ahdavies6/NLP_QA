@@ -8,6 +8,7 @@ from text_analyzer import lemmatize
 from parse import get_constituency_parse, get_dependency_parse, get_spacy_dep_parse
 from question_classifier import formulate_question
 from wordnet_experiments import get_lexname, LSAnalyzer, synset_sequence_similarity, best_synset
+from word2vec_experiments import similarity
 
 
 def num_occurrences_time_regex(tokens):
@@ -213,6 +214,49 @@ def get_phrase_for_who2(raw_question, raw_sentence):
     #                     matches[key],
     #                     key=lambda x: len(x)
     #                 ))
+
+    noun_phrases = get_parse_trees_with_tag(raw_sentence, "NP")
+    if noun_phrases:
+        matches = {}    # key: match score; value: NP
+        for noun_phrase in noun_phrases:
+            words = noun_phrase.flatten()
+
+            top_match = 0
+            for word in words:
+                for type_match in ['person', 'organization']:
+                    try:
+                        match = similarity(word, type_match)
+                        if match > top_match:
+                            top_match = match
+                    except KeyError:
+                        pass
+                # try:
+                #     person_match = similarity(word, 'person')
+                # except KeyError:
+                #     pass
+                # finally:
+                #     try:
+                #         org_match = similarity(word, 'organization')
+                #     except KeyError:
+                #         pass
+                # if person_match > top_match:
+                #     top_match = person_match
+                # if org_match > top_match:
+                #     top_match = org_match
+
+            if top_match > 0:
+                if top_match in matches:
+                    matches[top_match] += [words]
+                else:
+                    matches[top_match] = [words]
+
+        if matches:
+            for key in sorted(matches.keys(), reverse=True):
+                if key > 0:
+                    return to_sentence(max(
+                        matches[key],
+                        key=lambda x: len(x)
+                    ))
 
 
 # todo: 'have' (lemma) option as well
@@ -424,18 +468,76 @@ def get_phrase_for_where(raw_question, raw_sentence):
         ]
     ]
 
-    prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(raw_sentence, "PP")]
-    for prep_phrase in prep_phrases:
-        has_good_prep = False
-        for prep in ['in', 'at', 'near', 'into', 'between', 'around', 'within']:
-            if prep in prep_phrase:
-                has_good_prep = True
-        if not has_good_prep:
-            prep_phrases.remove(prep_phrase)
+    prep_phrases = [tree for tree in get_parse_trees_with_tag(raw_sentence, "PP")]
     if prep_phrases:
+        ner_matches = {}            # key: match score; value: list of lists of words in PP
+        similarity_matches = {}     # key: match score; value: list of lists of words in PP
+        # todo: try moving things around in here -- might want to remove keyword-less PPs *then* rank, or perhaps not
+        for prep_phrase in prep_phrases:
+            words = prep_phrase.flatten()
+            has_good_prep = False
+            for prep in ['in', 'at', 'near', 'into', 'between', 'around', 'within']:
+                if prep in words:
+                    has_good_prep = True
+            if not has_good_prep:
+                prep_phrases.remove(prep_phrase)
+
+            top_similarity = 0
+            for word in words:
+                # todo: add more types to match here?
+                for type_match in ['location', 'place']:
+                    try:
+                        match = similarity(word, type_match)
+                        if match > top_similarity:
+                            top_similarity = match
+                    except KeyError:
+                        pass
+            if top_similarity > 0:
+                if top_similarity in similarity_matches:
+                    similarity_matches[top_similarity] += [words]
+                else:
+                    similarity_matches[top_similarity] = [words]
+
+            if untagged:
+                ner_match_score = calculate_overlap(words, untagged, False) / len(untagged)
+                if ner_match_score in ner_matches:
+                    ner_matches[ner_match_score] += [words]
+                else:
+                    ner_matches[ner_match_score] = [words]
+
+        # todo: determine whether to use this commented-out block or the part that follows it
+        # if ner_matches and similarity_matches:
+        #     best_ner_match = max(ner_matches.keys())
+        #     best_similarity_match = max(similarity_matches.keys())
+        #     if best_ner_match > best_similarity_match:
+        #         return to_sentence(max(
+        #             ner_matches[best_ner_match],
+        #             key=lambda x: len(x)
+        #         ))
+        #     else:
+        #         return to_sentence(max(
+        #             similarity_matches[best_similarity_match],
+        #             key=lambda x: len(x)
+        #         ))
+        # elif ner_matches:
+        #     return to_sentence(max(
+        #         ner_matches[max(ner_matches.keys())],
+        #         key=lambda x: len(x)
+        #     ))
+        # elif similarity_matches:
+        #     return to_sentence(max(
+        #         similarity_matches[max(similarity_matches.keys())],
+        #         key=lambda x: len(x)
+        #     ))
+        if untagged:
+            return to_sentence(max(
+                ner_matches[max(ner_matches.keys())],
+                key=lambda x: len(x)
+            ))
+
         return to_sentence(max(
-            prep_phrases,
-            key=lambda x: calculate_overlap(x, untagged, False)
+            similarity_matches[max(similarity_matches.keys())],
+            key=lambda x: len(x)
         ))
 
 

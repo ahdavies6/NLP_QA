@@ -79,9 +79,10 @@ class Corpus(object):
         copied_ids = deepcopy(self.id_list)
         result = []
         for i in range(num_items):
-            item_index = random.randrange(len(copied_ids))
-            story_id = copied_ids.pop(item_index)
-            result.append(self._get_story(story_id))
+            if len(copied_ids) > 0:
+                item_index = random.randrange(len(copied_ids))
+                story_id = copied_ids.pop(item_index)
+                result.append(self._get_story(story_id))
 
         return result
 
