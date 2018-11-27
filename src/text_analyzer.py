@@ -1,3 +1,4 @@
+from nltk.corpus import wordnet
 import nltk
 from parse import get_constituency_parse
 import re
@@ -171,6 +172,91 @@ def get_to_phrases(tagged_sentence):
         x_words.clear()
 
     return x_phrases
+
+
+# Convert between a Penn Treebank tag to a simplified Wordnet tag
+def get_wordnet_tag(tag):
+    if tag.startswith('N'):
+        return 'n'
+    if tag.startswith('V'):
+        return 'v'
+    if tag.startswith('J'):
+        return 'a'
+    if tag.startswith('R'):
+        return 'r'
+
+    return None
+
+
+# Takes a wordnet pos tagged word, and converts to synset
+def get_synset(word, tag):
+    wn_tag = get_wordnet_tag(tag)
+    if wn_tag is None:
+        return None
+    try:
+        return wordnet.synsets(word, wn_tag)[0]
+    except:
+        return None
+
+def get_all_synsets(word, tag):
+    wn_tag = get_wordnet_tag(tag)
+    if wn_tag is None:
+        return None
+    try:
+        return wordnet.synsets(word, wn_tag)
+    except:
+        return None
+
+
+def maximum_similarity(sentence1, sentence2):
+    sentence1 = nltk.pos_tag(nltk.word_tokenize(sentence1))
+    sentence2 = nltk.pos_tag(nltk.word_tokenize(sentence2))
+
+    max_similarity = 0
+
+    for word1 in sentence1:
+        for word2 in sentence2:
+            ssets1 = get_all_synsets(*word1)
+            ssets2 = get_all_synsets(*word2)
+            if not ssets1 or not ssets2:
+                continue
+            for synset1 in ssets1:
+                for synset2 in ssets2:
+                    sim = synset1.path_similarity(synset2)
+                    if sim:
+                        if sim > max_similarity:
+                            max_similarity = sim
+    return max_similarity
+
+def sentence_similarity(sentence1, sentence2):
+    sentence1 = nltk.pos_tag(nltk.word_tokenize(sentence1))
+    sentence2 = nltk.pos_tag(nltk.word_tokenize(sentence2))
+
+    synsets1 = [get_synset(*tagged_word) for tagged_word in sentence1]
+    synsets2 = [get_synset(*tagged_word) for tagged_word in sentence2]
+
+    synsets1 = [ss for ss in synsets1 if ss]
+    synsets2 = [ss for ss in synsets2 if ss]
+
+    score, count = 0.0, 0
+
+    for synset_one in synsets1:
+        score_list = [synset_one.path_similarity(ss) for ss in synsets2]
+        verify_scores = [0]
+        for s in score_list:
+            if type(s) is float:
+                verify_scores.append(s)
+
+        best_score = max(verify_scores)
+
+        if best_score is not None:
+            score += best_score
+            count += 1
+    if count != 0:
+        score /= count
+    else:
+        score = 0
+    return score
 
 
 def get_prospects_simple(text, sigwords):
@@ -360,7 +446,7 @@ def get_prospects_for_who_ner(text, inquiry):
 
     who_is_pattern = r'[Ww]ho\sis\s([A-Z][a-z]+\s?[[A-Za-z]+]?)'
     who_is_title = r'[Ww]ho is the ((\w|\s)+) of'
-    who_is_title2 = r'[Ww]ho is the ((.)+)'
+    who_is_title2 = r'[Ww]ho\sis\sthe\s((?:[A-z]+[\s\.]?){1,4})'
 
     sentences = nltk.sent_tokenize(text)
     in_list = []
@@ -383,9 +469,12 @@ def get_prospects_for_who_ner(text, inquiry):
     if title:
         title = title.group(1)
         for sentence in sentences:
-            score = overlap(nltk.word_tokenize(title), nltk.word_tokenize(sentence))
-            if score >= 0.5:
-                in_list.append((-score, sentence))
+            count = 0
+            for keyword in nltk.word_tokenize(title):
+                if keyword.lower() in sentence.lower():
+                    count += 1
+            if count > 0:
+                in_list.append((-count, sentence))
         return in_list
 
     # Experimental.
@@ -459,7 +548,7 @@ def get_prospects_for_who_ner(text, inquiry):
 def get_prospects_for_how_regex(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
-    s_inquiry = inquiry.lower().split()
+    s_inquiry = nltk.word_tokenize(inquiry.lower())
 
     if 'long' in s_inquiry or 'time' in s_inquiry:
         long_time_pattern = r'\d*\s(?:minute[s]?|second[s]?|year[s]?|century|centuries|decade[s]?|day[s]?|hour[s]?|lifetime[s]?)'
@@ -471,12 +560,26 @@ def get_prospects_for_how_regex(text, inquiry):
             l_sentence = sentence.lower()
             lengths = re.search(long_time_pattern, l_sentence)
             lengths2 = re.search(long_size_pattern, l_sentence)
-            if lengths is not None or lengths2 is not None:
+            if lengths or lengths2:
                 regex_check_list.append(sentence)
 
         sub_text = ' '.join(regex_check_list)
 
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+    elif 'weigh' in s_inquiry:
+        weight_pattern = r'[\d,\.]+.*(?:gram(?:me)?[s]?|ton(?:ne)?[s]?|ounce[s]?|pound[s]?|lb[s]?|kg[s]?|oz)'
+
+        regex_check_list = []
+
+        for sentence in sentences:
+            l_sentence = sentence.lower()
+            weights = re.search(weight_pattern, l_sentence)
+            if weights:
+                regex_check_list.append(sentence)
+
+        sub_text = ' '.join(regex_check_list)
+
+        return get_prospects_with_lemmatizer2(sub_text, inquiry)
 
     elif 'much' in s_inquiry:
         much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
@@ -531,8 +634,8 @@ def get_prospects_for_how_regex(text, inquiry):
 
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
-    elif 'did' in s_inquiry or 'does' in s_inquiry or 'are' in s_inquiry or 'is' in s_inquiry:
-        return get_prospects_with_lemmatizer2(text, inquiry)
+    # elif 'did' in s_inquiry or 'does' in s_inquiry or 'are' in s_inquiry or 'is' in s_inquiry:
+    #     return get_prospects_with_lemmatizer2(text, inquiry)
     else:
         return get_prospects_with_lemmatizer2(text, inquiry)
 
@@ -562,7 +665,40 @@ def get_prospects_for_what(text, inquiry):
         sub_text = ' '.join(in_list)
         return get_prospects_with_lemmatizer2(sub_text, inquiry)
 
+    kind_of_pattern = r'[Ww]hat\skind[s]?\sof\s([\w\s]+)'
+
+    kind_of_match = re.search(kind_of_pattern, inquiry)
+
+    if kind_of_match:
+        kind_of_match = kind_of_match.group(1)
+        nn_phrases = get_grammar_phrases(nltk.pos_tag(nltk.word_tokenize(kind_of_match)), 'XX: {<DT|NN|NNS|NNP|NNPS|POS>+}')
+        if len(nn_phrases) > 0:
+            keyphrase = nn_phrases[0]
+            for sentence in sentences:
+                score = sentence_similarity(keyphrase, sentence)
+                if score > 0:
+                    in_list.append((-score, sentence))
+            return in_list
+
+    # what_is_are_pattern = "[Ww]hat\s(?:is|are)\s(.+)"
+    #
+    # what_is_match = re.search(what_is_are_pattern, inquiry)
+    #
+    # if what_is_match:
+    #     what_is_match = what_is_match.group(1).replace('"', '')
+    #     nn_phrases = get_grammar_phrases(nltk.pos_tag(nltk.word_tokenize(what_is_match)), 'XX: {<DT|NN|NNS|NNP|NNPS|POS|IN>+}')
+    #     if len(nn_phrases) > 0:
+    #         keyphrase = nn_phrases[0]
+    #         for sentence in sentences:
+    #             score = maximum_similarity(keyphrase, sentence)
+    #             if score > 0.5:
+    #                 in_list.append(sentence)
+    #         sub_text = ' '.join(in_list)
+    #         return get_prospects_with_wordnet(sub_text, inquiry)
+    #         return in_list
+
     return get_prospects_with_lemmatizer2(text, inquiry)
+
     # s_inquiry = lemmatize(inquiry)
     # if 'be' in s_inquiry:
     #     parse_tree = get_constituency_parse(inquiry)

@@ -431,10 +431,3 @@ if _constituency_parser is None:
     _constituency_parser = CoreNLPParser()
 if _spacy_parser is None:
     _spacy_parser = en_core_web_lg.load()
-
-
-# n = compare_q_and_a(
-#     get_spacy_dep_parse("What are returning officers?"),
-#     get_spacy_dep_parse("Several returning officers (the people in charge of a polling station) called in sick.")
-# )
-# print(n)

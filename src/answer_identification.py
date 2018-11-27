@@ -148,6 +148,27 @@ def get_phrase_for_who(raw_question, raw_sentence):
 
 # todo: either delete this or the other get_p_4_who
 def get_phrase_for_who2(raw_question, raw_sentence):
+    who_is_pattern = r'[Ww]ho\sis\s([A-Z][a-z]+\s?[[A-Za-z]+]?)'
+    person = re.search(who_is_pattern, raw_question)
+    if person:
+        full_name = person.group(1)
+        name_pattern1 = r'(?:{0},\s(.+))'.format(full_name)
+        name_pattern2 = r'(?:(.+),\s{0})'.format(full_name)
+        name_pattern3 = r'((?:[A-Z][A-z\.]+\s)+){0}'.format(full_name)
+        name_pattern4 = r'{0}\s((?:[A-Z][A-z\.]+\s)+)'.format(full_name)
+        title = re.search(name_pattern1, raw_sentence)
+        if title:
+            return title.group(1)
+        title = re.search(name_pattern2, raw_sentence)
+        if title:
+            return title.group(1)
+        title = re.search(name_pattern3, raw_sentence)
+        if title:
+            return title.group(1)
+        title = re.search(name_pattern4, raw_sentence)
+        if title:
+            return title.group(1)
+
     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence)
 
     if answer_chunks:
@@ -423,8 +444,6 @@ def get_phrase_for_why_2(raw_question, raw_sentence):
             if 'because' not in result:
                 result = 'because ' + result
             return result
-
-    return 'because'
 
 
 def get_phrase_for_how_adj(raw_question, raw_sentence):
