@@ -540,16 +540,16 @@ def best_synset(word_str, pos_tag='n'):
             pass
 
 
-def synset_sequence_similarity(synsets_1, synsets_2):
+def synset_sequence_similarity(sequence1, sequence2):
     score, count = 0, 0
-    synsets_1 = [s for s in synsets_1 if s]
-    synsets_2 = [s for s in synsets_2 if s]
+    sequence1 = [s for s in sequence1 if s]
+    sequence2 = [s for s in sequence2 if s]
 
-    if synsets_1 and synsets_2:
-        for synset_1 in synsets_1:
+    if sequence1 and sequence2:
+        for synset_1 in sequence1:
             matches = [
                 x for x in [
-                    (synset_2.path_similarity(synset_1), synset_2) for synset_2 in synsets_2
+                    (synset_2.path_similarity(synset_1), synset_2) for synset_2 in sequence2
                 ] if x[0] is not None
             ]
             if matches:

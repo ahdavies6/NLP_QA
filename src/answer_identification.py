@@ -8,7 +8,7 @@ from text_analyzer import lemmatize
 from parse import get_constituency_parse, get_dependency_parse, get_spacy_dep_parse
 from question_classifier import formulate_question
 from wordnet_experiments import get_lexname, LSAnalyzer, synset_sequence_similarity, best_synset
-from word2vec_experiments import similarity
+from word2vec_experiments import vector_similarity
 
 
 def num_occurrences_time_regex(tokens):
@@ -181,7 +181,6 @@ def get_phrase_for_who2(raw_question, raw_sentence):
         if title:
             return title.group(1)
 
-    # todo: try NER chunking only with person and organization?
     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence)
     if answer_chunks:
         return to_sentence(max(
@@ -225,7 +224,7 @@ def get_phrase_for_who2(raw_question, raw_sentence):
             for word in words:
                 for type_match in ['person', 'organization']:
                     try:
-                        match = similarity(word, type_match)
+                        match = vector_similarity(word, type_match)
                         if match > top_match:
                             top_match = match
                     except KeyError:
@@ -250,13 +249,13 @@ def get_phrase_for_who2(raw_question, raw_sentence):
                 else:
                     matches[top_match] = [words]
 
-        if matches:
-            for key in sorted(matches.keys(), reverse=True):
-                if key > 0:
-                    return to_sentence(max(
-                        matches[key],
-                        key=lambda x: len(x)
-                    ))
+        # if matches:
+        #     for key in sorted(matches.keys(), reverse=True):
+        #         if key > 0:
+        #             return to_sentence(max(
+        #                 matches[key],
+        #                 key=lambda x: len(x)
+        #             ))
 
 
 # todo: 'have' (lemma) option as well
@@ -420,7 +419,6 @@ def get_phrase_for_what_be(raw_question, raw_sentence):
 
 
 def get_phrase_for_what_wn(raw_question, raw_sentence):
-    return None
     analyzer = LSAnalyzer(raw_question)
     return analyzer.produce_answer_phrase(raw_sentence)
     # return analyzer.produce_answer_phrase_2(raw_sentence)
@@ -487,7 +485,7 @@ def get_phrase_for_where(raw_question, raw_sentence):
                 # todo: add more types to match here?
                 for type_match in ['location', 'place']:
                     try:
-                        match = similarity(word, type_match)
+                        match = vector_similarity(word, type_match)
                         if match > top_similarity:
                             top_similarity = match
                     except KeyError:
@@ -535,10 +533,10 @@ def get_phrase_for_where(raw_question, raw_sentence):
                 key=lambda x: len(x)
             ))
 
-        return to_sentence(max(
-            similarity_matches[max(similarity_matches.keys())],
-            key=lambda x: len(x)
-        ))
+        # return to_sentence(max(
+        #     similarity_matches[max(similarity_matches.keys())],
+        #     key=lambda x: len(x)
+        # ))
 
 
 def get_phrase_for_why(raw_question, raw_sentence):
@@ -670,7 +668,7 @@ def get_answer_phrase(raw_question, raw_sentence):
     :param raw_sentence: a question sentence
     :return: the narrowest phrase containing the full answer
     """
-    question = formulate_question(raw_question)
+    question = LSAnalyzer(raw_question)
 
     get_phrases = {
         # 'who': get_phrase_for_who,
@@ -682,7 +680,7 @@ def get_answer_phrase(raw_question, raw_sentence):
 
         # 'what': get_phrase_for_what,
         # 'what': get_phrase_for_what_do,
-        'what': get_phrase_for_what_wn,
+        # 'what': get_phrase_for_what_wn,
         # 'what': get_phrase_for_what_np,
 
         'when': get_phrase_for_when,
@@ -695,9 +693,8 @@ def get_answer_phrase(raw_question, raw_sentence):
         'how': get_phrase_for_how_adj,
     }
 
-    qword = question['qword'][0].lower()
-    if qword in get_phrases:
-        answer = get_phrases[qword](raw_question, raw_sentence)
+    if question.qword in get_phrases:
+        answer = get_phrases[question.qword](raw_question, raw_sentence)
         if answer:
             return answer
 

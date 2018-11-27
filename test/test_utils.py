@@ -1,6 +1,13 @@
 from nltk import sent_tokenize
 from text_analyzer import lemmatize
-from answer_identification import calculate_overlap
+
+
+def calculate_overlap(sequence1, sequence2, eliminate_stopwords=True):
+    overlap = 0
+    for word in sequence1:
+        if word in sequence2 and (word not in stopwords.words('english') or eliminate_stopwords):
+            overlap += 1
+    return overlap
 
 
 def get_sentence_with_answer(story, answer):

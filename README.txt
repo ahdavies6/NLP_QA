@@ -4,6 +4,8 @@ External resources:
     WordNet                     https://wordnet.princeton.edu/
     Numpy                       http://www.numpy.org/
 	Spacy						http://spacy.io
+	Gensim                      https://radimrehurek.com/gensim/
+    Word2Vec
 
 Estimated time per story: 15 seconds
 
