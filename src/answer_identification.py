@@ -250,6 +250,21 @@ def get_phrase_for_what_wn(raw_question, raw_sentence):
     # return analyzer.produce_answer_phrase_2(raw_sentence)
 
 
+def get_phrase_for_what_np(raw_question, raw_sentence):
+    prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(raw_sentence, "PP")]
+    for prep_phrase in prep_phrases:
+        has_good_prep = False
+        for prep in ['in', 'at', 'near', 'into', 'between', 'around', 'within']:
+            if prep in prep_phrase:
+                has_good_prep = True
+        if not has_good_prep:
+            prep_phrases.remove(prep_phrase)
+    if prep_phrases:
+        return to_sentence(max(
+            prep_phrases, key=lambda x: num_occurrences_time_regex(x)
+        ))
+
+
 # todo: figure out whether to continue rejecting left or not
 def get_phrase_for_what_do(raw_question, raw_sentence):
     q_doc = get_spacy_dep_parse(raw_question)
@@ -361,25 +376,27 @@ def get_phrase_for_what_be(raw_question, raw_sentence):
 
 
 def get_phrase_for_when(raw_question, raw_sentence):
-    answer_sentence = get_dependency_parse(raw_sentence)
-
+    # answer_sentence = get_dependency_parse(raw_sentence)
+    #
     # get prepositional phrases
-    prep_nodes = [d for d in answer_sentence.get_nodes if d['tag'] == "prep"]
-    if prep_nodes:
-        top_prep_string = " ".join([x[0] for x in prep_nodes[0].get_pairs])
-        if num_occurrences_time_regex(top_prep_string) > 0:
-            return top_prep_string
+    # prep_nodes = [d for d in answer_sentence.get_nodes if d['tag'] == "prep"]
+    # if prep_nodes:
+    #     top_prep_string = " ".join([x[0] for x in prep_nodes[0].get_pairs])
+    #     if num_occurrences_time_regex(top_prep_string) > 0:
+    #         return top_prep_string
 
     prep_phrases = [x.leaves() for x in get_parse_trees_with_tag(raw_sentence, "PP")]
+    for prep_phrase in prep_phrases:
+        has_good_prep = False
+        for prep in ['in', 'at', 'near', 'into', 'between', 'around', 'within']:
+            if prep in prep_phrase:
+                has_good_prep = True
+        if not has_good_prep:
+            prep_phrases.remove(prep_phrase)
     if prep_phrases:
-        return to_sentence(
-            max(
+        return to_sentence(max(
                 prep_phrases, key=lambda x: num_occurrences_time_regex(x)
-            )
-        )
-    else:
-        if prep_phrases:
-            return to_sentence(max(prep_phrases, key=lambda x: len(x)))
+        ))
 
 
 def get_phrase_for_where(raw_question, raw_sentence):
@@ -493,6 +510,30 @@ def get_phrase_for_why_2(raw_question, raw_sentence):
             return result
 
 
+def get_phrase_for_why_3(raw_question, raw_sentence):
+    prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(raw_sentence, "PP")]
+    for prep_phrase in prep_phrases:
+        has_good_prep = False
+        for prep in ['because', 'to', 'for', 'so']:
+            if prep in prep_phrase:
+                has_good_prep = True
+        if not has_good_prep:
+            prep_phrases.remove(prep_phrase)
+    if prep_phrases:
+        return to_sentence(max(
+            prep_phrases,
+            key=lambda x: len(x)
+        ))
+
+    for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
+        if word in ['because', 'to', 'for', 'so']:
+            result = to_sentence(raw_sentence.split()[i:])
+            if result:
+                if 'because' not in result:
+                    result = 'because ' + result
+                return result
+
+
 def get_phrase_for_how_adj(raw_question, raw_sentence):
     if any([
         get_parse_trees_with_tag(raw_question, "WHADJP"),
@@ -530,8 +571,9 @@ def get_answer_phrase(raw_question, raw_sentence):
         'when': get_phrase_for_when,
         'where': get_phrase_for_where,
 
-        'why': get_phrase_for_why,
+        # 'why': get_phrase_for_why,
         # 'why': get_phrase_for_why_2,
+        'why': get_phrase_for_why_3,
 
         'how': get_phrase_for_how_adj,
         # TODO: put in 'which'? look for other qwords not included?
