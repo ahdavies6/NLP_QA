@@ -385,6 +385,7 @@ def get_phrase_for_when(raw_question, raw_sentence):
 def get_phrase_for_where(raw_question, raw_sentence):
     answer_chunks = get_top_ner_chunk_of_each_tag(raw_sentence, {"GPE"})
 
+    # todo: use this...?
     untagged = [
         tagged[0][1] for tagged in [
             answer_chunks[tag] for tag in answer_chunks
@@ -393,6 +394,13 @@ def get_phrase_for_where(raw_question, raw_sentence):
 
     # TODO: put this in conditional block for "if untagged isn't empty"; else look @ overlap for... question sentence?
     prep_phrases = [tree.leaves() for tree in get_parse_trees_with_tag(raw_sentence, "PP")]
+    for prep_phrase in prep_phrases:
+        has_good_prep = False
+        for prep in ['in', 'at', 'near', 'into', 'between', 'around', 'within']:
+            if prep in prep_phrase:
+                has_good_prep = True
+        if not has_good_prep:
+            prep_phrases.remove(prep_phrase)
     if prep_phrases:
         return to_sentence(max(
             prep_phrases,
