@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export PYTHONPATH=$PYTHONPATH:/home/u1200220/Desktop/NLP_QA/src/
+export PYTHONPATH=$PYTHONPATH:/scratch/tmp/davies/src/
 
 {
 cd stanford-corenlp
@@ -12,6 +12,6 @@ python3 download.py
 # give the server time to start up
 sleep 40
 
-#python3 /home/davies/Documents/QA/qa.py $1
-/home/u1200220/miniconda3/envs/NLP_QA/bin/python /home/u1200220/Desktop/NLP_QA/qa.py $1
-exit
+/home/davies/miniconda3/bin/python3 /scratch/tmp/davies/qa.py $1
+
+exit 0
