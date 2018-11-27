@@ -88,5 +88,5 @@ if __name__ == '__main__':
         with open(question_filename, 'r+') as questions_file:
             text = questions_file.read()
         question = re.findall(question_pattern, text)
-        for question_id, question_text in question:  # match[1] is question itself, match[0] is questionID
-            print(form_output(story_files[story_id][2], question_text, question_id))
+        for match in question:  # match[1] is question itself, match[0] is questionID
+            print(form_output(story_files[story_id][2], match[1], match[0]))
