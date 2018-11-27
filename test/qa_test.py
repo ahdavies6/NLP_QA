@@ -6,6 +6,7 @@ from requests.exceptions import ConnectionError
 from nltk import word_tokenize
 from text_analyzer import *
 from question_classifier import formulate_question
+from wordnet_experiments import LSAnalyzer
 from answer_identification import get_answer_phrase
 from corpus_io import Corpus
 
@@ -19,8 +20,10 @@ answer_pattern = r'QuestionID:\s*(.*)\s*Question:\s*(.*)\s*Answer:\s*(.*)\s*'
 
 
 def form_output(story, inquiry, question_id):
-    q_inquiry = formulate_question(inquiry)
-    qword = q_inquiry['qword'][0].lower()
+    # q_inquiry = formulate_question(inquiry)
+    # qword = q_inquiry['qword'][0].lower()
+    question = LSAnalyzer(inquiry)
+    qword = question.qword
     if qword == 'where':
         feedback = get_prospects_for_where_ner(story, inquiry)
     elif qword == 'who':
@@ -40,18 +43,22 @@ def form_output(story, inquiry, question_id):
     output += 'Answer: '
     heapq.heapify(feedback)
     if len(feedback) > 0:
-        best_sentence = heapq.heappop(feedback)[1]
-        if qword == 'what':
+        if len(feedback) < 2:
+            best_sentence = heapq.heappop(feedback)[1]
             answer = get_answer_phrase(inquiry, best_sentence)
-            if not answer:
-                answer = best_sentence
-            # if 'the' not in word_tokenize(answer):
-            #     answer += ' the'
         else:
+            one = heapq.heappop(feedback)[1]
+            two = heapq.heappop(feedback)[1]
+            if question.sentence_match(one) >= question.sentence_match(two):
+                best_sentence = one
+            else:
+                best_sentence = two
             answer = get_answer_phrase(inquiry, best_sentence)
 
         if answer:
             output += answer
+        else:
+            output += best_sentence
 
     output += '\n\n'
 

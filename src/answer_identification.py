@@ -105,12 +105,13 @@ def to_sentence(tokens, index=0):
     if isinstance(tokens, str):
         return tokens
     elif isinstance(tokens, list):
-        if isinstance(tokens[index], tuple):
-            return ' '.join([
-                token[index] for token in tokens
-            ])
-        else:
-            return ' '.join(tokens)
+        if index < len(tokens):
+            if isinstance(tokens[index], tuple):
+                return ' '.join([
+                    token[index] for token in tokens
+                ])
+            else:
+                return ' '.join(tokens)
     elif isinstance(tokens, Token):
         return ' '.join([token.text for token in tokens.subtree])
 
@@ -381,11 +382,11 @@ def get_phrase_for_why(raw_question, raw_sentence):
     for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
         if word in ["to", "so", "because", "for"]:
             result = to_sentence(raw_sentence.split()[i:])
-            if 'because' not in result:
-                result = 'because ' + result
-            return result
-            # return "because" + to_sentence(raw_sentence.split()[i:])
-        
+            if result:
+                if 'because' not in result:
+                    result = 'because ' + result
+                return result
+
 
 def get_phrase_for_why_2(raw_question, raw_sentence):
     root = None

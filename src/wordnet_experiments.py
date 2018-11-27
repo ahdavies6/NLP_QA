@@ -266,7 +266,7 @@ class LSAnalyzer(object):
                             has_child_wn = True
                             break
         # answer type score
-        score += len([b for b in (has_child_dep, has_child_wn) if b])
+        score += len([x for x in (has_child_dep, has_child_wn) if x])
 
         # dependency overlap score
         if q_dependency_types and s_dependency_types:
@@ -277,23 +277,25 @@ class LSAnalyzer(object):
                     dep_overlap += 1
             score += dep_overlap / len(q_dependency_types)
 
-        s_arg_head, q_arg_head = max(
-            [(s_arg, my_arg) for s_arg in args for my_arg in self.subjects + self.objects],
-            key=lambda pair: sentence_similarity(
-                to_sentence(pair[0]),
-                to_sentence(pair[1])
-            )
-        )
         # max arg similarity score
-        score += synset_sequence_similarity(
-            [x for x in [best_synset(t) for t in s_arg_head.subtree] if x],
-            [x for x in [best_synset(t) for t in q_arg_head.subtree] if x]
-        )
+        if args and (self.subjects or self.objects):
+            s_arg_head, q_arg_head = max(
+                [(s_arg, my_arg) for s_arg in args for my_arg in self.subjects + self.objects],
+                key=lambda pair: sentence_similarity(
+                    to_sentence(pair[0]),
+                    to_sentence(pair[1])
+                )
+            )
+            score += synset_sequence_similarity(
+                [x for x in [best_synset(t) for t in s_arg_head.subtree] if x],
+                [x for x in [best_synset(t) for t in q_arg_head.subtree] if x]
+            )
 
         # overall similarity score
-        question_synsets = [x for x in [best_synset(word) for word in self.doc] if x]
-        sentence_synsets = [x for x in [best_synset(word) for word in root.subtree] if x]
-        score += synset_sequence_similarity(question_synsets, sentence_synsets)
+        score += synset_sequence_similarity(
+            [x for x in [best_synset(word) for word in self.doc] if x],
+            [x for x in [best_synset(word) for word in root.subtree] if x]
+        )
 
         # verb similarity score
         score += synset_sequence_similarity(
@@ -541,19 +543,21 @@ def best_synset(word_str, pos_tag='n'):
 
 def synset_sequence_similarity(synsets_1, synsets_2):
     score, count = 0, 0
+    synsets_1 = [s for s in synsets_1 if s]
+    synsets_2 = [s for s in synsets_2 if s]
 
-    for synset_1 in synsets_1:
-        matches = [
-            x for x in [
-                (synset_2.path_similarity(synset_1), synset_2) for synset_2 in synsets_2
-            ] if x[0] is not None
-        ]
-        if matches:
-            best_match = max(matches, key=lambda pair: pair[0])
-            if best_match:
-                score += best_match[0]
-                count += 1
-                synsets_2.remove(best_match[1])
+    if synsets_1 and synsets_2:
+        for synset_1 in synsets_1:
+            matches = [
+                x for x in [
+                    (synset_2.path_similarity(synset_1), synset_2) for synset_2 in synsets_2
+                ] if x[0] is not None
+            ]
+            if matches:
+                best_match = max(matches, key=lambda pair: pair[0])
+                if best_match:
+                    score += best_match[0]
+                    count += 1
 
     if count:
         return score / count
