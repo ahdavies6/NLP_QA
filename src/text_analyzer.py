@@ -9,6 +9,19 @@ from parse import compare_q_and_a, get_spacy_dep_parse
 _wnl = None
 
 
+stopwords = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself',
+                'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself',
+                'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that',
+                'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+                'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because',
+                'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into',
+                'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out',
+                'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where',
+                'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no',
+                'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just',
+                'don', 'should', 'now', '.', ',', '?', '-', '"', "'"]
+
+
 def overlap(word_list_one, word_list_two):
     if not word_list_two or not word_list_two:
         return 0
@@ -32,6 +45,18 @@ def lemmatize(text, pos: str = 'v'):
         text = nltk.word_tokenize(text)
 
     return [_wnl.lemmatize(word, pos) for word in text]
+
+
+def lemmatize_with_pos(tagged_sentence):
+    lemmatized_sentence = []
+    for word in tagged_sentence:
+        pos = get_wordnet_tag(word[1])
+        if pos:
+            lemmatized_sentence.append(_wnl.lemmatize(word[0], pos))
+        else:
+            lemmatized_sentence.append(_wnl.lemmatize(word[0], 'v'))
+    return lemmatized_sentence
+
 
 
 # Converts a tagged sentence into a string.
@@ -319,19 +344,23 @@ def get_prospects_with_lemmatizer(text, sigwords):
     return in_list
 
 
+def normalize_squash_ne_chunk_and_lemmatize(raw_string, bin=True):
+    return normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(raw_string)), binary=bin)))
+
+
 def get_prospects_with_lemmatizer2(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
     in_list = []
 
-    sigwords = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(inquiry)), binary=True)))
+    sigwords = normalize_squash_ne_chunk_and_lemmatize(inquiry)
     sigwords = restring(sigwords).split()
     ps_sentences = []
 
     for sentence in sentences:
         count = 0
         in_word = []
-        ps_sentence = normalize_forms(squash(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=True)))
+        ps_sentence = normalize_squash_ne_chunk_and_lemmatize(sentence)
         ps_sentence = restring(ps_sentence).split()
         for word in ps_sentence:
             if word in sigwords:
@@ -476,53 +505,6 @@ def get_prospects_for_who_ner(text, inquiry):
             if count > 0:
                 in_list.append((-count, sentence))
         return in_list
-
-    # Experimental.
-######################################################################################################
-    # s_inquiry = lemmatize(inquiry)
-    # if 'be' in s_inquiry:
-    #     parse_tree = get_constituency_parse(inquiry)
-    #     results = []
-    #     for tree in parse_tree.subtrees():
-    #         if tree.label() == "NP":
-    #             results.append(tree)
-    #     if results:
-    #         in_list = []
-    #
-    #         best_phrase = max(results, key=lambda x: len(list(x.subtrees())))
-    #         best_phrase = [w.lower() for w in (lemmatize(' '.join(flatten(best_phrase))))]
-    #         for sentence in sentences:
-    #             tagged_sentence = [w.lower() for w in (lemmatize(sentence))]
-    #             score = overlap(best_phrase, tagged_sentence)
-    #             if score >= 0.5:
-    #                 in_list.append(sentence)
-    #
-    #         if len(in_list) > 0:
-    #             sub_story = ' '.join(in_list)
-    #             get_prospects_with_lemmatizer2(sub_story, inquiry)
-    #             return in_list
-
-    # parse_tree = get_constituency_parse(inquiry)
-    # results = []
-    # for tree in parse_tree.subtrees():
-    #     if tree.label() == "NP":
-    #         results.append(tree)
-    # if results:
-    #     in_list = []
-    #
-    #     best_phrase = max(results, key=lambda x: len(list(x.subtrees())))
-    #     best_phrase = [w.lower() for w in (lemmatize(' '.join(flatten(best_phrase))))]
-    #     for sentence in sentences:
-    #         tagged_sentence = [w.lower() for w in (lemmatize(sentence))]
-    #         score = overlap(best_phrase, tagged_sentence)
-    #         if score == 1.0:
-    #             in_list.append(sentence)
-    #
-    #     # if len(in_list) > 0:
-    #     sub_story = ' '.join(in_list)
-    #     return get_prospects_with_lemmatizer2(sub_story, inquiry)
-    #     # return in_list
-##########################################################################################################
 
     ne_check_list = []
 
@@ -744,7 +726,7 @@ def get_prospects_for_what(text, inquiry):
 def get_prospects_for_when_regex(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
-    s_inquiry = inquiry.lower().split()
+    s_inquiry = nltk.word_tokenize(inquiry.lower())
 
     if 'last' in s_inquiry:
         last_pattern = r'(?:first|last|since|ago)'
@@ -758,45 +740,45 @@ def get_prospects_for_when_regex(text, inquiry):
                 regex_check_list.append(sentence)
 
         sub_text = ' '.join(regex_check_list)
-
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
 
-    elif 'start' in s_inquiry or 'begin' in s_inquiry:
-        start_pattern = r'(?:start|begin|since|year)'
-
-        regex_check_list = []
-
-        for sentence in sentences:
-            l_sentence = sentence.lower()
-            starts = re.search(start_pattern, l_sentence)
-            if starts is not None:
-                regex_check_list.append(sentence)
-
-        sub_text = ' '.join(regex_check_list)
-
-        return get_prospects_with_lemmatizer_all(sub_text, inquiry)
-
+    # elif 'start' in s_inquiry or 'begin' in s_inquiry:
+    #     start_pattern = r'(?:start[s]?|begin|since|year)'
+    #
+    #     regex_check_list = []
+    #
+    #     for sentence in sentences:
+    #         l_sentence = sentence.lower()
+    #         starts = re.search(start_pattern, l_sentence)
+    #         if starts is not None:
+    #             regex_check_list.append(sentence)
+    #
+    #     sub_text = ' '.join(regex_check_list)
+    #
+    #     return get_prospects_with_lemmatizer2(sub_text, inquiry)
+    #
+    # else:
+    #     dates_pattern = r'[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}|[0-9]{4}|january|february|march|april|may|' \
+    #                     r'june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|' \
+    #                     r'jul|aug|sep|sept|oct|nov|dec|[0-2]?[0-9]'
+    #     time_pattern = r"\s*(\d{1,2}\:\d{2}\s?(?:AM|PM|am|pm)?)|\d{1,2}\s*(?:o'clock)"
+    #     span_pattern = r'(?:last|next|this)?\s*(?:week|month|yesterday|today|tomorrow|year)'
+    #
+    #     regex_check_list = []
+    #
+    #     for sentence in sentences:
+    #         l_sentence = sentence.lower()
+    #         dates = re.search(dates_pattern, l_sentence)
+    #         times = re.search(time_pattern, l_sentence)
+    #         spans = re.search(span_pattern, l_sentence)
+    #         if dates is not None or times is not None or spans is not None:
+    #             regex_check_list.append(sentence)
+    #
+    #     sub_text = ' '.join(regex_check_list)
+    #
+    #     return get_prospects_with_lemmatizer2(sub_text, inquiry)
     else:
-        dates_pattern = r'[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4}|[0-9]{4}|january|february|march|april|may|' \
-                        r'june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|' \
-                        r'jul|aug|sep|sept|oct|nov|dec|[0-2]?[0-9]'
-        time_pattern = r"\s*(\d{1,2}\:\d{2}\s?(?:AM|PM|am|pm)?)|\d{1,2}\s*(?:o'clock)"
-        span_pattern = r'(?:last|next|this)?\s*(?:week|month|yesterday|today|tomorrow|year)'
-
-        regex_check_list = []
-
-        for sentence in sentences:
-            l_sentence = sentence.lower()
-            dates = re.search(dates_pattern, l_sentence)
-            times = re.search(time_pattern, l_sentence)
-            spans = re.search(span_pattern, l_sentence)
-            if dates is not None or times is not None or spans is not None:
-                regex_check_list.append(sentence)
-
-        sub_text = ' '.join(regex_check_list)
-
-        return get_prospects_with_wordnet(sub_text, inquiry)
-
+        return get_prospects_with_lemmatizer2(text, inquiry)
 
 def get_prospects_for_when_ner(text, inquiry):
     sentences = nltk.sent_tokenize(text)
@@ -839,21 +821,35 @@ def get_prospects_for_where_ner(text, inquiry):
 
     loc_check_list = []
 
-    prep_grammar = r"""
-        XX: {<IN><DT>?<JJ>*<NN|NNP>+}
-        {<IN><GP|NN|OR|JJ>+}
-    """
+    # prep_grammar = r"""
+    #     XX: {<IN><DT>?<JJ>*<NN|NNP>+}
+    #     {<IN><GP|NN|OR|JJ>+}
+    # """
+
+    s_inquiry = nltk.word_tokenize(inquiry.lower())
+
+    s_inquiry = [s for s in s_inquiry if s not in stopwords]
 
     for sentence in sentences:
-        ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
-        loc_phrases = []
-        loc_phrases.append(get_contiguous_x_phrases(ps_sentence, 'GP'))
-        loc_phrases.append(get_grammar_phrases(ps_sentence, prep_grammar))
-        if len(loc_phrases) > 0:
-            loc_check_list.append(sentence)
+        s_sentence = nltk.word_tokenize(sentence.lower())
+
+        s_sentence = [s for s in s_sentence if s not in stopwords]
+
+        for word in s_inquiry:
+            if word in sentence:
+                if 'in' in sentence or 'at' in sentence or 'near' in sentence:
+                    loc_check_list.append(sentence)
+                break
+
+        # ps_sentence = normalize_forms(squash_with_ne(nltk.ne_chunk(nltk.pos_tag(lemmatize(sentence)), binary=False)))
+        # loc_phrases = []
+        # loc_phrases.append(get_contiguous_x_phrases(ps_sentence, 'GP'))
+        # loc_phrases.append(get_grammar_phrases(ps_sentence, prep_grammar))
+        # if len(loc_phrases) > 0:
+        #     loc_check_list.append(sentence)
 
     sub_story = ' '.join(loc_check_list)
-    return get_prospects_with_lemmatizer_all(sub_story, inquiry)
+    return get_prospects_with_wordnet(sub_story, inquiry)
 
 
 def get_prospects_for_why(text, inquiry):

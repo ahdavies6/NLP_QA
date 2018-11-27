@@ -44,13 +44,18 @@ def num_occurrences_quant_regex(tokens):
     ])
 
 
-def get_parse_trees_with_tag(sentence_text, tag):
-    parse_tree = get_constituency_parse(sentence_text)
-    phrases = []
-    for subtree in parse_tree.subtrees():
-        if subtree.label() == tag:
-            phrases.append(subtree)
-    return phrases
+def get_parse_trees_with_tag(sentence, tag):
+    if isinstance(sentence, str):
+        sentence = get_constituency_parse(sentence)
+    assert isinstance(sentence, nltk.Tree)
+
+    # phrases = []
+    # for subtree in sentence.subtrees():
+    #     if subtree.label() == tag:
+    #         phrases.append(subtree)
+    # return phrases
+
+    return [x for x in sentence.subtrees() if x.label() == tag]
 
 
 def get_dep_trees_with_tag(root_node, tag):
@@ -105,15 +110,23 @@ def to_sentence(tokens, index=0):
     if isinstance(tokens, str):
         return tokens
     elif isinstance(tokens, list):
-        if index < len(tokens):
-            if isinstance(tokens[index], tuple):
-                return ' '.join([
-                    token[index] for token in tokens
-                ])
-            else:
-                return ' '.join(tokens)
+        if len(tokens) > 1:
+            if isinstance(tokens[0], str) or isinstance(tokens[0], tuple):
+                if index < len(tokens):
+                    if isinstance(tokens[index], tuple):
+                        return ' '.join([
+                            token[index] for token in tokens
+                        ])
+                    else:
+                        return ' '.join(tokens)
+            elif isinstance(tokens, nltk.Tree):
+                return [x.join for x in (
+                    ' '.join(tokens.leaves())
+                )]
     elif isinstance(tokens, Token):
         return ' '.join([token.text for token in tokens.subtree])
+    elif isinstance(tokens, nltk.Tree):
+        return ' '.join(tokens.leaves())
 
 
 def remove_punctuation(s):
@@ -231,6 +244,7 @@ def get_phrase_for_what(raw_question, raw_sentence):
 
 
 def get_phrase_for_what_wn(raw_question, raw_sentence):
+    return None
     analyzer = LSAnalyzer(raw_question)
     return analyzer.produce_answer_phrase(raw_sentence)
     # return analyzer.produce_answer_phrase_2(raw_sentence)
@@ -401,7 +415,7 @@ def get_phrase_for_why(raw_question, raw_sentence):
                     prev_was_to = True
 
     for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
-        if word in ["to", "so", "because", "for"]:
+        if word in ['to', 'so', 'because', 'for']:
             result = to_sentence(raw_sentence.split()[i:])
             if result:
                 if 'because' not in result:
@@ -421,23 +435,48 @@ def get_phrase_for_why_2(raw_question, raw_sentence):
         root = raw_sentence
     assert isinstance(root, Token)
 
-    candidate_heads = []
-    for head in root.children:
+    direct_text_matches = []
+    prep_deps = []
+    prep_mods = []
+    conjunctions = []
+    for head in root.subtree:
+        if head.dep_ in LSAnalyzer.PREPOSITIONS:
+            prep_deps.append(head)
+        if head.dep_ in LSAnalyzer.PREP_MODIFIERS:
+            prep_mods.append(head)
+        if head.dep_ in LSAnalyzer.CONJUNCTIONS:
+            conjunctions.append(head)
         full_head_text = ''.join([dep.text.lower() for dep in head.subtree])
         if any(
             [x in full_head_text for x in ['because', 'to', 'for', 'so']]
         ):
-            candidate_heads.append(head)
-        # if head.text.lower() in ['because', 'to', 'for', 'so']:
-        #     candidate_heads.append(head)
+            direct_text_matches.append(head)
 
-    if candidate_heads:
-        return to_sentence(max(
-            candidate_heads,
+    if direct_text_matches:
+        largest_head_text = to_sentence(max(
+            direct_text_matches,
             key=lambda x: len(list(x.subtree))
         ))
+        if 'because' not in largest_head_text:
+            largest_head_text = 'because ' + largest_head_text
+        return largest_head_text
 
-    # todo: try this -- and if nothing else, perhaps just return 'because'?
+    # for group in (prep_deps, prep_mods, conjunctions):
+    #     if group:
+    #         most_promising = to_sentence(max(
+    #             group,
+    #             key=lambda x: len(list(x.subtree))
+    #         ))
+    #         if 'because' not in most_promising:
+    #             most_promising = 'because ' + most_promising
+    #         return most_promising
+
+    # todo: try using conjunctions as well.
+    # preps = [tree for tree in get_constituency_parse(raw_sentence) if tree.label() == 'PP']
+    preps = get_parse_trees_with_tag(raw_sentence, 'PP')
+    if preps:
+        return to_sentence(max(preps, key=lambda x: len(list(x.subtrees()))))
+
     for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
         if word in ['because', 'to', 'for', 'so']:
             result = to_sentence(raw_sentence.split()[i:])
@@ -466,9 +505,6 @@ def get_answer_phrase(raw_question, raw_sentence):
     :param raw_sentence: a question sentence
     :return: the narrowest phrase containing the full answer
     """
-    # raw_question = remove_punctuation(raw_question)
-    # raw_sentence = remove_punctuation(raw_sentence)
-
     question = formulate_question(raw_question)
 
     get_phrases = {
