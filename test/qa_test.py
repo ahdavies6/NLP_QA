@@ -11,18 +11,17 @@ from corpus_io import Corpus
 
 def form_output(story, inquiry, question_id):
     question = LSAnalyzer(inquiry)
-    qword = question.qword
-    if qword == 'where':
+    if question.qword == 'where':
         feedback = get_prospects_for_where_ner(story, inquiry)
-    elif qword == 'who':
+    elif question.qword == 'who':
         feedback = get_prospects_for_who_ner(story, inquiry)
-    elif qword == 'why':
+    elif question.qword == 'why':
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
-    elif qword == 'when':
+    elif question.qword == 'when':
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
-    elif qword == 'how':
+    elif question.qword == 'how':
         feedback = get_prospects_for_how_regex(story, inquiry)
-    elif qword == 'what':
+    elif question.qword == 'what':
         feedback = get_prospects_for_what(story, inquiry)
     else:
         feedback = get_prospects_with_lemmatizer2(story, inquiry)
