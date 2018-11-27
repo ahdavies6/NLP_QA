@@ -1,7 +1,7 @@
 import gensim
 import nltk
 from nltk.corpus import stopwords
-from corpus_io import Corpus
+# from corpus_io import Corpus
 
 
 model = gensim.models.KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin.gz',
@@ -42,9 +42,9 @@ def vector_sequence_similarity(sequence1, sequence2):
         return 0
 
 
-def analyze_corpora(corpus):
-    corpus = Corpus(['developset', 'testset1'])
-    stories = corpus.all
+# def analyze_corpora(corpus):
+#     corpus = Corpus(['developset', 'testset1'])
+#     stories = corpus.all
 
 
 # print(vector_sequence_similarity('eat lunch', 'go to eat'))
