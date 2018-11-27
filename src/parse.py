@@ -1,4 +1,4 @@
-import en_core_web_lg
+# import en_core_web_lg
 from nltk import Tree
 from spacy.tokens import Doc, Token
 from nltk.parse.corenlp import CoreNLPParser, CoreNLPDependencyParser

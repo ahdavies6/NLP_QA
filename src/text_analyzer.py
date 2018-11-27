@@ -1,6 +1,6 @@
 from nltk.corpus import wordnet
 import nltk
-from parse import get_constituency_parse
+# from parse import get_constituency_parse
 import re
 from sentence_similarity import sentence_similarity
 from parse import compare_q_and_a, get_spacy_dep_parse
