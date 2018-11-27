@@ -826,14 +826,13 @@ def get_prospects_for_where_ner(text, inquiry):
     #     {<IN><GP|NN|OR|JJ>+}
     # """
 
-    s_inquiry = nltk.word_tokenize(inquiry.lower())
+    s_inquiry = nltk.word_tokenize(inquiry)
 
     s_inquiry = [s for s in s_inquiry if s not in stopwords]
 
     for sentence in sentences:
-        s_sentence = nltk.word_tokenize(sentence.lower())
-
-        s_sentence = [s for s in s_sentence if s not in stopwords]
+        # s_sentence = nltk.word_tokenize(sentence.lower())
+        # s_sentence = [s for s in s_sentence if s not in stopwords]
 
         for word in s_inquiry:
             if word in sentence:

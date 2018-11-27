@@ -43,7 +43,7 @@ def receive_data(sock):
         sock_data = sock.recv(message_size)
         if not header_done:
             # still receiving header info
-            header_data += sock_data.decode()
+            header_data += sock_data.decode('utf-8')
             if len(header_data) >= header_size:
                 header_done = True
                 # split the already-received data between header and body
