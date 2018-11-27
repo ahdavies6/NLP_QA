@@ -466,8 +466,6 @@ def get_prospects_for_who_ner(text, inquiry):
 
     if title:
         title = title.group(1)
-        print(inquiry)
-        print(title)
         for sentence in sentences:
             count = 0
             for keyword in nltk.word_tokenize(title):
