@@ -20,7 +20,6 @@ def form_output(story, inquiry, answer, question_id):
         if answer:
             output += answer
     output += '\n\n'
-
     return output
 
 
@@ -29,7 +28,6 @@ def right_answer(exact_answer, question_id):
     output += 'Answer: '
     output += exact_answer
     output += '\n\n'
-
     return output
 
 

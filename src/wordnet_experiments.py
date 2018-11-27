@@ -184,11 +184,6 @@ class LSAnalyzer(object):
                     wn.synset('group.n.01')
                 ]
             elif self.qword == 'what':
-                # arg_synsets = [
-                #     best_synset(branch.text, branch.pos_) for branch in [
-                #         head.subtree for head in self.subjects + self.objects
-                #     ]
-                # ]
                 arg_synsets = []
                 # TODO: consider switching this to just objects? test it out!
                 for head in self.subjects + self.objects:
@@ -224,7 +219,6 @@ class LSAnalyzer(object):
         return self._wants_wordnet
 
     # todo: also consider auxiliaries, modifiers, etc.
-    # todo: move over useful/relevant code from produce_answer_phrase
     def sentence_match(self, sentence):
         root = None
         if isinstance(sentence, str):

@@ -31,25 +31,20 @@ def form_output(story, inquiry, question_id):
     output += 'Answer: '
     heapq.heapify(feedback)
     if len(feedback) > 0:
-        if len(feedback) < 2:
-            best_sentence = heapq.heappop(feedback)[1]
-            answer = get_answer_phrase(inquiry, best_sentence)
-        else:
-            one = heapq.heappop(feedback)[1]
-            two = heapq.heappop(feedback)[1]
-            if question.sentence_match(one) >= question.sentence_match(two):
-                best_sentence = one
-            else:
-                best_sentence = two
-            answer = get_answer_phrase(inquiry, best_sentence)
+        best_sentence = heapq.heappop(feedback)[1]
+        answer = get_answer_phrase(inquiry, best_sentence)
+
+        if len(feedback) > 0:
+            second_best_sentence = heapq.heappop(feedback)[1]
+            if question.sentence_match(best_sentence) < question.sentence_match(second_best_sentence):
+                best_sentence = second_best_sentence
+                answer = get_answer_phrase(inquiry, best_sentence)
 
         if answer:
             output += answer
         else:
             output += best_sentence
-
     output += '\n\n'
-
     return output
 
 
