@@ -286,8 +286,8 @@ class LSAnalyzer(object):
         )
         # max arg similarity score
         score += synset_sequence_similarity(
-            [x for x in [best_synset(t) for t in s_arg_head] if x],
-            [x for x in [best_synset(t) for t in q_arg_head] if x]
+            [x for x in [best_synset(t) for t in s_arg_head.subtree] if x],
+            [x for x in [best_synset(t) for t in q_arg_head.subtree] if x]
         )
 
         # overall similarity score
@@ -297,8 +297,8 @@ class LSAnalyzer(object):
 
         # verb similarity score
         score += synset_sequence_similarity(
-            best_synset(self.root),
-            best_synset(root)
+            [best_synset(self.root)],
+            [best_synset(root)]
         )
 
         return score
@@ -543,14 +543,17 @@ def synset_sequence_similarity(synsets_1, synsets_2):
     score, count = 0, 0
 
     for synset_1 in synsets_1:
-        best_match = max(
-            [(synset_2, synset_2.path_similarity(synset_1)) for synset_2 in synsets_2],
-            key=lambda pair: pair[0]
-        )
-        if best_match:
-            score += best_match[0]
-            count += 1
-            synsets_2.remove(best_match[1])
+        matches = [
+            x for x in [
+                (synset_2.path_similarity(synset_1), synset_2) for synset_2 in synsets_2
+            ] if x[0] is not None
+        ]
+        if matches:
+            best_match = max(matches, key=lambda pair: pair[0])
+            if best_match:
+                score += best_match[0]
+                count += 1
+                synsets_2.remove(best_match[1])
 
     if count:
         return score / count
@@ -674,3 +677,6 @@ if __name__ == '__main__':
     #     "but it seems her claim to be accepted as a refugee to Canada may succeed "
     #     "where the claims of 32 people who arrived with her have failed."
     # )
+    a = test.sentence_match("this sentence is garbage")
+    b = test.sentence_match("the woman identified as female")
+    print(max([a, b]))
