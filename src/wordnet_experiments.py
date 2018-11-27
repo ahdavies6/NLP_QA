@@ -16,7 +16,7 @@ class LSAnalyzer(object):
                       'when', 'where', 'why', 'how']
     SUBJECTS = ['agent', 'expl', 'nsubj', 'nsubjpass', 'csubj', 'csubjpass']
     OBJECTS = ['attr', 'dative', 'dobj', 'iobj', 'obj', 'oprd', 'pobj']
-    CONJUNCTIONS = ['acomp', 'ccomp', 'conj', 'cc', 'pcomp', 'preconj', 'xcomp', 'mark']
+    CONJUNCTIONS = ['acomp', 'ccomp', 'conj', 'cc', 'dep', 'pcomp', 'preconj', 'xcomp', 'mark']
     AUXILIARIES = ['aux', 'auxpass', 'cop', 'prt']
     PREPOSITIONS = ['prep']
     NOUN_MODIFIERS = ['acl', 'acomp', 'amod', 'appos', 'case', 'ccomp', 'compound',
@@ -137,9 +137,10 @@ class LSAnalyzer(object):
 
             # todo: look into these two
             elif self.qword == 'why':
-                self._wants_dep = self.AUXILIARIES
+                self._wants_dep = self.AUXILIARIES + self.PREPOSITIONS + self.PREP_MODIFIERS
             elif self.qword == 'how':
-                self._wants_dep = self.AUXILIARIES + self.NOUN_MODIFIERS + self.VERB_MODIFIERS
+                self._wants_dep = self.AUXILIARIES + self.NOUN_MODIFIERS + self.VERB_MODIFIERS + \
+                                  self.PREPOSITIONS + self.PREP_MODIFIERS
 
             else:
                 self._wants_dep = []
@@ -211,7 +212,7 @@ class LSAnalyzer(object):
             elif self.qword == 'when':
                 pass
             elif self.qword == 'where':
-                pass
+                self._wants_wordnet = [wn.synset('entity.n.01')]
             elif self.qword == 'why':
                 pass
             elif self.qword == 'how':
@@ -236,12 +237,18 @@ class LSAnalyzer(object):
             root = sentence
         assert isinstance(root, Token)
 
+        score = 0
         args = []
         auxiliaries = []
         prepositions = []
-        
+
+        has_child_dep = False
+        has_child_wn = False
+        q_dependency_types = [sub.dep_ for sub in self.root.subtree]
+        s_dependency_types = []
         for child in root.subtree:
             dependency = child.dep_
+            s_dependency_types.append(dependency)
             if dependency in self.SUBJECTS or dependency in self.OBJECTS:
                 args.append(child)
             elif dependency in self.AUXILIARIES:
@@ -249,39 +256,52 @@ class LSAnalyzer(object):
             elif dependency in self.PREPOSITIONS:
                 prepositions.append(child)
 
-        # note: we really do actually want this in ascending order, since the worst match isn't
-        # in the question, which means it's more likely to be the answer
-        args_by_sim = sorted(
+            if child.dep_ in self.wants_dep:
+                has_child_dep = True
+            if self.wants_wordnet:
+                hypernyms = root_hypernyms(best_synset(child.text, child.pos_))
+                if hypernyms:
+                    for synset_want in self.wants_wordnet:
+                        if synset_want in hypernyms:
+                            has_child_wn = True
+                            break
+        # answer type score
+        score += len([b for b in (has_child_dep, has_child_wn) if b])
+
+        # dependency overlap score
+        if q_dependency_types and s_dependency_types:
+            dep_overlap = 0
+            for dep in q_dependency_types:
+                if dep in s_dependency_types:
+                    s_dependency_types.remove(dep)
+                    dep_overlap += 1
+            score += dep_overlap / len(q_dependency_types)
+
+        s_arg_head, q_arg_head = max(
             [(s_arg, my_arg) for s_arg in args for my_arg in self.subjects + self.objects],
             key=lambda pair: sentence_similarity(
                 to_sentence(pair[0]),
                 to_sentence(pair[1])
             )
         )
+        # max arg similarity score
+        score += synset_sequence_similarity(
+            [x for x in [best_synset(t) for t in s_arg_head] if x],
+            [x for x in [best_synset(t) for t in q_arg_head] if x]
+        )
 
-        # todo: give some kind of evaluation metric. idea: 1 point if we have wants_wordnet hypernym match, then up to
-        # a point per match on wants_pos and wants_dep
-        if self.qword == 'who':
-            # syn_people = [deps_which_are_hyponym_of()]
-            if args_by_sim:
-                for s_arg, _ in args_by_sim:
-                    if self.wants_wordnet:
-                        for synset_want in self.wants_wordnet:
-                            if synset_want in root_hypernyms(
-                                best_synset(s_arg.text, s_arg.pos_)
-                            ):
-                                return to_sentence(s_arg)
-                return to_sentence(args_by_sim[0])
-        elif self.qword == 'what':
-            pass
-        elif self.qword == 'when':
-            pass
-        elif self.qword == 'where':
-            pass
-        elif self.qword == 'why':
-            pass
-        elif self.qword == 'how':
-            pass
+        # overall similarity score
+        question_synsets = [x for x in [best_synset(word) for word in self.doc] if x]
+        sentence_synsets = [x for x in [best_synset(word) for word in root.subtree] if x]
+        score += synset_sequence_similarity(question_synsets, sentence_synsets)
+
+        # verb similarity score
+        score += synset_sequence_similarity(
+            best_synset(self.root),
+            best_synset(root)
+        )
+
+        return score
 
     # todo: also consider auxiliaries, modifiers, etc.
     def produce_answer_phrase(self, sentence):
@@ -323,7 +343,7 @@ class LSAnalyzer(object):
             else:
                 # TODO: something more sophisticated here...?
                 return to_sentence(max(match_list, key=lambda x: len(list(x.subtree))))
-            
+
     def produce_answer_phrase_2(self, sentence):
         root = None
         if isinstance(sentence, str):
@@ -438,6 +458,29 @@ class LSAnalyzer(object):
                         break
         return score
 
+    # def find_why(self, sentence):
+    #     root = None
+    #     if isinstance(sentence, str):
+    #         root = list(get_spacy_dep_parse(sentence).sents)[0].root
+    #     elif isinstance(sentence, Doc):
+    #         root = list(sentence.sents)[0].root
+    #     elif isinstance(sentence, Span):
+    #         root = sentence.root
+    #     elif isinstance(sentence, Token):
+    #         root = sentence
+    #     assert isinstance(root, Token)
+    #
+    #     candidate_heads = []
+    #     for head in root.subtree:
+    #         if head.text.lower() in ['because', 'to', 'for', 'so']:
+    #             candidate_heads.append(head)
+    #
+    #     if candidate_heads:
+    #         return to_sentence(max(
+    #             candidate_heads,
+    #             key=lambda x: len(list(x.subtree))
+    #         ))
+
     def verb_similarity(self, verb):
         return best_synset(verb, 'v').path_similarity(best_synset(self.root.text, 'v'))
 
@@ -468,6 +511,11 @@ def to_wordnet_tag(tag):
 
 
 def best_synset(word_str, pos_tag='n'):
+    if isinstance(word_str, Token):
+        word_str, pos_tag = word_str.text.lower(), word_str.pos_
+    assert isinstance(word_str, str)
+    assert isinstance(pos_tag, str)
+
     lemma = lemmatize(word_str.lower())
     if lemma:
         lemma = lemma[0]
@@ -489,6 +537,25 @@ def best_synset(word_str, pos_tag='n'):
             raise WordNetError
         except WordNetError:
             pass
+
+
+def synset_sequence_similarity(synsets_1, synsets_2):
+    score, count = 0, 0
+
+    for synset_1 in synsets_1:
+        best_match = max(
+            [(synset_2, synset_2.path_similarity(synset_1)) for synset_2 in synsets_2],
+            key=lambda pair: pair[0]
+        )
+        if best_match:
+            score += best_match[0]
+            count += 1
+            synsets_2.remove(best_match[1])
+
+    if count:
+        return score / count
+    else:
+        return 0
 
 
 def get_lexname(word_or_synset, pos_tag=None):
@@ -589,14 +656,21 @@ if __name__ == '__main__':
     # response = test.produce_answer_phrase(
     #     'Mudslides can move quickly and powerfully, picking up rocks, trees, houses and cars.')
     # print(response)
+    #
+    # test = LSAnalyzer("What is Canada's copyright law largely based on?")
+    # response = test.produce_answer_phrase_2(
+    #     "Canada's copyright act came into effect in 1924, and is based largely on the law in the United Kingdom.")
+    # print(response)
+    #
+    # test = LSAnalyzer("What happens to cells in one half of the brain as a result of Rasmussen's disease?")
+    # response = test.produce_answer_phrase_2(
+    #     "It is not known what causes the disease, "
+    #     "but it is known that cells in one half of the brain become inflamed, or puffy when infected.")
+    # print(response)
 
-    test = LSAnalyzer("What is Canada's copyright law largely based on?")
-    response = test.produce_answer_phrase_2(
-        "Canada's copyright act came into effect in 1924, and is based largely on the law in the United Kingdom.")
-    print(response)
-
-    test = LSAnalyzer("What happens to cells in one half of the brain as a result of Rasmussen's disease?")
-    response = test.produce_answer_phrase_2(
-        "It is not known what causes the disease, "
-        "but it is known that cells in one half of the brain become inflamed, or puffy when infected.")
-    print(response)
+    test = LSAnalyzer("Why can't the woman be identified by name?")
+    # response = test.find_why(
+    #     "The Chinese woman can't be identified because of a legal order, "
+    #     "but it seems her claim to be accepted as a refugee to Canada may succeed "
+    #     "where the claims of 32 people who arrived with her have failed."
+    # )

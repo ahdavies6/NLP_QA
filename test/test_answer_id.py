@@ -126,7 +126,7 @@ def main(random_seed, num_stories):
                 question = story[question_id][0]
                 answers = story[question_id][1]
                 # output += form_output(story_text, question, answers, question_id)
-                if formulate_question(question)['qword'][0].lower() == 'what':
+                if formulate_question(question)['qword'][0].lower() == 'why':
                     output += form_output(story_text, question, answers, question_id)
                     # output += 'QuestionID: ' + question_id + '\n'
                     # output += 'Answer: '

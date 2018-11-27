@@ -2,14 +2,12 @@ import nltk
 import text_analyzer
 import re
 import string
-from nltk.corpus import stopwords, wordnet as wn
-from spacy.tokens import Token
+from nltk.corpus import stopwords
+from spacy.tokens import Doc, Span, Token
 from text_analyzer import lemmatize
-from parse import get_constituency_parse, get_dependency_parse, get_token_dependent_of_type, \
-    get_subtree_dependent_of_type, get_spacy_dep_parse
+from parse import get_constituency_parse, get_dependency_parse, get_spacy_dep_parse
 from question_classifier import formulate_question
-from wordnet_experiments import deps_which_are_hyponym_of, get_lexname, LSAnalyzer
-from sentence_similarity import sentence_similarity
+from wordnet_experiments import get_lexname, LSAnalyzer
 
 
 def num_occurrences_time_regex(tokens):
@@ -387,6 +385,45 @@ def get_phrase_for_why(raw_question, raw_sentence):
                 result = 'because ' + result
             return result
             # return "because" + to_sentence(raw_sentence.split()[i:])
+        
+
+def get_phrase_for_why_2(raw_question, raw_sentence):
+    root = None
+    if isinstance(raw_sentence, str):
+        root = list(get_spacy_dep_parse(raw_sentence).sents)[0].root
+    elif isinstance(raw_sentence, Doc):
+        root = list(raw_sentence.sents)[0].root
+    elif isinstance(raw_sentence, Span):
+        root = raw_sentence.root
+    elif isinstance(raw_sentence, Token):
+        root = raw_sentence
+    assert isinstance(root, Token)
+
+    candidate_heads = []
+    for head in root.children:
+        full_head_text = ''.join([dep.text.lower() for dep in head.subtree])
+        if any(
+            [x in full_head_text for x in ['because', 'to', 'for', 'so']]
+        ):
+            candidate_heads.append(head)
+        # if head.text.lower() in ['because', 'to', 'for', 'so']:
+        #     candidate_heads.append(head)
+
+    if candidate_heads:
+        return to_sentence(max(
+            candidate_heads,
+            key=lambda x: len(list(x.subtree))
+        ))
+
+    # todo: try this -- and if nothing else, perhaps just return 'because'?
+    for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
+        if word in ['because', 'to', 'for', 'so']:
+            result = to_sentence(raw_sentence.split()[i:])
+            if 'because' not in result:
+                result = 'because ' + result
+            return result
+
+    return 'because'
 
 
 def get_phrase_for_how_adj(raw_question, raw_sentence):
@@ -409,8 +446,8 @@ def get_answer_phrase(raw_question, raw_sentence):
     :param raw_sentence: a question sentence
     :return: the narrowest phrase containing the full answer
     """
-    raw_question = remove_punctuation(raw_question)
-    raw_sentence = remove_punctuation(raw_sentence)
+    # raw_question = remove_punctuation(raw_question)
+    # raw_sentence = remove_punctuation(raw_sentence)
 
     question = formulate_question(raw_question)
 
@@ -425,9 +462,13 @@ def get_answer_phrase(raw_question, raw_sentence):
         # 'what': get_phrase_for_what,
         # 'what': get_phrase_for_what_do,
         'what': get_phrase_for_what_wn,
+
         'when': get_phrase_for_when,
         'where': get_phrase_for_where,
+
         'why': get_phrase_for_why,
+        # 'why': get_phrase_for_why_2,
+
         'how': get_phrase_for_how_adj,
         # TODO: put in 'which'? look for other qwords not included?
     }
@@ -516,3 +557,12 @@ def get_answer_phrase(raw_question, raw_sentence):
     #                 [tree.leaves() for tree in qp_phrases],
     #                 key=lambda x: num_occurrences_quant_regex(x)
     #             ))
+
+
+if __name__ == '__main__':
+    test = get_phrase_for_why_2(
+        "Why is a democratic society in Kosovo essential, according to Lloyd Axworthy?",
+        "YNN is a private company that gives schools free equipment - like televisions and computers - "
+        "to make sure it has an audience for its commercial news service."
+    )
+    print(test)
