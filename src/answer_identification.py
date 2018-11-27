@@ -111,22 +111,22 @@ def to_sentence(tokens, index=0):
         return tokens
     elif isinstance(tokens, list):
         if len(tokens) > 1:
-            if isinstance(tokens[0], str) or isinstance(tokens[0], tuple):
-                if index < len(tokens):
-                    if isinstance(tokens[index], tuple):
-                        return ' '.join([
-                            token[index] for token in tokens
-                        ])
-                    else:
-                        return ' '.join(tokens)
-            elif isinstance(tokens, nltk.Tree):
-                return [x.join for x in (
-                    ' '.join(tokens.leaves())
-                )]
+            # if isinstance(tokens[0], str) or isinstance(tokens[0], tuple):
+            #     if index < len(tokens):
+            if isinstance(tokens[index], tuple):
+                return ' '.join([
+                    token[index] for token in tokens
+                ])
+            else:
+                return ' '.join(tokens)
+            # elif isinstance(tokens, nltk.Tree):
+            #     return [x.join for x in (
+            #         ' '.join(tokens.leaves())
+            #     )]
     elif isinstance(tokens, Token):
         return ' '.join([token.text for token in tokens.subtree])
-    elif isinstance(tokens, nltk.Tree):
-        return ' '.join(tokens.leaves())
+    # elif isinstance(tokens, nltk.Tree):
+    #     return ' '.join(tokens.leaves())
 
 
 def remove_punctuation(s):

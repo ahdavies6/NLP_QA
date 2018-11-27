@@ -1,4 +1,3 @@
-import nltk
 import en_core_web_lg
 from nltk import Tree
 from spacy.tokens import Doc, Token
