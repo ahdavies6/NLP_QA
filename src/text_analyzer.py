@@ -3,6 +3,7 @@ import nltk
 from parse import get_constituency_parse
 import re
 
+
 _wnl = None
 
 
@@ -443,7 +444,7 @@ def get_prospects_for_who_ner(text, inquiry):
 
     who_is_pattern = r'[Ww]ho\sis\s([A-Z][a-z]+\s?[[A-Za-z]+]?)'
     who_is_title = r'[Ww]ho is the ((\w|\s)+) of'
-    who_is_title2 = r'[Ww]ho is the ((.)+)'
+    who_is_title2 = r'[Ww]ho\sis\sthe\s((?:[A-z]+[\s\.]?){1,4})'
 
     sentences = nltk.sent_tokenize(text)
     in_list = []
@@ -465,12 +466,16 @@ def get_prospects_for_who_ner(text, inquiry):
 
     if title:
         title = title.group(1)
+        print(inquiry)
+        print(title)
         for sentence in sentences:
-            score = overlap(nltk.word_tokenize(title), nltk.word_tokenize(sentence))
-            if score >= 0.5:
-                in_list.append((-score, sentence))
+            count = 0
+            for keyword in nltk.word_tokenize(title):
+                if keyword.lower() in sentence.lower():
+                    count += 1
+            if count > 0:
+                in_list.append((-count, sentence))
         return in_list
-
     # Experimental.
 ######################################################################################################
     # s_inquiry = lemmatize(inquiry)
@@ -542,7 +547,7 @@ def get_prospects_for_who_ner(text, inquiry):
 def get_prospects_for_how_regex(text, inquiry):
     sentences = nltk.sent_tokenize(text)
 
-    s_inquiry = inquiry.lower().split()
+    s_inquiry = nltk.word_tokenize(inquiry.lower())
 
     if 'long' in s_inquiry or 'time' in s_inquiry:
         long_time_pattern = r'\d*\s(?:minute[s]?|second[s]?|year[s]?|century|centuries|decade[s]?|day[s]?|hour[s]?|lifetime[s]?)'
@@ -554,12 +559,26 @@ def get_prospects_for_how_regex(text, inquiry):
             l_sentence = sentence.lower()
             lengths = re.search(long_time_pattern, l_sentence)
             lengths2 = re.search(long_size_pattern, l_sentence)
-            if lengths is not None or lengths2 is not None:
+            if lengths or lengths2:
                 regex_check_list.append(sentence)
 
         sub_text = ' '.join(regex_check_list)
 
         return get_prospects_with_lemmatizer_all(sub_text, inquiry)
+    elif 'weigh' in s_inquiry:
+        weight_pattern = r'[\d,\.]+.*(?:gram(?:me)?[s]?|ton(?:ne)?[s]?|ounce[s]?|pound[s]?|lb[s]?|kg[s]?|oz)'
+
+        regex_check_list = []
+
+        for sentence in sentences:
+            l_sentence = sentence.lower()
+            weights = re.search(weight_pattern, l_sentence)
+            if weights:
+                regex_check_list.append(sentence)
+
+        sub_text = ' '.join(regex_check_list)
+
+        return get_prospects_with_lemmatizer2(sub_text, inquiry)
 
     elif 'much' in s_inquiry:
         much_pattern = r'\$\s*\d+[,]?\d+[.]?\d*'
