@@ -5,7 +5,7 @@ import string
 from nltk.corpus import stopwords
 from spacy.tokens import Doc, Span, Token
 from text_analyzer import lemmatize
-from parse import get_constituency_parse, get_dependency_parse
+from parse import get_constituency_parse, get_dependency_parse, get_spacy_dep_parse
 from question_classifier import formulate_question
 from wordnet_experiments import get_lexname, LSAnalyzer, synset_sequence_similarity, best_synset
 from word2vec_experiments import vector_similarity
@@ -259,44 +259,44 @@ def get_phrase_for_who2(raw_question, raw_sentence):
 
 
 # todo: 'have' (lemma) option as well
-# def get_phrase_for_what(raw_question, raw_sentence):
-#     q_root = get_spacy_dep_parse(raw_question)
-#     aux = lemmatize(
-#         [to_sentence(token) for token in q_root if token.dep_ in ['aux', 'auxpass']]
-#     )
-#     do_result = -1
-#     be_result = -1
-#     result = None
-#     if aux:
-#         if len(aux) == 1:
-#             if aux[0] == 'do':
-#                 result = get_phrase_for_what_do(raw_question, raw_sentence)
-#             elif aux[0] == 'be':
-#                 result = get_phrase_for_what_be(raw_question, raw_sentence)
-#         else:
-#             big_aux = max(aux, key=lambda x: len(x))
-#             if 'do' in big_aux:
-#                 result = get_phrase_for_what_do(raw_question, raw_sentence)
-#             elif 'be' in big_aux:
-#                 result = get_phrase_for_what_be(raw_question, raw_sentence)
-#
-#         # if isinstance(do_result, str):
-#         #     return do_result
-#         # elif isinstance(be_result, str):
-#         #     return be_result
-#         if result:
-#             return result
-#
-#     lemmatized = lemmatize(raw_question)
-#     if 'do' in lemmatized:
-#         result = get_phrase_for_what_do(raw_question, raw_sentence)
-#     elif 'be' in lemmatized:
-#         result = get_phrase_for_what_be(raw_question, raw_sentence)
-#
-#     if result:
-#         return result
-#
-#     return get_phrase_for_what_do(raw_question, raw_sentence)
+def get_phrase_for_what(raw_question, raw_sentence):
+    q_root = get_spacy_dep_parse(raw_question)
+    aux = lemmatize(
+        [to_sentence(token) for token in q_root if token.dep_ in ['aux', 'auxpass']]
+    )
+    do_result = -1
+    be_result = -1
+    result = None
+    if aux:
+        if len(aux) == 1:
+            if aux[0] == 'do':
+                result = get_phrase_for_what_do(raw_question, raw_sentence)
+            elif aux[0] == 'be':
+                result = get_phrase_for_what_be(raw_question, raw_sentence)
+        else:
+            big_aux = max(aux, key=lambda x: len(x))
+            if 'do' in big_aux:
+                result = get_phrase_for_what_do(raw_question, raw_sentence)
+            elif 'be' in big_aux:
+                result = get_phrase_for_what_be(raw_question, raw_sentence)
+
+        # if isinstance(do_result, str):
+        #     return do_result
+        # elif isinstance(be_result, str):
+        #     return be_result
+        if result:
+            return result
+
+    lemmatized = lemmatize(raw_question)
+    if 'do' in lemmatized:
+        result = get_phrase_for_what_do(raw_question, raw_sentence)
+    elif 'be' in lemmatized:
+        result = get_phrase_for_what_be(raw_question, raw_sentence)
+
+    if result:
+        return result
+
+    return get_phrase_for_what_do(raw_question, raw_sentence)
 
     # if isinstance(do_result, str):
     #     return do_result
@@ -309,88 +309,88 @@ def get_phrase_for_who2(raw_question, raw_sentence):
 
 
 # todo: figure out whether to continue rejecting left or not
-# def get_phrase_for_what_do(raw_question, raw_sentence):
-#     q_doc = get_spacy_dep_parse(raw_question)
-#     s_doc = get_spacy_dep_parse(raw_sentence)
-#
-#     q_verb = [t for t in q_doc if t.dep_ == 'ROOT']
-#     assert len(q_verb) == 1
-#     q_verb = q_verb[0]
-#
-#     s_verb = max(
-#         [t for t in s_doc if t.pos_ == 'VERB'],
-#         key=lambda x: x.similarity(q_verb)
-#     )
-#     assert isinstance(s_verb, Token)
-#
-#     # objs = [t for t in s_verb.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
-#     # obj_heads = [r for r in s_verb.rights if r.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
-#     # stuff = [t for t in [list(r.subtree) for r in s_verb.rights] if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
-#     rights = []
-#     for sublist in [list(r.subtree) for r in s_verb.rights]:
-#         rights += sublist
-#     r_obj_heads = []
-#     for head in rights:
-#         r_obj_heads += [t for t in head.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
-#     # to_sentence(max([r for r in s_verb.rights], key=lambda x: len(list(x.subtree))))
-#     if r_obj_heads:
-#         return to_sentence(max(
-#             r_obj_heads,
-#             key=lambda x: len(list(x.subtree))
-#         ))
-#         # longest_obj = max(
-#         #     objs,
-#         #     key=lambda x: len([y for y in x.subtree])
-#         # )
-#         # return to_sentence(longest_obj)
-#
-#     all_object_heads = [t for t in s_verb.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
-#     if all_object_heads:
-#         return to_sentence(max(
-#             all_object_heads,
-#             key=lambda x: len(list(x.subtree))
-#         ))
+def get_phrase_for_what_do(raw_question, raw_sentence):
+    q_doc = get_spacy_dep_parse(raw_question)
+    s_doc = get_spacy_dep_parse(raw_sentence)
+
+    q_verb = [t for t in q_doc if t.dep_ == 'ROOT']
+    assert len(q_verb) == 1
+    q_verb = q_verb[0]
+
+    s_verb = max(
+        [t for t in s_doc if t.pos_ == 'VERB'],
+        key=lambda x: x.similarity(q_verb)
+    )
+    assert isinstance(s_verb, Token)
+
+    # objs = [t for t in s_verb.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+    # obj_heads = [r for r in s_verb.rights if r.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+    # stuff = [t for t in [list(r.subtree) for r in s_verb.rights] if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj']]
+    rights = []
+    for sublist in [list(r.subtree) for r in s_verb.rights]:
+        rights += sublist
+    r_obj_heads = []
+    for head in rights:
+        r_obj_heads += [t for t in head.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
+    # to_sentence(max([r for r in s_verb.rights], key=lambda x: len(list(x.subtree))))
+    if r_obj_heads:
+        return to_sentence(max(
+            r_obj_heads,
+            key=lambda x: len(list(x.subtree))
+        ))
+        # longest_obj = max(
+        #     objs,
+        #     key=lambda x: len([y for y in x.subtree])
+        # )
+        # return to_sentence(longest_obj)
+
+    all_object_heads = [t for t in s_verb.subtree if t.dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
+    if all_object_heads:
+        return to_sentence(max(
+            all_object_heads,
+            key=lambda x: len(list(x.subtree))
+        ))
 
 
-# def get_phrase_for_what_be(raw_question, raw_sentence):
-#     q_doc = get_spacy_dep_parse(raw_question)
-#     s_doc = get_spacy_dep_parse(raw_sentence)
-#
-#     # are both Span objects
-#     q_noun_chunks = [np for np in q_doc.noun_chunks]
-#     s_noun_chunks = [np for np in s_doc.noun_chunks]
-#
-#     pairs = []
-#     for q_np in q_noun_chunks:
-#         q_head = q_np.root
-#         q_ln = get_lexname(q_head.text, q_head.pos_)
-#         for s_np in s_noun_chunks:
-#             s_head = s_np.root
-#             s_ln = get_lexname(s_head.text, s_head.pos_)
-#
-#             if q_ln == s_ln:
-#                 pairs += [(q_head, s_head)]
-#
-#     if len(pairs) == 1:
-#         return to_sentence(pairs[0][1])
-#     elif len(pairs) > 1:
-#         s_obj_heads = [pair[1] for pair in pairs if pair[1].dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
-#         if s_obj_heads:
-#             return to_sentence(max(
-#                 s_obj_heads,
-#                 key=lambda x: len(list(x.subtree))
-#             ))
-#         else:
-#             return to_sentence(max(
-#                 [pair[1] for pair in pairs],
-#                 key=lambda x: len(list(x.subtree))
-#             ))
-#
-#     if len(s_noun_chunks) > 0:
-#         return to_sentence(max(
-#             [span.root for span in s_noun_chunks],
-#             key=lambda x: len(list(x.subtree))
-#         ))
+def get_phrase_for_what_be(raw_question, raw_sentence):
+    q_doc = get_spacy_dep_parse(raw_question)
+    s_doc = get_spacy_dep_parse(raw_sentence)
+
+    # are both Span objects
+    q_noun_chunks = [np for np in q_doc.noun_chunks]
+    s_noun_chunks = [np for np in s_doc.noun_chunks]
+
+    pairs = []
+    for q_np in q_noun_chunks:
+        q_head = q_np.root
+        q_ln = get_lexname(q_head.text, q_head.pos_)
+        for s_np in s_noun_chunks:
+            s_head = s_np.root
+            s_ln = get_lexname(s_head.text, s_head.pos_)
+
+            if q_ln == s_ln:
+                pairs += [(q_head, s_head)]
+
+    if len(pairs) == 1:
+        return to_sentence(pairs[0][1])
+    elif len(pairs) > 1:
+        s_obj_heads = [pair[1] for pair in pairs if pair[1].dep_ in ['obj', 'dobj', 'iobj', 'pobj', 'dative']]
+        if s_obj_heads:
+            return to_sentence(max(
+                s_obj_heads,
+                key=lambda x: len(list(x.subtree))
+            ))
+        else:
+            return to_sentence(max(
+                [pair[1] for pair in pairs],
+                key=lambda x: len(list(x.subtree))
+            ))
+
+    if len(s_noun_chunks) > 0:
+        return to_sentence(max(
+            [span.root for span in s_noun_chunks],
+            key=lambda x: len(list(x.subtree))
+        ))
 
     # todo: show to Carlos; use in extraction?
     # todo: if you wanna use this, look more at OBJECTS!
@@ -562,66 +562,66 @@ def get_phrase_for_why(raw_question, raw_sentence):
                 return result
 
 
-# def get_phrase_for_why_2(raw_question, raw_sentence):
-#     root = None
-#     if isinstance(raw_sentence, str):
-#         root = list(get_spacy_dep_parse(raw_sentence).sents)[0].root
-#     elif isinstance(raw_sentence, Doc):
-#         root = list(raw_sentence.sents)[0].root
-#     elif isinstance(raw_sentence, Span):
-#         root = raw_sentence.root
-#     elif isinstance(raw_sentence, Token):
-#         root = raw_sentence
-#     assert isinstance(root, Token)
-#
-#     direct_text_matches = []
-#     prep_deps = []
-#     prep_mods = []
-#     conjunctions = []
-#     for head in root.subtree:
-#         if head.dep_ in LSAnalyzer.PREPOSITIONS:
-#             prep_deps.append(head)
-#         if head.dep_ in LSAnalyzer.PREP_MODIFIERS:
-#             prep_mods.append(head)
-#         if head.dep_ in LSAnalyzer.CONJUNCTIONS:
-#             conjunctions.append(head)
-#         full_head_text = ''.join([dep.text.lower() for dep in head.subtree])
-#         if any(
-#             [x in full_head_text for x in ['because', 'to', 'for', 'so']]
-#         ):
-#             direct_text_matches.append(head)
-#
-#     if direct_text_matches:
-#         largest_head_text = to_sentence(max(
-#             direct_text_matches,
-#             key=lambda x: len(list(x.subtree))
-#         ))
-#         if 'because' not in largest_head_text:
-#             largest_head_text = 'because ' + largest_head_text
-#         return largest_head_text
-#
-#     # for group in (prep_deps, prep_mods, conjunctions):
-#     #     if group:
-#     #         most_promising = to_sentence(max(
-#     #             group,
-#     #             key=lambda x: len(list(x.subtree))
-#     #         ))
-#     #         if 'because' not in most_promising:
-#     #             most_promising = 'because ' + most_promising
-#     #         return most_promising
-#
-#     # todo: try using conjunctions as well.
-#     # preps = [tree for tree in get_constituency_parse(raw_sentence) if tree.label() == 'PP']
-#     preps = get_parse_trees_with_tag(raw_sentence, 'PP')
-#     if preps:
-#         return to_sentence(max(preps, key=lambda x: len(list(x.subtrees()))))
-#
-#     for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
-#         if word in ['because', 'to', 'for', 'so']:
-#             result = to_sentence(raw_sentence.split()[i:])
-#             if 'because' not in result:
-#                 result = 'because ' + result
-#             return result
+def get_phrase_for_why_2(raw_question, raw_sentence):
+    root = None
+    if isinstance(raw_sentence, str):
+        root = list(get_spacy_dep_parse(raw_sentence).sents)[0].root
+    elif isinstance(raw_sentence, Doc):
+        root = list(raw_sentence.sents)[0].root
+    elif isinstance(raw_sentence, Span):
+        root = raw_sentence.root
+    elif isinstance(raw_sentence, Token):
+        root = raw_sentence
+    assert isinstance(root, Token)
+
+    direct_text_matches = []
+    prep_deps = []
+    prep_mods = []
+    conjunctions = []
+    for head in root.subtree:
+        if head.dep_ in LSAnalyzer.PREPOSITIONS:
+            prep_deps.append(head)
+        if head.dep_ in LSAnalyzer.PREP_MODIFIERS:
+            prep_mods.append(head)
+        if head.dep_ in LSAnalyzer.CONJUNCTIONS:
+            conjunctions.append(head)
+        full_head_text = ''.join([dep.text.lower() for dep in head.subtree])
+        if any(
+            [x in full_head_text for x in ['because', 'to', 'for', 'so']]
+        ):
+            direct_text_matches.append(head)
+
+    if direct_text_matches:
+        largest_head_text = to_sentence(max(
+            direct_text_matches,
+            key=lambda x: len(list(x.subtree))
+        ))
+        if 'because' not in largest_head_text:
+            largest_head_text = 'because ' + largest_head_text
+        return largest_head_text
+
+    # for group in (prep_deps, prep_mods, conjunctions):
+    #     if group:
+    #         most_promising = to_sentence(max(
+    #             group,
+    #             key=lambda x: len(list(x.subtree))
+    #         ))
+    #         if 'because' not in most_promising:
+    #             most_promising = 'because ' + most_promising
+    #         return most_promising
+
+    # todo: try using conjunctions as well.
+    # preps = [tree for tree in get_constituency_parse(raw_sentence) if tree.label() == 'PP']
+    preps = get_parse_trees_with_tag(raw_sentence, 'PP')
+    if preps:
+        return to_sentence(max(preps, key=lambda x: len(list(x.subtrees()))))
+
+    for i, word in enumerate(nltk.word_tokenize(raw_sentence)):
+        if word in ['because', 'to', 'for', 'so']:
+            result = to_sentence(raw_sentence.split()[i:])
+            if 'because' not in result:
+                result = 'because ' + result
+            return result
 
 
 def get_phrase_for_why_3(raw_question, raw_sentence):
@@ -779,10 +779,9 @@ def get_answer_phrase(raw_question, raw_sentence):
 
 
 if __name__ == '__main__':
-    pass
-    # test = get_phrase_for_why_2(
-    #     "Why is a democratic society in Kosovo essential, according to Lloyd Axworthy?",
-    #     "YNN is a private company that gives schools free equipment - like televisions and computers - "
-    #     "to make sure it has an audience for its commercial news service."
-    # )
-    # print(test)
+    test = get_phrase_for_why_2(
+        "Why is a democratic society in Kosovo essential, according to Lloyd Axworthy?",
+        "YNN is a private company that gives schools free equipment - like televisions and computers - "
+        "to make sure it has an audience for its commercial news service."
+    )
+    print(test)
