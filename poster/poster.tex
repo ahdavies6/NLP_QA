@@ -19,7 +19,9 @@
 \usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
 \usepackage{amsfonts, amsmath, amsthm, amssymb} % For math fonts, symbols and environments
 \usepackage{wrapfig} % Allows wrapping text around tables and figures
+
 \usepackage{graphicx}
+\usepackage{enumitem}
 
 \begin{document}
 
@@ -38,7 +40,7 @@
 
 \color{SaddleBrown} % SaddleBrown color for the introduction
 
-\textbf{\LARGE \\Introduction}\\
+\textit{\textbf{\LARGE \\Introduction}}\\
 \textbf{Our objective} was to design a \textbf{single-document question answering (QA) system}. Our system follows a 2-stage approach: first, candidate sentence selection; second, answer phrase identification. This approach was inspired by that of Wang, Liu, Xiao et al.$^{[1]}$ We began by performing question classification (via constituency parse); next, we used lexical analysis and a rule-based approach for candidate sentence selection; finally, we utilized syntactic argument analysis, guided by dependency/constituency parsing and semantic cues, to produce an answer phrase.
 
 \vspace{1ex}
@@ -48,30 +50,32 @@
 
 \color{DarkSlateGray} % DarkSlateGray color for the rest of the content
 
-\textbf{\LARGE \\Tools Used}\\
+\textit{\textbf{\LARGE \\Tools Used}}\\
 \textbf{Natural Language Tool-Kit (NLTK)}: Used directly for tokenization, lemmatization, POS tagging, some NER, and chunking.\\
 \textbf{Stanford CoreNLP}: Accessed via NLTK to provide constituency and dependency parses. \\
 \textbf{Gensim, Wordnet}: Both assessed word similarity (Gensim via pre-trained embeddings, Wordnet via `synsets'). \\
-\textbf{SpaCy}: Provided some forms of NER and dependency parsing.\\
-\textbf{\LARGE Stage 1: Candidate Sentence Selection}\\
-Our first stage required question classification into questions types. This enabled us to treat each case differently, and additionally deal with particular sub-cases. \\
+\textbf{SpaCy}: Provided some forms of NER and dependency parsing.
+
+\textit{\textbf{\LARGE \\Stage 1: Candidate Sentence Selection}}\\
+Our first stage requires question classification into questions types. This allows us to treat each case differently, including specific sub-cases. \\
 For example, if we know we are dealing with a `how-much' type question, we can often identify candidate sentences by those containing MONEY patterns, or CARDINAL entities. After narrowing down the pool of candidates, we filter our candidate pool through more general sentence selection subprocesses. \\
-\textbf{The ``general" case:} Our system has two generalized processes to rank candidate sentences.\\ For example, one process involved extracting sentences' lemmatized words, while preserving POS tags, and comparing them with those words in the question processed the same way. Sentences are then ranked by similarity (via Wordnet `synsets' and Gensim's word embeddings), and passed on to the second stage (answer identification).
+\textbf{The ``general" case:} Our system has two generalized processes to rank candidate sentences.\\ For example, one process involves extracting sentences' lemmatized words, while preserving POS tags, and comparing them with those words in the question processed the same way. Sentences are then ranked by similarity (via Wordnet `synsets' and Gensim's word embeddings), and passed on to the second stage (answer identification).
 %------------------------------------------------
 
-\textbf{\LARGE \\Stage 2: Answer Phrase Selection}\\
-The second stage began with dependency parsing to determine relevant syntactic arguments (e.g. subject, direct object, etc.). Next, we used Wordnet `synsets', Gensim vector similarity measures, and NER to determine the extent to which various arguments satisfied the semantic properties expected based on the type of question. (For example: `who' questions expected ENTITY types, or words related to `person' or `organization', in subject or direct object positions; `where' questions expected LOCATION types, or words related to various synonyms of `location', as prepositional objects; etc.). \\
-Finally, we found the constituents nested within the most relevant arguments (or, in some cases, arguments nested within relevant constituents) of the expected form for the given question-type, and returned it.
+\textit{\textbf{\LARGE \\Stage 2: Answer Phrase Selection}}\\
+The second stage begins with dependency parsing to determine relevant syntactic arguments (e.g. subject, direct object, etc.). Next, we use Wordnet `synsets', Gensim vector similarity measures, and NER to determine the extent to which various arguments satisfy the semantic properties expected based on the type of question. (For example: `who' questions expect ENTITY types, or words related to `person' or `organization', in subject or direct object positions; `where' questions expect LOCATION types, or words related to various synonyms of `location', as prepositional objects; etc.). \\
+Finally, we look for the constituents nested within the most relevant arguments (or, in some cases, arguments nested within relevant constituents) of the expected form for the given question-type, and return them.
+
 \color{SaddleBrown} % SaddleBrown color for the conclusions to make them stand out
-\textbf{\LARGE\\Conclusions}\\
-\textbf{What Worked Well}
-\begin{itemize}
+\textit{\textbf{\LARGE\\Conclusions}}\\
+\textbf{What Worked Well:}
+\begin{itemize}[noitemsep,topsep=0pt]
     \item Using a three-pronged approach of NER, word embeddings, and Wordnet `synsets' made sure desired information was almost always captured.
     \item Rule-based additions and heuristics often improved performance significantly, and were easy to implement. 
 \end{itemize}
-\vspace{0.7em}
-\textbf{What Did Not}
-\begin{itemize}
+%\vspace{0.7em}
+\textbf{What Did Not:}
+\begin{itemize}[noitemsep,topsep=0pt]
     \item Relying too heavily on parsing sometimes resulted in a lack of robustness (given answers occurring in unexpected syntactic structures).
 \end{itemize}
 \end{multicols}
