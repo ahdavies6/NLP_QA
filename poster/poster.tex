@@ -17,6 +17,7 @@
 \usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
 \usepackage{amsfonts, amsmath, amsthm, amssymb} % For math fonts, symbols and environments
 \usepackage{wrapfig} % Allows wrapping text around tables and figures
+\usepackage{graphicx}
 
 \begin{document}
 
@@ -36,33 +37,35 @@
 \color{SaddleBrown} % SaddleBrown color for the introduction
 
 \section*{\LARGE Introduction}
-\textbf{Our objective} was to design a \textbf{single-document based question answering system}.\\
-Our system follows a 2-stage approach. First, sentence selection, followed by answer identification, inspired by the approach outlined by Wang, Liu, Xiao et al.[1]. We used classification, lexical analysis, and a rule-based approach in the first stage, and argument, and semantic analysis in the second stage.
+\textbf{Our objective} was to design a \textbf{single-document question answering (QA) system}. \\
+Our system follows a 2-stage approach: first, candidate sentence selection; second, answer phrase identification. This approach was inspired by that of Wang, Liu, Xiao et al.$^{[1]}$ We began by performing question classification (via constituency parse); next, we used lexical analysis and a rule-based approach for candidate sentence selection; finally, we utilized syntactic argument analysis, guided by dependency/constituency parsing and semantic cues, to produce an answer phrase.
+
+\vspace{1ex}
+%----------------------------------------------------------------------------------------
+\includegraphics[scale=1.5]{diagram-simple.png}
+%----------------------------------------------------------------------------------------
 
 \color{DarkSlateGray} % DarkSlateGray color for the rest of the content
 
 \section*{\LARGE Tools Used}
-\textbf{Natural Language Tool-Kit (NLTK)} - The backbone of our text processing, and was integral to lexical analysis. \\
-\textbf{Stanford CoreNLP} - The primary parser used for constituency parsing.\\
-\textbf{Wordnet} - Wordnet was used to analyze similarity of sentences and arguments. \\
-\textbf{SpaCy} - 
+\textbf{Natural Language Tool-Kit (NLTK)}: Used directly for tokenization, lemmatization, POS tagging, and some forms of NER. NLTK also provided us with standardized interfaces for all of the other tools (save for SpaCy). \\
+\textbf{Stanford CoreNLP}: Accessed via NLTK to provide constituency and dependency parses. \\
+\textbf{Gensim, Wordnet}: Both assessed word similarity (Gensim via pre-trained embeddings, Wordnet via `synsets'). \\
+\textbf{SpaCy}: Provided some forms of NER and dependency parsing.
 
 %----------------------------------------------------------------------------------------
 %	MATERIALS AND METHODS
 %----------------------------------------------------------------------------------------
 
-\section*{\LARGE First Stage - Sentence Selection}
+\section*{\LARGE Stage 1: Candidate Sentence Selection}
 Our first stage required question classification into questions types. This enabled us to treat each case differently, and additionally deal with particular sub-cases. \\
-For example, if we know we are dealing with a how-much question, we can often identify candidate sentences by those containing MONEY patterns. After narrowing down the pool of candidates, we filter our candidate pool through more general sentence selection subprocesses. \\
-\textbf{The ``general" case} - Our system has two generalized processes to rank candidate sentences.\\ For example, one process involved extracting sentences' lemmatized words, while preserving POS tags, and comparing them with those words in the question processed the same way. Sentences are then ranked by similarity, and passed on to the second stage (answer identification).
+For example, if we know we are dealing with a `how-much'-type question, we can often identify candidate sentences by those containing QUANTITY (especially MONEY) patterns. After narrowing down the pool of candidates, we filter our candidate pool through more general sentence selection subprocesses. \\
+\textbf{The ``general" case:} Our system has two generalized processes to rank candidate sentences.\\ For example, one process involved extracting sentences' lemmatized words, while preserving POS tags, and comparing them with those words in the question processed the same way. Sentences are then ranked by similarity (via Wordnet `synsets' and Gensim's word embeddings), and passed on to the second stage (answer identification).
 %------------------------------------------------
 
-\section*{\LARGE Second Stage - Answer Candidate Selection}
-
-Nulla vel nisl sed mauris auctor mollis non sed. 
-
-Curabitur mi sem, pulvinar quis aliquam rutrum. (1) edf (2)
-, $\Omega=[-1,1]^3$, maecenas leo est, ornare at. $z=-1$ edf $z=1$ sed interdum felis dapibus sem. $x$ set $y$ ytruem. 
+\section*{\LARGE Stage 2: Answer Phrase Selection}
+The second stage began with dependency parsing to determine relevant syntactic arguments (e.g. subject, direct object, etc.). Next, we used Wordnet `synsets', Gensim vector similarity measures, and NER to determine the extent to which various arguments satisfied the semantic properties expected based on the type of question. (For example: `who' questions expected ENTITY types, or words related to `person' or `organization', in subject or direct object positions; `where' questions expected LOCATION types, or words related to various synonyms of `location', as prepositional objects; etc.). \\
+Finally, we found the constituents nested within the most relevant arguments (or, in some cases, arguments nested within relevant constituents) of the expected form for the given question-type, and returned it.
 
 %----------------------------------------------------------------------------------------
 %	CONCLUSIONS
@@ -73,24 +76,23 @@ Curabitur mi sem, pulvinar quis aliquam rutrum. (1) edf (2)
 \section*{\LARGE Conclusions}
 \textbf{What Worked Well}
 \begin{itemize}
-    \item Heuristics and a rule-based approach were hard to abandon.
-    \item 
+    \item Using a three-pronged approach of NER, word embeddings, and Wordnet `synsets' made sure desired information was almost always captured.
 \end{itemize}
 \vspace{0.7em}
 \textbf{What Did Not}
 \begin{itemize}
-    \item 
+    \item Relying too heavily on parsing sometimes resulted in a lack of robustness (given answers occurring in unexpected syntactic structures).
 \end{itemize}
 
 \color{DarkSlateGray} % Set the color back to DarkSlateGray for the rest of the content
 
- %----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
 %	REFERENCES
 %----------------------------------------------------------------------------------------
 
 \nocite{*} % Print all references regardless of whether they were cited in the poster or not
 \bibliographystyle{plain} % Plain referencing style
-\bibliography{sample} % Use the example bibliography file sample.bib
+\bibliography{sample.bib} % Use the example bibliography file sample.bib
 
 \end{multicols}
 \end{document}
