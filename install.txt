@@ -34,3 +34,7 @@ Instructions for text_analyzer:
     use get_prospects_for_who() for who questions
     use get_prospects_for_where() for where questions
     use get_prospects_with_lemmatizer2() for others, for now.
+
+
+IMPORTANT:
+	googlenews vectors: https://github.com/mmihaltz/word2vec-GoogleNews-vectors
